@@ -1,4 +1,3 @@
-// ~~~~~~~ AT: 2:16:07 ~~~~~~~~~ //
 // ~~~~~~~ Use `nodemon app.js` to start the server ~~~~~~~~~ //
 
 const express = require('express')
