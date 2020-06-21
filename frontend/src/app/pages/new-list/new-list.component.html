@@ -1,0 +1,11 @@
+<div class="centered-content">
+    <!-- form-group is a default bootstrap class -->
+    <div class="model-box form-group">
+        <h1 class="title">Create a new list</h1>
+        <!-- #listInput is an angular template reference that allows you to reference elements from other elements -->
+        <input #listInput type="text" class="form-control has-background-light" placeholder="Enter list name">
+    
+        <button class="btn white-text routerLink='/'">Cancel</button>
+        <button class="btn btn-primary" (click)="addList(listInput.value)">Add</button>
+    </div>
+</div>
