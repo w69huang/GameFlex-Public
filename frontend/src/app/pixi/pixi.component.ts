@@ -3,6 +3,7 @@ import { Sprite, Application, Rectangle, Texture, Container, DisplayObject, Text
 import SpriteData from 'src/app/models/spriteData';
 
 declare var PIXI: any; // Instead of importing pixi
+declare var Peer: any;
 
 @Component({
   selector: 'app-pixi',
@@ -15,17 +16,35 @@ export class PixiComponent implements OnInit, AfterViewInit {
 
   public pixiApp: Application; // This will be the pixi application
   public aceOfSpades: SpriteData;
+  public peer: any;
+  public otherPeerId: String;
+  public conn: any;
 
   constructor() { }
 
-  ngOnInit(): void {}
+  ngOnInit(): void {
+    this.peer = new Peer();
+    this.peer.on('open', function(id) {
+      console.log('My peer ID is: ' + id);
+    });
+    this.peer.on('connection', function(conn) { 
+      console.log(`Received connection request from peer with id ${conn.peer}.`);
+      this.conn = conn;
+      this.otherPeer = conn.peer;
+      this.conn.on('open', function() {
+        // Receive messages
+        conn.on('data', function(data) {
+          console.log('Received', data);
+        });
+      });
+    });
+  }
 
   ngAfterViewInit() {
     this.pixiApp = new PIXI.Application({ width: 800, height: 600}); // Creates the pixi application
     this.pixiContainer.nativeElement.appendChild(this.pixiApp.view); // Places the pixi application onto the viewable document
 
     this.createAceOfSpades();
-    //requestAnimationFrame( this.animate );
   }
 
   createAceOfSpades() {
@@ -90,5 +109,22 @@ export class PixiComponent implements OnInit, AfterViewInit {
         event.target.position.x = newPosition.x;
         event.target.position.y = newPosition.y;
     }
+  }
+
+  startConnection(peerID: String) {
+    this.otherPeerId = peerID;
+    var conn = this.peer.connect(this.otherPeerId);
+    this.conn = conn;
+    conn.on('open', function() {
+      // Receive messages
+      conn.on('data', function(data) {
+        console.log('Received', data);
+      });
+    });
+  }
+
+  sendData(data: String) {
+    console.log(`Data being sent to peer with ID ${this.otherPeerId}.`)
+    this.conn.send(data);
   }
 }
