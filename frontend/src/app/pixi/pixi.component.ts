@@ -17,6 +17,7 @@ export class PixiComponent implements OnInit, AfterViewInit {
   public pixiApp: Application; // This will be the pixi application
   public aceOfSpades: SpriteData;
   public peer: any;
+  public peerId: String;
   public otherPeerId: String;
   public conn: any;
 
@@ -24,7 +25,8 @@ export class PixiComponent implements OnInit, AfterViewInit {
 
   ngOnInit(): void {
     this.peer = new Peer();
-    this.peer.on('open', function(id) {
+    this.peer.on('open', (id) => {
+      this.peerId = id;
       console.log('My peer ID is: ' + id);
     });
     this.peer.on('connection', (conn) => { 
@@ -136,16 +138,6 @@ export class PixiComponent implements OnInit, AfterViewInit {
         this.changeXAndY(data);
       });
     });
-  }
-
-  setX(data: String) {
-    console.log(`New x position being sent to peer with ID ${this.otherPeerId}.`)
-    this.conn.send(['X', data]);
-  }
-
-  setY(data: String) {
-    console.log(`New y position being sent to peer with ID ${this.otherPeerId}.`)
-    this.conn.send(['Y', data]);
   }
 
   changeXAndY(data: String) {
