@@ -27,14 +27,14 @@ export class PixiComponent implements OnInit, AfterViewInit {
     this.peer.on('open', function(id) {
       console.log('My peer ID is: ' + id);
     });
-    this.peer.on('connection', function(conn) { 
+    this.peer.on('connection', (conn) => { 
       console.log(`Received connection request from peer with id ${conn.peer}.`);
       this.conn = conn;
-      this.otherPeer = conn.peer;
-      this.conn.on('open', function() {
+      this.otherPeerId = conn.peer;
+      this.conn.on('open', () => {
         // Receive messages
-        conn.on('data', function(data) {
-          console.log('Received', data);
+        conn.on('data', (data) => {
+          this.changeXAndY(data);
         });
       });
     });
@@ -67,12 +67,20 @@ export class PixiComponent implements OnInit, AfterViewInit {
   setupEvents(sprite: Sprite) {
       sprite
         // events for drag start
-        .on('mousedown', this.onDragStart)
+        .on('mousedown', (event) => {
+          this.onDragStart(event);
+        })
         // events for drag end
-        .on('mouseup', this.onDragEnd)
-        .on('mouseupoutside', this.onDragEnd)
+        .on('mouseup', (event) => {
+          this.onDragEnd(event);
+        })
+        .on('mouseupoutside', (event) => {
+          this.onDragEnd(event);
+        })
         // events for drag move
-        .on('mousemove', this.onDragMove)
+        .on('mousemove',(event) => {
+          this.onDragMove(event);
+        })
   }
 
   onDragStart(event: InteractionEvent) {
@@ -108,6 +116,13 @@ export class PixiComponent implements OnInit, AfterViewInit {
         var newPosition = this.data.getLocalPosition(event.target.parent);
         event.target.position.x = newPosition.x;
         event.target.position.y = newPosition.y;
+
+        if (this.conn) {
+          this.conn.send({
+            'x': event.target.position.x,
+            'y': event.target.position.y
+          });
+        }
     }
   }
 
@@ -115,16 +130,26 @@ export class PixiComponent implements OnInit, AfterViewInit {
     this.otherPeerId = peerID;
     var conn = this.peer.connect(this.otherPeerId);
     this.conn = conn;
-    conn.on('open', function() {
+    conn.on('open', () => {
       // Receive messages
-      conn.on('data', function(data) {
-        console.log('Received', data);
+      conn.on('data', (data) => {
+        this.changeXAndY(data);
       });
     });
   }
 
-  sendData(data: String) {
-    console.log(`Data being sent to peer with ID ${this.otherPeerId}.`)
-    this.conn.send(data);
+  setX(data: String) {
+    console.log(`New x position being sent to peer with ID ${this.otherPeerId}.`)
+    this.conn.send(['X', data]);
+  }
+
+  setY(data: String) {
+    console.log(`New y position being sent to peer with ID ${this.otherPeerId}.`)
+    this.conn.send(['Y', data]);
+  }
+
+  changeXAndY(data: String) {
+    this.aceOfSpades.x = parseInt(data['x']);
+    this.aceOfSpades.y = parseInt(data['y']);
   }
 }
