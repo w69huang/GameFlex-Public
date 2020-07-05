@@ -31,7 +31,7 @@
               "src/styles.scss"
             ],
             "scripts": [
-              "node_modules/pixi.js/dist/pixi.min.js"
+              "node_modules/phaser/dist/phaser.min.js"
             ]
           },
           "configurations": {
@@ -97,7 +97,7 @@
               "src/styles.scss"
             ],
             "scripts": [
-              "node_modules/pixi.js/dist/pixi.min.js"
+              "node_modules/phaser/dist/phaser.min.js"
             ]
           }
         },
