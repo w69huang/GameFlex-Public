@@ -20,30 +20,32 @@ class MainScene extends Phaser.Scene {
     // TODO: Figure out how we are going to create batches of cards, as you can only make new ones in the create method it seems like
     // --> Leads to the question of how to make them during runtime
     // ----> TODO: Investigate whether you can call scene.preload and scene.create whenever new cards are added???? Might be the key!
-    // One solution to making batches of cards is having a smaller cards object (that does not extend Phaser.GameObjects.Image) and using that in this loop to create "CardObjects" (what we'd call the ones that extend phaser's images)
 
-    this.cards.push(new Card(this, 250, 250, "1", 1, 'assets/images/playing-cards/ace_of_spades.png'));
+    //this.cards.push(new CardObject(this, 250, 250, "1", 1, 'assets/images/playing-cards/ace_of_spades.png')); -- only if we are going to be extending Phaser.GameObjects.Image
     this.cards.forEach(card => {
-        //card.gameObject = this.add.image(250, 250, card.id.toString()); -- we would use this if we were not doing extending the image and using "new"
-        card.setInteractive();
-        this.input.setDraggable(card);
-        this.input.on('drag', this.dragCallback);
-        card.displayWidth = 200;
-        card.displayHeight = 300;
-        this.add.existing(card);
+        if (card.gameObject == null) {
+          card.gameObject = this.add.image(250, 250, card.id.toString());
+          card.gameObject.setInteractive();
+          this.input.setDraggable(card.gameObject);
+          this.input.on('drag', this.dragCallback);
+          card.gameObject.displayWidth = 200;
+          card.gameObject.displayHeight = 300;
+        }
     })
     console.log('create method');
   }
 
   preload() {
-    //this.cards.forEach(card => {
-      this.load.image("1", 'assets/images/playing-cards/ace_of_spades.png');
-    //});
+    this.cards.forEach(card => {
+      this.load.image(card.id.toString(), card.imagePath);
+    });
     console.log('preload method');
   }
 
   // update() {}
 }
+
+// TODO: Consider using a hashmap of keys to card objects (an associative array/object)
 
 @Component({
   selector: 'app-playspace',
@@ -72,6 +74,7 @@ export class PlayspaceComponent implements OnInit {
   }
 
   ngOnInit(): void {
+    this.phaserScene.cards.push(new Card(1, "assets/images/playing-cards/ace_of_spades.png"))
 
     this.phaserGame = new Phaser.Game(this.config);
     this.peer = new Peer();
@@ -92,16 +95,14 @@ export class PlayspaceComponent implements OnInit {
     });
   }
   
-  onDragMove(pointer: Phaser.Input.Pointer, gameObject: Card, dragX, dragY) {
-    gameObject.x = dragX;
-    gameObject.y = dragY;
+  onDragMove(pointer: Phaser.Input.Pointer, gameObject: Phaser.GameObjects.Image, dragX, dragY) {
+    gameObject.setX(dragX);
+    gameObject.setY(dragY);
     console.log(gameObject);
 
-    // TODO: Figure out if we REALLY need to extend image -- gameObject.texture.key contains the id that we used upon loading the image
-    // --> Maybe it's still worthwhile so that we can add extra properties down the line?
     if (this.conn) {
       this.conn.send({
-        'id': gameObject.id,
+        'id': gameObject.texture.key,
         'x': dragX,
         'y': dragY
       });
@@ -121,15 +122,15 @@ export class PlayspaceComponent implements OnInit {
   }
 
   changeXAndY(data: String) {
-    var card: Card = null;
+    var gameObject: Phaser.GameObjects.Image = null;
     for (var i = 0; i < this.phaserScene.cards.length; i++) {
-      if (this.phaserScene.cards[i].id == data['id']) {
-        card = this.phaserScene.cards[i];
+      if (this.phaserScene.cards[i].gameObject.texture.key == data['id']) {
+        gameObject = this.phaserScene.cards[i].gameObject;
       }
     }
-    if (card != null) {
-      card.setX(data['x']);
-      card.setY(data['y']);
+    if (gameObject != null) {
+      gameObject.setX(data['x']);
+      gameObject.setY(data['y']);
     }
   }
 }

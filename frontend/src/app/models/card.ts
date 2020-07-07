@@ -1,12 +1,9 @@
-import Phaser from 'phaser';
-
-export default class Card extends Phaser.GameObjects.Image {
-    gameObject: Phaser.GameObjects.Image;
+export default class Card {
+    gameObject: Phaser.GameObjects.Image = null;
     id: number;
     imagePath: string;
 
-    constructor(scene: Phaser.Scene, x: number, y: number, phaserID: string, id: number, imagePath: string) {
-        super(scene, x, y, phaserID);
+    constructor(id: number, imagePath: string) {
         this.id = id;
         this.imagePath = imagePath;
     }
