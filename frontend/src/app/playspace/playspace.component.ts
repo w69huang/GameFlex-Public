@@ -8,6 +8,7 @@ declare var Peer: any;
 // --> Will probably need to look into dynamic loading.
 
 class MainScene extends Phaser.Scene {
+  playspaceComponent: PlayspaceComponent;
   cards: Card[] = [];
   dragCallback: Function;
 
@@ -64,6 +65,7 @@ export class PlayspaceComponent implements OnInit {
   
   constructor() { 
     this.phaserScene = new MainScene(this.onDragMove);
+    this.phaserScene.playspaceComponent = this;
     this.config = {
       type: Phaser.AUTO,
       height: 600,
@@ -82,13 +84,14 @@ export class PlayspaceComponent implements OnInit {
       this.peerId = id;
       console.log('My peer ID is: ' + id);
     });
+
     this.peer.on('connection', (conn) => { 
       console.log(`Received connection request from peer with id ${conn.peer}.`);
       this.conn = conn;
       this.otherPeerId = conn.peer;
       this.conn.on('open', () => {
         // Receive messages
-        conn.on('data', (data) => {
+        this.conn.on('data', (data) => {
           this.changeXAndY(data);
         });
       });
@@ -96,12 +99,14 @@ export class PlayspaceComponent implements OnInit {
   }
   
   onDragMove(pointer: Phaser.Input.Pointer, gameObject: Phaser.GameObjects.Image, dragX, dragY) {
+    // NOTE: This is a callback where "this" refers to the FUNCTION'S scope as it was called from MainScene
     gameObject.setX(dragX);
     gameObject.setY(dragY);
-    console.log(gameObject);
 
-    if (this.conn) {
-      this.conn.send({
+    // @ts-ignore
+    if (this.scene.playspaceComponent.conn) {
+      // @ts-ignore
+      this.scene.playspaceComponent.conn.send({
         'id': gameObject.texture.key,
         'x': dragX,
         'y': dragY
