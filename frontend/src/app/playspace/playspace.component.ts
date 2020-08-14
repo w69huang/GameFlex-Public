@@ -25,7 +25,7 @@ class MainScene extends Phaser.Scene {
     //this.cards.push(new CardObject(this, 250, 250, "1", 1, 'assets/images/playing-cards/ace_of_spades.png')); -- only if we are going to be extending Phaser.GameObjects.Image
     this.cards.forEach(card => {
         if (card.gameObject == null) {
-          card.gameObject = this.add.image(250, 250, card.id.toString());
+          card.gameObject = this.add.image(card.x, card.y, card.id.toString());
           card.gameObject.setInteractive();
           this.input.setDraggable(card.gameObject);
           this.input.on('drag', this.dragCallback);
@@ -76,7 +76,8 @@ export class PlayspaceComponent implements OnInit {
   }
 
   ngOnInit(): void {
-    this.phaserScene.cards.push(new Card(1, "assets/images/playing-cards/ace_of_spades.png"))
+    this.phaserScene.cards.push(new Card(1, "assets/images/playing-cards/ace_of_spades.png", 250, 250))
+    this.phaserScene.cards.push(new Card(2, "assets/images/playing-cards/ace_of_spades.png", 550, 250))
 
     this.phaserGame = new Phaser.Game(this.config);
     this.peer = new Peer();
@@ -100,8 +101,29 @@ export class PlayspaceComponent implements OnInit {
   
   onDragMove(pointer: Phaser.Input.Pointer, gameObject: Phaser.GameObjects.Image, dragX, dragY) {
     // NOTE: This is a callback where "this" refers to the FUNCTION'S scope as it was called from MainScene
+    // This is why we are using ts-ignores
     gameObject.setX(dragX);
     gameObject.setY(dragY);
+    
+    var myCenterX = gameObject.x + gameObject.displayWidth/2;
+    var myCenterY = gameObject.y + gameObject.displayHeight/2;
+
+    // Detect overlap
+    // @ts-ignore
+    this.scene.cards.forEach((card) => {
+      // If we are not comparing with ourselves
+      if (gameObject.texture.key != card.id.toString()) {
+        var refCardX = card.gameObject.x;
+        var refCardY = card.gameObject.y;
+        var refCardWidth = card.gameObject.displayWidth;
+        var refCardHeight = card.gameObject.displayHeight;
+
+        // If the center point of the card being dragged overlaps with any reference card
+        if (myCenterX > refCardX && myCenterX < refCardX + refCardWidth && myCenterY > refCardY && myCenterY < refCardY + refCardHeight) {
+          console.log("Overlap!");
+        }
+      }
+    });
 
     // @ts-ignore
     if (this.scene.playspaceComponent.conn) {
