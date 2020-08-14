@@ -10,11 +10,10 @@ declare var Peer: any;
 class MainScene extends Phaser.Scene {
   playspaceComponent: PlayspaceComponent;
   cards: Card[] = [];
-  dragCallback: Function;
 
-  constructor(dragCallback: Function) {
+  constructor(playspaceComponent: PlayspaceComponent) {
     super({ key: 'main' });
-    this.dragCallback = dragCallback;
+    this.playspaceComponent = playspaceComponent;
   }
 
   create() {
@@ -28,7 +27,8 @@ class MainScene extends Phaser.Scene {
           card.gameObject = this.add.image(card.x, card.y, card.id.toString());
           card.gameObject.setInteractive();
           this.input.setDraggable(card.gameObject);
-          this.input.on('drag', this.dragCallback);
+          this.input.on('drag', this.playspaceComponent.onDragMove);
+          this.input.on('dragend', this.playspaceComponent.onDragEnd);
           card.gameObject.displayWidth = 200;
           card.gameObject.displayHeight = 300;
         }
@@ -64,8 +64,7 @@ export class PlayspaceComponent implements OnInit {
   public conn: any;
   
   constructor() { 
-    this.phaserScene = new MainScene(this.onDragMove);
-    this.phaserScene.playspaceComponent = this;
+    this.phaserScene = new MainScene(this);
     this.config = {
       type: Phaser.AUTO,
       height: 600,
@@ -80,7 +79,7 @@ export class PlayspaceComponent implements OnInit {
     this.phaserScene.cards.push(new Card(2, "assets/images/playing-cards/ace_of_spades.png", 550, 250))
 
     this.phaserGame = new Phaser.Game(this.config);
-    this.peer = new Peer();
+    this.peer = new Peer(); // You can pass in a specific ID if you want to hardcode the peer ID
     this.peer.on('open', (id) => {
       this.peerId = id;
       console.log('My peer ID is: ' + id);
@@ -104,26 +103,6 @@ export class PlayspaceComponent implements OnInit {
     // This is why we are using ts-ignores
     gameObject.setX(dragX);
     gameObject.setY(dragY);
-    
-    var myCenterX = gameObject.x + gameObject.displayWidth/2;
-    var myCenterY = gameObject.y + gameObject.displayHeight/2;
-
-    // Detect overlap
-    // @ts-ignore
-    this.scene.cards.forEach((card) => {
-      // If we are not comparing with ourselves
-      if (gameObject.texture.key != card.id.toString()) {
-        var refCardX = card.gameObject.x;
-        var refCardY = card.gameObject.y;
-        var refCardWidth = card.gameObject.displayWidth;
-        var refCardHeight = card.gameObject.displayHeight;
-
-        // If the center point of the card being dragged overlaps with any reference card
-        if (myCenterX > refCardX && myCenterX < refCardX + refCardWidth && myCenterY > refCardY && myCenterY < refCardY + refCardHeight) {
-          console.log("Overlap!");
-        }
-      }
-    });
 
     // @ts-ignore
     if (this.scene.playspaceComponent.conn) {
@@ -134,6 +113,42 @@ export class PlayspaceComponent implements OnInit {
         'y': dragY
       });
     }
+  }
+
+  onDragEnd(pointer: Phaser.Input.Pointer, gameObject: Phaser.GameObjects.Image) {
+    var myCenterX = gameObject.x + gameObject.displayWidth/2;
+    var myCenterY = gameObject.y + gameObject.displayHeight/2;
+    var cardIdList = [];
+
+    // Detect overlap
+    // @ts-ignore
+    this.scene.cards.forEach((card: Card) => {
+      // If we are not comparing with ourselves
+      if (gameObject.texture.key != card.id.toString()) {
+        var refCardX = card.gameObject.x;
+        var refCardY = card.gameObject.y;
+        var refCardWidth = card.gameObject.displayWidth;
+        var refCardHeight = card.gameObject.displayHeight;
+
+        // If the center point of the card being dragged overlaps with any reference card
+        if (myCenterX > refCardX && myCenterX < refCardX + refCardWidth && myCenterY > refCardY && myCenterY < refCardY + refCardHeight) {
+          // @ts-ignore
+          this.scene.cards.forEach((card: Card) => {
+            if (gameObject.texture.key === card.id.toString()) {
+              console.log("Overlap!");
+              gameObject.destroy();
+              cardIdList.push(card.id);
+            }
+          });
+        }
+
+      }
+    });
+
+    // @ts-ignore
+    this.scene.cards = this.scene.cards.filter( (card: Card) => {
+      return !cardIdList.includes(card.id);
+    });
   }
 
   startConnection(peerID: string) {
