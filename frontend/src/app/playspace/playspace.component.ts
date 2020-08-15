@@ -112,7 +112,7 @@ export class PlayspaceComponent implements OnInit {
       this.conn.on('open', () => {
         // Receive messages
         this.conn.on('data', (data) => {
-          this.changeXAndY(data);
+          this.handleData(data);
         });
       });
     });
@@ -125,7 +125,9 @@ export class PlayspaceComponent implements OnInit {
   
       if (playspaceComponent.conn) {
         playspaceComponent.conn.send({
-          'id': object.gameObject.texture.key,
+          'action': 'move',
+          'type': object.type,
+          'id': parseInt(object.gameObject.texture.key),
           'x': dragX,
           'y': dragY
         });
@@ -162,6 +164,15 @@ export class PlayspaceComponent implements OnInit {
                 deck.cards.push(card); // Add the card into the deck
                 console.log(deck.cards);
                 cardList.push(card);
+
+                if (playspaceComponent.conn) {
+                  playspaceComponent.conn.send({
+                    'action': 'insert',
+                    'type': object.type,
+                    'cardID': parseInt(object.gameObject.texture.key),
+                    'deckID': deck.id,
+                  });
+                }
               }
             });
           }
@@ -195,13 +206,20 @@ export class PlayspaceComponent implements OnInit {
           card.gameObject.displayWidth = 200;
           card.gameObject.displayHeight = 300;
           playspaceComponent.phaserScene.cards.push(card);
+
+          if (playspaceComponent.conn) {
+            playspaceComponent.conn.send({
+              'action': 'remove',
+              'type': 'deck',
+              'cardID': card.id,
+              'deckID': deck.id,
+              'x': card.x,
+              'y': card.y
+            });
+          }
         }
       }
     }
-  }
-
-  deckImageLoaded() {
-    console.log("hype");
   }
 
   startConnection(peerID: string) {
@@ -211,21 +229,106 @@ export class PlayspaceComponent implements OnInit {
     conn.on('open', () => {
       // Receive messages
       conn.on('data', (data) => {
-        this.changeXAndY(data);
+        this.handleData(data);
       });
     });
   }
 
-  changeXAndY(data: String) {
-    var gameObject: Phaser.GameObjects.Image = null;
-    for (var i = 0; i < this.phaserScene.cards.length; i++) {
-      if (this.phaserScene.cards[i].gameObject.texture.key == data['id']) {
-        gameObject = this.phaserScene.cards[i].gameObject;
-      }
+  handleData(data: String) {
+    switch(data['action']) {
+      case 'move':
+        if (data['type'] === 'card') {
+          var gameObject: Phaser.GameObjects.Image = null;
+          for (var i = 0; i < this.phaserScene.cards.length; i++) {
+            if (parseInt(this.phaserScene.cards[i].gameObject.texture.key) == data['id']) {
+              gameObject = this.phaserScene.cards[i].gameObject;
+            }
+          }
+          if (gameObject != null) {
+            gameObject.setX(data['x']);
+            gameObject.setY(data['y']);
+          }
+        } else if (data['type'] === 'deck') {
+          var gameObject: Phaser.GameObjects.Image = null;
+          for (var i = 0; i < this.phaserScene.decks.length; i++) {
+            if (parseInt(this.phaserScene.decks[i].gameObject.texture.key) == data['id']) {
+              gameObject = this.phaserScene.decks[i].gameObject;
+            }
+          }
+          if (gameObject != null) {
+            gameObject.setX(data['x']);
+            gameObject.setY(data['y']);
+          }
+        }
+        break;
+
+      case 'insert':
+        if (data['type'] === 'card') {
+          var card: Card = null;
+          var deck: Deck = null;
+          for (var i = 0; i < this.phaserScene.cards.length; i++) {
+            if (this.phaserScene.cards[i].id === data['cardID']) {
+              card = this.phaserScene.cards[i];
+            }
+          }
+
+          for (var i = 0; i < this.phaserScene.decks.length; i++) {
+            if (this.phaserScene.decks[i].id === data['deckID']) {
+              deck = this.phaserScene.decks[i];
+            }
+          }
+
+          if (card && deck) {
+            deck.cards.push(card);
+            card.gameObject.destroy();
+            card.gameObject = null;
+
+            this.phaserScene.cards = this.phaserScene.cards.filter( (refCard: Card) => {
+              return refCard.id != card.id;
+            });
+          }
+        }
+        break;
+
+      case 'remove':
+        if (data['type'] === 'deck') {
+          var card: Card = null;
+          var deck: Deck = null;
+
+          for (var i = 0; i < this.phaserScene.decks.length; i++) {
+            if (this.phaserScene.decks[i].id === data['deckID']) {
+              deck = this.phaserScene.decks[i];
+            }
+          }
+
+          if (deck) {
+            for (var i = 0; i < deck.cards.length; i++) {
+              if (deck.cards[i].id === data['cardID']) {
+                card = deck.cards[i];
+              }
+            }
+  
+            if (card) {
+              card.gameObject = this.phaserScene.add.image(data['x'], data['y'], data['cardID'].toString());
+              card.gameObject.setInteractive();
+              this.phaserScene.input.setDraggable(card.gameObject);
+              card.gameObject.on('drag', this.onDragMove.bind(this, card, this));
+              card.gameObject.on('dragend', this.onDragEnd.bind(this, card, this));
+              card.gameObject.displayWidth = 200;
+              card.gameObject.displayHeight = 300;
+              this.phaserScene.cards.push(card);
+  
+              deck.cards = deck.cards.filter( (refCard: Card) => {
+                return refCard.id != card.id;
+              });
+            }
+          }
+        }
+
+      default:
+        break;
     }
-    if (gameObject != null) {
-      gameObject.setX(data['x']);
-      gameObject.setY(data['y']);
-    }
+      
+      
   }
 }
