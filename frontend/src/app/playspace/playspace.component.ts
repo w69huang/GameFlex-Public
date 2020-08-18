@@ -99,7 +99,15 @@ export class PlayspaceComponent implements OnInit {
     this.phaserScene.decks.push(new Deck(3, "assets/images/playing-cards/deck.png", null, 400, 250))
 
     this.phaserGame = new Phaser.Game(this.config);
-    this.peer = new Peer(); // You can pass in a specific ID if you want to hardcode the peer ID
+
+    // NOTE: Launch a local peer server:
+    // 1. npm install -g peer
+    // 2. peerjs --port 9000 --key peerjs --path /peerserver
+    this.peer = new Peer({ // You can pass in a specific ID as the first argument if you want to hardcode the peer ID
+      host: 'localhost',
+      port: 9000,
+      path: '/peerserver' // Make sure this path matches the path you used to launch it
+    }); 
     this.peer.on('open', (id) => {
       this.peerId = id;
       console.log('My peer ID is: ' + id);
