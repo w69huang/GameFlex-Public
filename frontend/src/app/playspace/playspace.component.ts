@@ -5,6 +5,31 @@ import Deck from '../models/deck';
 
 declare var Peer: any;
 
+class PopupScene extends Phaser.Scene {
+
+    key: string;
+    zone: Phaser.GameObjects.Zone;
+    playspaceComponent: PlayspaceComponent;
+    deck: Deck;
+
+    constructor (handle, zone, playspaceComponent, deck) {
+        super(handle);
+        this.key = handle;
+        this.zone = zone;
+        this.playspaceComponent = playspaceComponent;
+        this.deck = deck;
+    }
+    create () {
+        this.add.image(0, 0, 'grey-background').setOrigin(0);
+        this.cameras.main.setViewport(this.zone.x, this.zone.y, 100, 100);
+        var closeButton = this.add.image(75, 0, 'close').setOrigin(0);
+        closeButton.setInteractive();
+        closeButton.on('pointerdown', this.playspaceComponent.popupClose.bind(this, this.key, this.playspaceComponent));
+        closeButton.displayWidth = 25;
+        closeButton.displayHeight = 25;
+    }
+}
+
 // TODO: How would this work if someone joined a game with a deck? Would be unable to be pre-loaded for the host/original players.
 // --> Will probably need to look into dynamic loading.
 
@@ -59,7 +84,8 @@ class MainScene extends Phaser.Scene {
       this.load.image(deck.id.toString(), deck.imagePath);
     });
 
-    console.log('preload method');
+    this.load.image('grey-background', 'assets/images/backgrounds/grey.png');
+    this.load.image('close', 'assets/images/buttons/close.png');
   }
 
   // update() {}
@@ -77,6 +103,7 @@ export class PlayspaceComponent implements OnInit {
   phaserScene: MainScene;
   config: Phaser.Types.Core.GameConfig;
   aceOfSpades: Phaser.GameObjects.Image;
+  popupCount: number = 0;
   public peer: any;
   public peerId: string;
   public otherPeerId: string;
@@ -200,34 +227,41 @@ export class PlayspaceComponent implements OnInit {
   }
 
   deckRightClick(deck: Deck, playspaceComponent: PlayspaceComponent, pointer: Phaser.Input.Pointer, localX: number, localY: number, event: Phaser.Types.Input.EventData) {
-    if (pointer.rightButtonDown()) {
+    var zone = playspaceComponent.phaserScene.add.zone(pointer.x, pointer.y, 100, 100).setInteractive().setOrigin(0);
+    var handle = "popup" + playspaceComponent.popupCount++;
+    var popupScene = new PopupScene(handle, zone, playspaceComponent, deck);
 
-      var card = deck.cards.pop();
+    playspaceComponent.phaserScene.scene.add(handle, popupScene, true);
 
-      if (card) {
-        if (card.gameObject == null) {
-          card.gameObject = playspaceComponent.phaserScene.add.image(card.x, card.y, card.id.toString());
-          card.gameObject.setInteractive();
-          playspaceComponent.phaserScene.input.setDraggable(card.gameObject);
-          card.gameObject.on('drag', playspaceComponent.onDragMove.bind(this, card, playspaceComponent));
-          card.gameObject.on('dragend', playspaceComponent.onDragEnd.bind(this, card, playspaceComponent));
-          card.gameObject.displayWidth = 200;
-          card.gameObject.displayHeight = 300;
-          playspaceComponent.phaserScene.cards.push(card);
+    
+    //if (pointer.rightButtonDown()) {
 
-          if (playspaceComponent.conn) {
-            playspaceComponent.conn.send({
-              'action': 'remove',
-              'type': 'deck',
-              'cardID': card.id,
-              'deckID': deck.id,
-              'x': card.x,
-              'y': card.y
-            });
-          }
-        }
-      }
-    }
+    //  var card = deck.cards.pop();
+
+    //  if (card) {
+    //    if (card.gameObject == null) {
+    //      card.gameObject = playspaceComponent.phaserScene.add.image(card.x, card.y, card.id.toString());
+    //      card.gameObject.setInteractive();
+    //      playspaceComponent.phaserScene.input.setDraggable(card.gameObject);
+    //      card.gameObject.on('drag', playspaceComponent.onDragMove.bind(this, card, playspaceComponent));
+    //      card.gameObject.on('dragend', playspaceComponent.onDragEnd.bind(this, card, playspaceComponent));
+    //      card.gameObject.displayWidth = 200;
+    //      card.gameObject.displayHeight = 300;
+    //      playspaceComponent.phaserScene.cards.push(card);
+
+    //      if (playspaceComponent.conn) {
+    //        playspaceComponent.conn.send({
+    //          'action': 'remove',
+    //          'type': 'deck',
+    //          'cardID': card.id,
+    //          'deckID': deck.id,
+    //          'x': card.x,
+    //          'y': card.y
+    //        });
+    //      }
+    //    }
+    //  }
+    //}
   }
 
   startConnection(peerID: string) {
@@ -336,7 +370,10 @@ export class PlayspaceComponent implements OnInit {
       default:
         break;
     }
-      
-      
+  }
+
+  popupClose(key: string, playspaceComponent: PlayspaceComponent) {
+    console.log('Closed!');
+    playspaceComponent.phaserScene.scene.remove(key);
   }
 }
