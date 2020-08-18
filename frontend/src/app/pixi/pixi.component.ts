@@ -1,3 +1,4 @@
+/*
 import { Component, OnInit, ViewChild, ElementRef, AfterViewInit } from '@angular/core';
 import { Sprite, Application, Rectangle, Texture, Container, DisplayObject, Text, InteractionData, InteractionEvent } from 'pixi.js';
 import SpriteData from 'src/app/models/spriteData';
@@ -145,3 +146,4 @@ export class PixiComponent implements OnInit, AfterViewInit {
     this.aceOfSpades.y = parseInt(data['y']);
   }
 }
+*/

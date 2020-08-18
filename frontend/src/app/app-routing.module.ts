@@ -3,12 +3,12 @@ import { Routes, RouterModule } from '@angular/router';
 import { TaskViewComponent } from './pages/task-view/task-view.component';
 import { NewListComponent } from './pages/new-list/new-list.component';
 import { NewTaskComponent } from './pages/new-task/new-task.component';
-import { PixiComponent } from './pixi/pixi.component';
+import { PlayspaceComponent } from './playspace/playspace.component';
 
 
 const routes: Routes = [
-  { path: '', redirectTo: 'pixi', pathMatch: 'full' },
-  { path: 'pixi', component: PixiComponent},
+  { path: '', redirectTo: 'playspace', pathMatch: 'full' },
+  { path: 'playspace', component: PlayspaceComponent},
 
   { path: 'lists', component: TaskViewComponent },
   { path: 'lists/:listId', component: TaskViewComponent },
