@@ -5,28 +5,72 @@ import Deck from '../models/deck';
 
 declare var Peer: any;
 
+class OptionObject {
+  optionKey: string;
+  optionFunction: Function;
+  optionImage: string;
+  optionWidth: number;
+  optionHeight: number;
+
+  constructor (optionKey, optionFunction, optionImage, optionWidth, optionHeight) {
+    this.optionKey = optionKey;
+    this.optionFunction = optionFunction;
+    this.optionImage = optionImage;
+    this.optionWidth = optionWidth;
+    this.optionHeight = optionHeight;
+  }
+}
+
 class PopupScene extends Phaser.Scene {
 
     key: string;
     zone: Phaser.GameObjects.Zone;
     playspaceComponent: PlayspaceComponent;
     deck: Deck;
+    width: number;
+    height: number;
+    optionSeparation: number;
+    optionObjects: OptionObject[];
 
-    constructor (handle, zone, playspaceComponent, deck) {
+    constructor (handle, zone, playspaceComponent, deck, width, height, optionObjects: OptionObject[], optionSeparation: number) {
         super(handle);
         this.key = handle;
         this.zone = zone;
         this.playspaceComponent = playspaceComponent;
         this.deck = deck;
+        this.width = width;
+        this.height = height;
+        this.optionObjects = optionObjects;
+        this.optionSeparation = optionSeparation;
     }
     create () {
+        this.cameras.main.setViewport(this.zone.x, this.zone.y, this.width, this.height);
+
         this.add.image(0, 0, 'grey-background').setOrigin(0);
-        this.cameras.main.setViewport(this.zone.x, this.zone.y, 100, 100);
-        var closeButton = this.add.image(75, 0, 'close').setOrigin(0);
+        var closeButton = this.add.image(225, 0, 'close').setOrigin(0);
         closeButton.setInteractive();
-        closeButton.on('pointerdown', this.playspaceComponent.popupClose.bind(this, this.key, this.playspaceComponent));
+        closeButton.on('pointerdown', this.playspaceComponent.popupClose.bind(this, this, this.playspaceComponent));
         closeButton.displayWidth = 25;
         closeButton.displayHeight = 25;
+
+        var verticalPosition = 0;
+        this.optionObjects.forEach((object: OptionObject) => {
+          var button = this.add.image(0, verticalPosition, object.optionKey).setOrigin(0);
+          button.setInteractive();
+          button.on('pointerdown', object.optionFunction.bind(this, this, this.deck, this.playspaceComponent));
+          button.displayWidth = object.optionWidth;
+          button.displayHeight = object.optionHeight;
+
+          verticalPosition += verticalPosition + object.optionHeight + this.optionSeparation;
+        });
+    }
+
+    preload() {
+      this.load.image('grey-background', 'assets/images/backgrounds/grey.png');
+      this.load.image('close', 'assets/images/buttons/close.png');
+      this.optionObjects.forEach((object) => {
+        this.load.image(object.optionKey, object.optionImage);
+      });
     }
 }
 
@@ -74,6 +118,7 @@ class MainScene extends Phaser.Scene {
         deck.gameObject.displayHeight = 300;
       }
     });
+
   }
 
   preload() {
@@ -83,9 +128,6 @@ class MainScene extends Phaser.Scene {
     this.decks.forEach(deck => {
       this.load.image(deck.id.toString(), deck.imagePath);
     });
-
-    this.load.image('grey-background', 'assets/images/backgrounds/grey.png');
-    this.load.image('close', 'assets/images/buttons/close.png');
   }
 
   // update() {}
@@ -194,10 +236,8 @@ export class PlayspaceComponent implements OnInit {
             playspaceComponent.phaserScene.cards.forEach((card: Card) => {
               // We only have a game object, so let's find the card it corresponds to
               if (object.gameObject.texture.key === card.id.toString() && !inserted) { // !inserted checks for the case where there are multiple overlapping decks
-                console.log("Overlap!");
                 inserted = true;
                 deck.cards.push(card); // Add the card into the deck
-                console.log(deck.cards);
                 cardList.push(card);
 
                 if (playspaceComponent.conn) {
@@ -226,42 +266,62 @@ export class PlayspaceComponent implements OnInit {
     }
   }
 
-  deckRightClick(deck: Deck, playspaceComponent: PlayspaceComponent, pointer: Phaser.Input.Pointer, localX: number, localY: number, event: Phaser.Types.Input.EventData) {
-    var zone = playspaceComponent.phaserScene.add.zone(pointer.x, pointer.y, 100, 100).setInteractive().setOrigin(0);
+  deckRightClick(deck: Deck, playspaceComponent: PlayspaceComponent, pointer: Phaser.Input.Pointer) {
+    var width = 250;
+    var height = 160;
+    var optionObjects = [];
+    optionObjects.push(new OptionObject("retrieveCard", playspaceComponent.retrieveTopCard, 'assets/images/buttons/retrieveTopCard.png', 200, 75));
+    optionObjects.push(new OptionObject("shuffleDeck", playspaceComponent.shuffleDeck, 'assets/images/buttons/shuffleDeck.png', 200, 75));
+
+    var zone = playspaceComponent.phaserScene.add.zone(pointer.x, pointer.y, width, height).setInteractive().setOrigin(0);
     var handle = "popup" + playspaceComponent.popupCount++;
-    var popupScene = new PopupScene(handle, zone, playspaceComponent, deck);
+    var popupScene = new PopupScene(handle, zone, playspaceComponent, deck, width, height, optionObjects, 10);
 
     playspaceComponent.phaserScene.scene.add(handle, popupScene, true);
+  }
 
-    
-    //if (pointer.rightButtonDown()) {
+  retrieveTopCard(popupScene: PopupScene, deck: Deck, playspaceComponent: PlayspaceComponent, pointer: Phaser.Input.Pointer) {
 
-    //  var card = deck.cards.pop();
+    var card = deck.cards.pop();
 
-    //  if (card) {
-    //    if (card.gameObject == null) {
-    //      card.gameObject = playspaceComponent.phaserScene.add.image(card.x, card.y, card.id.toString());
-    //      card.gameObject.setInteractive();
-    //      playspaceComponent.phaserScene.input.setDraggable(card.gameObject);
-    //      card.gameObject.on('drag', playspaceComponent.onDragMove.bind(this, card, playspaceComponent));
-    //      card.gameObject.on('dragend', playspaceComponent.onDragEnd.bind(this, card, playspaceComponent));
-    //      card.gameObject.displayWidth = 200;
-    //      card.gameObject.displayHeight = 300;
-    //      playspaceComponent.phaserScene.cards.push(card);
+    if (card) {
+      if (card.gameObject == null) {
+        card.gameObject = playspaceComponent.phaserScene.add.image(card.x, card.y, card.id.toString());
+        card.gameObject.setInteractive();
+        playspaceComponent.phaserScene.input.setDraggable(card.gameObject);
+        card.gameObject.on('drag', playspaceComponent.onDragMove.bind(this, card, playspaceComponent));
+        card.gameObject.on('dragend', playspaceComponent.onDragEnd.bind(this, card, playspaceComponent));
+        card.gameObject.displayWidth = 200;
+        card.gameObject.displayHeight = 300;
+        playspaceComponent.phaserScene.cards.push(card);
 
-    //      if (playspaceComponent.conn) {
-    //        playspaceComponent.conn.send({
-    //          'action': 'remove',
-    //          'type': 'deck',
-    //          'cardID': card.id,
-    //          'deckID': deck.id,
-    //          'x': card.x,
-    //          'y': card.y
-    //        });
-    //      }
-    //    }
-    //  }
-    //}
+        if (playspaceComponent.conn) {
+          playspaceComponent.conn.send({
+            'action': 'remove',
+            'type': 'deck',
+            'cardID': card.id,
+            'deckID': deck.id,
+            'x': card.x,
+            'y': card.y
+          });
+        }
+      }
+    }
+
+    popupScene.zone.destroy();
+    playspaceComponent.phaserScene.scene.remove(popupScene.key);
+  }
+
+  shuffleDeck(popupScene: PopupScene, deck: Deck, playspaceComponent: PlayspaceComponent, pointer: Phaser.Input.Pointer) {
+    console.log("Shuffled!");
+    popupScene.zone.destroy();
+    playspaceComponent.phaserScene.scene.remove(popupScene.key);
+  }
+
+  
+  popupClose(popupScene: PopupScene, playspaceComponent: PlayspaceComponent) {
+    popupScene.zone.destroy();
+    playspaceComponent.phaserScene.scene.remove(popupScene.key);
   }
 
   startConnection(peerID: string) {
@@ -370,10 +430,5 @@ export class PlayspaceComponent implements OnInit {
       default:
         break;
     }
-  }
-
-  popupClose(key: string, playspaceComponent: PlayspaceComponent) {
-    console.log('Closed!');
-    playspaceComponent.phaserScene.scene.remove(key);
   }
 }
