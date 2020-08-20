@@ -194,6 +194,18 @@ export class PlayspaceComponent implements OnInit {
       });
     });
   }
+
+  startConnection(peerID: string) {
+    this.otherPeerId = peerID;
+    var conn = this.peer.connect(this.otherPeerId);
+    this.conn = conn;
+    conn.on('open', () => {
+      // Receive messages
+      conn.on('data', (data) => {
+        this.handleData(data);
+      });
+    });
+  }
   
   onDragMove(object: any, playspaceComponent: PlayspaceComponent, pointer: Phaser.Input.Pointer, dragX: number, dragY: number) {
     if (object.type == 'deck' || object.type == 'card') {
@@ -210,7 +222,6 @@ export class PlayspaceComponent implements OnInit {
         });
       }
     }
-    
   }
 
   onDragEnd(object: any, playspaceComponent: PlayspaceComponent, pointer: Phaser.Input.Pointer) {
@@ -267,17 +278,19 @@ export class PlayspaceComponent implements OnInit {
   }
 
   deckRightClick(deck: Deck, playspaceComponent: PlayspaceComponent, pointer: Phaser.Input.Pointer) {
-    var width = 250;
-    var height = 160;
-    var optionObjects = [];
-    optionObjects.push(new OptionObject("retrieveCard", playspaceComponent.retrieveTopCard, 'assets/images/buttons/retrieveTopCard.png', 200, 75));
-    optionObjects.push(new OptionObject("shuffleDeck", playspaceComponent.shuffleDeck, 'assets/images/buttons/shuffleDeck.png', 200, 75));
-
-    var zone = playspaceComponent.phaserScene.add.zone(pointer.x, pointer.y, width, height).setInteractive().setOrigin(0);
-    var handle = "popup" + playspaceComponent.popupCount++;
-    var popupScene = new PopupScene(handle, zone, playspaceComponent, deck, width, height, optionObjects, 10);
-
-    playspaceComponent.phaserScene.scene.add(handle, popupScene, true);
+    if (pointer.rightButtonDown()) {
+      var width = 250;
+      var height = 160;
+      var optionObjects = [];
+      optionObjects.push(new OptionObject("retrieveCard", playspaceComponent.retrieveTopCard, 'assets/images/buttons/retrieveTopCard.png', 200, 75));
+      optionObjects.push(new OptionObject("shuffleDeck", playspaceComponent.shuffleDeck, 'assets/images/buttons/shuffleDeck.png', 200, 75));
+  
+      var zone = playspaceComponent.phaserScene.add.zone(pointer.x, pointer.y, width, height).setInteractive().setOrigin(0);
+      var handle = "popup" + playspaceComponent.popupCount++;
+      var popupScene = new PopupScene(handle, zone, playspaceComponent, deck, width, height, optionObjects, 10);
+  
+      playspaceComponent.phaserScene.scene.add(handle, popupScene, true);
+    }
   }
 
   retrieveTopCard(popupScene: PopupScene, deck: Deck, playspaceComponent: PlayspaceComponent, pointer: Phaser.Input.Pointer) {
@@ -322,18 +335,6 @@ export class PlayspaceComponent implements OnInit {
   popupClose(popupScene: PopupScene, playspaceComponent: PlayspaceComponent) {
     popupScene.zone.destroy();
     playspaceComponent.phaserScene.scene.remove(popupScene.key);
-  }
-
-  startConnection(peerID: string) {
-    this.otherPeerId = peerID;
-    var conn = this.peer.connect(this.otherPeerId);
-    this.conn = conn;
-    conn.on('open', () => {
-      // Receive messages
-      conn.on('data', (data) => {
-        this.handleData(data);
-      });
-    });
   }
 
   handleData(data: String) {
