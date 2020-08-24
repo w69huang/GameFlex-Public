@@ -164,8 +164,10 @@ export class PlayspaceComponent implements OnInit {
 
   ngOnInit(): void {
     this.phaserScene.cards.push(new Card(1, "assets/images/playing-cards/ace_of_spades.png", 250, 250))
-    this.phaserScene.cards.push(new Card(2, "assets/images/playing-cards/ace_of_spades.png", 550, 250))
-    this.phaserScene.decks.push(new Deck(3, "assets/images/playing-cards/deck.png", null, 400, 250))
+    this.phaserScene.cards.push(new Card(2, "assets/images/playing-cards/ace_of_clubs.png", 550, 250))
+    this.phaserScene.cards.push(new Card(3, "assets/images/playing-cards/ace_of_hearts.png", 250, 350))
+    this.phaserScene.cards.push(new Card(4, "assets/images/playing-cards/ace_of_diamonds.png", 550, 350))
+    this.phaserScene.decks.push(new Deck(5, "assets/images/playing-cards/deck.png", null, 400, 250))
 
     this.phaserGame = new Phaser.Game(this.config);
 
@@ -326,7 +328,27 @@ export class PlayspaceComponent implements OnInit {
   }
 
   shuffleDeck(popupScene: PopupScene, deck: Deck, playspaceComponent: PlayspaceComponent, pointer: Phaser.Input.Pointer) {
-    console.log("Shuffled!");
+    let shuffled = deck.cards.map((card) => ({randomVal: Math.random(), card: card}))
+                             .sort((object1, object2) => object1.randomVal - object2.randomVal)
+                             .map((object) => object.card);
+
+    deck.cards = shuffled;
+
+    let shuffledCardIDs = [];
+
+    shuffled.forEach((card: Card) => {
+      shuffledCardIDs.push(card.id);
+    });
+
+    if (playspaceComponent.conn) {
+      playspaceComponent.conn.send({
+        'action': 'shuffle',
+        'type': 'deck',
+        'deckID': deck.id,
+        'shuffledCardIDs': shuffledCardIDs
+      });
+    }
+
     popupScene.zone.destroy();
     playspaceComponent.phaserScene.scene.remove(popupScene.key);
   }
@@ -342,7 +364,7 @@ export class PlayspaceComponent implements OnInit {
       case 'move':
         if (data['type'] === 'card') {
           var gameObject: Phaser.GameObjects.Image = null;
-          for (var i = 0; i < this.phaserScene.cards.length; i++) {
+          for (let i = 0; i < this.phaserScene.cards.length; i++) {
             if (parseInt(this.phaserScene.cards[i].gameObject.texture.key) == data['id']) {
               gameObject = this.phaserScene.cards[i].gameObject;
             }
@@ -353,7 +375,7 @@ export class PlayspaceComponent implements OnInit {
           }
         } else if (data['type'] === 'deck') {
           var gameObject: Phaser.GameObjects.Image = null;
-          for (var i = 0; i < this.phaserScene.decks.length; i++) {
+          for (let i = 0; i < this.phaserScene.decks.length; i++) {
             if (parseInt(this.phaserScene.decks[i].gameObject.texture.key) == data['id']) {
               gameObject = this.phaserScene.decks[i].gameObject;
             }
@@ -369,13 +391,13 @@ export class PlayspaceComponent implements OnInit {
         if (data['type'] === 'card') {
           var card: Card = null;
           var deck: Deck = null;
-          for (var i = 0; i < this.phaserScene.cards.length; i++) {
+          for (let i = 0; i < this.phaserScene.cards.length; i++) {
             if (this.phaserScene.cards[i].id === data['cardID']) {
               card = this.phaserScene.cards[i];
             }
           }
 
-          for (var i = 0; i < this.phaserScene.decks.length; i++) {
+          for (let i = 0; i < this.phaserScene.decks.length; i++) {
             if (this.phaserScene.decks[i].id === data['deckID']) {
               deck = this.phaserScene.decks[i];
             }
@@ -398,14 +420,14 @@ export class PlayspaceComponent implements OnInit {
           var card: Card = null;
           var deck: Deck = null;
 
-          for (var i = 0; i < this.phaserScene.decks.length; i++) {
+          for (let i = 0; i < this.phaserScene.decks.length; i++) {
             if (this.phaserScene.decks[i].id === data['deckID']) {
               deck = this.phaserScene.decks[i];
             }
           }
 
           if (deck) {
-            for (var i = 0; i < deck.cards.length; i++) {
+            for (let i = 0; i < deck.cards.length; i++) {
               if (deck.cards[i].id === data['cardID']) {
                 card = deck.cards[i];
               }
@@ -427,6 +449,32 @@ export class PlayspaceComponent implements OnInit {
             }
           }
         }
+        break;
+
+      case 'shuffle':
+        if (data['type'] === 'deck') {
+
+          for (let i = 0; i < this.phaserScene.decks.length; i++) {
+            if (this.phaserScene.decks[i].id === data['deckID']) {
+              deck = this.phaserScene.decks[i];
+            }
+          }
+
+          if (deck) {
+            let shuffled = [];
+            data['shuffledCardIDs'].forEach((id) => {
+              for (let i = 0; i < deck.cards.length; i++) {
+                if (id === deck.cards[i].id) {
+                  shuffled.push(deck.cards[i]);
+                  break;
+                }
+              }
+            });
+
+            deck.cards = shuffled;
+          }
+        }
+        break;
 
       default:
         break;
