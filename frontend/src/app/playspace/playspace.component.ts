@@ -2,6 +2,7 @@ import { Component, OnInit, ViewChild, ElementRef, AfterViewInit } from '@angula
 import Phaser from 'phaser';
 import Card from '../models/card';
 import Deck from '../models/deck';
+import Hand from '../models/hand';
 
 declare var Peer: any;
 
@@ -79,12 +80,19 @@ class PopupScene extends Phaser.Scene {
 
 class MainScene extends Phaser.Scene {
   playspaceComponent: PlayspaceComponent;
+  width: number;
+  height: number;
+  handBeginY: number;
   cards: Card[] = [];
   decks: Deck[] = [];
+  hand: Hand;
 
-  constructor(playspaceComponent: PlayspaceComponent) {
+  constructor(playspaceComponent: PlayspaceComponent, width: number, height: number, handBeginY: number) {
     super({ key: 'main' });
     this.playspaceComponent = playspaceComponent;
+    this.width = width;
+    this.height = height;
+    this.handBeginY = handBeginY;
   }
 
   create() {
@@ -93,6 +101,13 @@ class MainScene extends Phaser.Scene {
     // ----> TODO: Investigate whether you can call scene.preload and scene.create whenever new cards are added???? Might be the key!
 
     //this.cards.push(new CardObject(this, 250, 250, "1", 1, 'assets/images/playing-cards/ace_of_spades.png')); -- only if we are going to be extending Phaser.GameObjects.Image
+    if (this.hand.gameObject == null) {
+      this.hand.gameObject = this.add.image(0, this.handBeginY, 'grey-background').setOrigin(0); // SET ORIGIN IS THE KEY TO HAVING IT PLACED IN THE CORRECT POSITION! Why??
+      this.hand.gameObject.setInteractive();
+      this.hand.gameObject.displayWidth = this.width;
+      this.hand.gameObject.displayHeight = this.height - this.handBeginY;
+    }
+
     this.cards.forEach(card => {
         if (card.gameObject == null) {
           card.gameObject = this.add.image(card.x, card.y, card.id.toString());
@@ -128,6 +143,7 @@ class MainScene extends Phaser.Scene {
     this.decks.forEach(deck => {
       this.load.image(deck.id.toString(), deck.imagePath);
     });
+    this.load.image('grey-background', 'assets/images/backgrounds/grey.png');
   }
 
   // update() {}
@@ -146,17 +162,20 @@ export class PlayspaceComponent implements OnInit {
   config: Phaser.Types.Core.GameConfig;
   aceOfSpades: Phaser.GameObjects.Image;
   popupCount: number = 0;
+  sceneWidth: number = 1000;
+  sceneHeight: number = 1000;
+  handBeginY: number = 600;
   public peer: any;
   public peerId: string;
   public otherPeerId: string;
   public conn: any;
   
   constructor() { 
-    this.phaserScene = new MainScene(this);
+    this.phaserScene = new MainScene(this, this.sceneWidth, this.sceneHeight, this.handBeginY);
     this.config = {
       type: Phaser.AUTO,
-      height: 600,
-      width: 800,
+      height: this.sceneHeight,
+      width: this.sceneWidth,
       scene: [ this.phaserScene ],
       parent: 'gameContainer',
     };
@@ -168,6 +187,7 @@ export class PlayspaceComponent implements OnInit {
     this.phaserScene.cards.push(new Card(3, "assets/images/playing-cards/ace_of_hearts.png", 250, 350))
     this.phaserScene.cards.push(new Card(4, "assets/images/playing-cards/ace_of_diamonds.png", 550, 350))
     this.phaserScene.decks.push(new Deck(5, "assets/images/playing-cards/deck.png", null, 400, 250))
+    this.phaserScene.hand = new Hand(6, null);
 
     this.phaserGame = new Phaser.Game(this.config);
 
@@ -227,15 +247,16 @@ export class PlayspaceComponent implements OnInit {
   }
 
   onDragEnd(object: any, playspaceComponent: PlayspaceComponent, pointer: Phaser.Input.Pointer) {
-    // TODO: Need to send deletion data and such to peer
+    // TODO: Find card first, then do operations
+    // Check both hand and decks
+    // Allows us to remove loops from the rest of this code
 
     if (object.type == 'card') {
       var myCenterX = object.gameObject.x + object.gameObject.displayWidth/2;
       var myCenterY = object.gameObject.y + object.gameObject.displayHeight/2;
-      var cardList = [];
       var inserted = false;
-  
-      // Detect overlap
+
+      // Detect overlap with deck
       playspaceComponent.phaserScene.decks.forEach((deck: Deck) => {
         // If we are not comparing with ourselves
         if (object.gameObject.texture.key != deck.id.toString()) {
@@ -248,10 +269,10 @@ export class PlayspaceComponent implements OnInit {
           if (myCenterX > deckX && myCenterX < deckX + deckWidth && myCenterY > deckY && myCenterY < deckY + deckHeight) {
             playspaceComponent.phaserScene.cards.forEach((card: Card) => {
               // We only have a game object, so let's find the card it corresponds to
-              if (object.gameObject.texture.key === card.id.toString() && !inserted) { // !inserted checks for the case where there are multiple overlapping decks
+              if (!inserted && object.gameObject.texture.key === card.id.toString()) { // !inserted checks for the case where there are multiple overlapping decks, as well as ensuring we don't check object.gameObject if it is already set to null
+                card.inDeck = true;
                 inserted = true;
                 deck.cards.push(card); // Add the card into the deck
-                cardList.push(card);
 
                 if (playspaceComponent.conn) {
                   playspaceComponent.conn.send({
@@ -261,21 +282,77 @@ export class PlayspaceComponent implements OnInit {
                     'deckID': deck.id,
                   });
                 }
+
+                card.gameObject.destroy();
+                card.gameObject = null;
+
+                playspaceComponent.phaserScene.cards = playspaceComponent.phaserScene.cards.filter( (refCard: Card) => {
+                  return card.id !== refCard.id;
+                });
               }
             });
           }
-  
         }
       });
-  
-      cardList.forEach((card: Card) => {
-        card.gameObject.destroy();
-        card.gameObject = null;
-      });
 
-      playspaceComponent.phaserScene.cards = playspaceComponent.phaserScene.cards.filter( (card: Card) => {
-        return !cardList.includes(card);
-      });
+      if (!inserted && playspaceComponent.phaserScene.hand) {
+        var hand = playspaceComponent.phaserScene.hand;
+        var handX = hand.gameObject.x;
+        var handY = hand.gameObject.y;
+        var handWidth = hand.gameObject.displayWidth;
+        var handHeight = hand.gameObject.displayHeight;
+
+        // If the center point of the card being dragged overlaps with the hand
+        if (myCenterX > handX && myCenterX < handX + handWidth && myCenterY > handY && myCenterY < handY + handHeight) {
+          playspaceComponent.phaserScene.cards.forEach((card: Card) => {
+            // We only have a game object, so let's find the card it corresponds to
+            if (!inserted && object.gameObject.texture.key === card.id.toString()) {
+              card.inHand = true;
+              inserted = true;
+              hand.cards.push(card); // Add the card into the deck
+
+              if (playspaceComponent.conn) {
+                playspaceComponent.conn.send({
+                  'action': 'insert',
+                  'type': object.type,
+                  'cardID': parseInt(object.gameObject.texture.key),
+                  'deckID': null,
+                });
+              }
+
+              playspaceComponent.phaserScene.cards = playspaceComponent.phaserScene.cards.filter( (refCard: Card) => {
+                return card.id !== refCard.id;
+              });
+            }
+          });
+        } else if (object.inHand === true) {
+          // Card was moved out of hand
+
+          hand.cards.forEach((card: Card) => {
+            // We only have a game object, so let's find the card it corresponds to
+            if (object.gameObject.texture.key === card.id.toString()) {
+              card.inHand = false;
+              playspaceComponent.phaserScene.cards.push(card); // Add the card back to the playspace
+
+              // TODO:
+
+              //if (playspaceComponent.conn) {
+              //  playspaceComponent.conn.send({
+              //    'action': 'insert',
+              //    'type': object.type,
+              //    'cardID': parseInt(object.gameObject.texture.key),
+              //    'deckID': null,
+              //    'handID': hand.id,
+              //  });
+              //}
+
+              hand.cards = hand.cards.filter( (refCard: Card) => {
+                return card.id !== refCard.id;
+              });
+            }
+          });
+        }
+      }
     }
   }
 
@@ -301,6 +378,7 @@ export class PlayspaceComponent implements OnInit {
 
     if (card) {
       if (card.gameObject == null) {
+        card.inDeck = false;
         card.gameObject = playspaceComponent.phaserScene.add.image(card.x, card.y, card.id.toString());
         card.gameObject.setInteractive();
         playspaceComponent.phaserScene.input.setDraggable(card.gameObject);
@@ -391,6 +469,7 @@ export class PlayspaceComponent implements OnInit {
         if (data['type'] === 'card') {
           var card: Card = null;
           var deck: Deck = null;
+
           for (let i = 0; i < this.phaserScene.cards.length; i++) {
             if (this.phaserScene.cards[i].id === data['cardID']) {
               card = this.phaserScene.cards[i];
@@ -434,6 +513,7 @@ export class PlayspaceComponent implements OnInit {
             }
   
             if (card) {
+              card.inDeck = false;
               card.gameObject = this.phaserScene.add.image(data['x'], data['y'], data['cardID'].toString());
               card.gameObject.setInteractive();
               this.phaserScene.input.setDraggable(card.gameObject);

@@ -6,6 +6,7 @@ export default class Card {
     x: number;
     y: number;
     inDeck: boolean = false;
+    inHand: boolean = false;
 
     constructor(id: number, imagePath: string, x: number, y: number) {
         this.id = id;
