@@ -252,104 +252,108 @@ export class PlayspaceComponent implements OnInit {
     // Allows us to remove loops from the rest of this code
 
     if (object.type == 'card') {
-      var myCenterX = object.gameObject.x + object.gameObject.displayWidth/2;
-      var myCenterY = object.gameObject.y + object.gameObject.displayHeight/2;
-      var inserted = false;
+      // Step 1: Find Card
 
-      // Detect overlap with deck
-      playspaceComponent.phaserScene.decks.forEach((deck: Deck) => {
-        // If we are not comparing with ourselves
-        if (object.gameObject.texture.key != deck.id.toString()) {
-          var deckX = deck.gameObject.x;
-          var deckY = deck.gameObject.y;
-          var deckWidth = deck.gameObject.displayWidth;
-          var deckHeight = deck.gameObject.displayHeight;
-  
-          // If the center point of the card being dragged overlaps with any deck
-          if (myCenterX > deckX && myCenterX < deckX + deckWidth && myCenterY > deckY && myCenterY < deckY + deckHeight) {
-            playspaceComponent.phaserScene.cards.forEach((card: Card) => {
-              // We only have a game object, so let's find the card it corresponds to
-              if (!inserted && object.gameObject.texture.key === card.id.toString()) { // !inserted checks for the case where there are multiple overlapping decks, as well as ensuring we don't check object.gameObject if it is already set to null
-                card.inDeck = true;
-                inserted = true;
-                deck.cards.push(card); // Add the card into the deck
+      let card: Card = null;
+      let found = false;
+      let foundInHand = false;
 
-                if (playspaceComponent.conn) {
-                  playspaceComponent.conn.send({
-                    'action': 'insert',
-                    'type': object.type,
-                    'cardID': parseInt(object.gameObject.texture.key),
-                    'deckID': deck.id,
-                  });
-                }
-
-                card.gameObject.destroy();
-                card.gameObject = null;
-
-                playspaceComponent.phaserScene.cards = playspaceComponent.phaserScene.cards.filter( (refCard: Card) => {
-                  return card.id !== refCard.id;
-                });
-              }
-            });
-          }
+      playspaceComponent.phaserScene.hand.cards.forEach((refCard: Card) => {
+        if (object.gameObject.texture.key === refCard.id.toString()) {
+          card = refCard;
+          found = true;
+          foundInHand = true;
         }
       });
 
-      if (!inserted && playspaceComponent.phaserScene.hand) {
-        var hand = playspaceComponent.phaserScene.hand;
-        var handX = hand.gameObject.x;
-        var handY = hand.gameObject.y;
-        var handWidth = hand.gameObject.displayWidth;
-        var handHeight = hand.gameObject.displayHeight;
+      if (!found) {
+        playspaceComponent.phaserScene.cards.forEach((refCard: Card) => {
+          if (object.gameObject.texture.key === refCard.id.toString()) {
+            card = refCard;
+            found = true;
+          }
+        });
+      }
 
-        // If the center point of the card being dragged overlaps with the hand
-        if (myCenterX > handX && myCenterX < handX + handWidth && myCenterY > handY && myCenterY < handY + handHeight) {
-          playspaceComponent.phaserScene.cards.forEach((card: Card) => {
-            // We only have a game object, so let's find the card it corresponds to
-            if (!inserted && object.gameObject.texture.key === card.id.toString()) {
-              card.inHand = true;
+      if (found) {
+        let myCenterX = object.gameObject.x + object.gameObject.displayWidth/2;
+        let myCenterY = object.gameObject.y + object.gameObject.displayHeight/2;
+        let inserted = false;
+        let handOverlap = false;
+        let cardListToFilter = null;
+        let hand = playspaceComponent.phaserScene.hand;
+
+        // Step 2: Detect overlap with deck or hand
+
+        if (myCenterX > hand.gameObject.x && myCenterX < hand.gameObject.x + hand.gameObject.displayWidth && myCenterY > hand.gameObject.y && myCenterY < hand.gameObject.y + hand.gameObject.displayHeight) {
+          handOverlap = true;
+          if (!card.inHand) {
+            inserted = true;
+            card.inHand = true;
+            hand.cards.push(card);
+
+            // TODO
+            //if (playspaceComponent.conn) {
+            //  playspaceComponent.conn.send({
+            //    'action': 'insert',
+            //    'type': object.type,
+            //    'cardID': parseInt(object.gameObject.texture.key),
+            //    'deckID': deck.id,
+            //  });
+            //}
+  
+            cardListToFilter = playspaceComponent.phaserScene.cards;
+          }
+        } else {
+          playspaceComponent.phaserScene.decks.forEach((deck: Deck) => {
+            if (!inserted && myCenterX > deck.gameObject.x && myCenterX < deck.gameObject.x + deck.gameObject.displayWidth && myCenterY > deck.gameObject.y && myCenterY < deck.gameObject.y + deck.gameObject.displayHeight) {
               inserted = true;
-              hand.cards.push(card); // Add the card into the deck
+              card.inDeck = true;
+              card.inHand = false;
+              deck.cards.push(card);
 
               if (playspaceComponent.conn) {
                 playspaceComponent.conn.send({
                   'action': 'insert',
                   'type': object.type,
                   'cardID': parseInt(object.gameObject.texture.key),
-                  'deckID': null,
+                  'deckID': deck.id,
                 });
               }
 
-              playspaceComponent.phaserScene.cards = playspaceComponent.phaserScene.cards.filter( (refCard: Card) => {
-                return card.id !== refCard.id;
-              });
+              card.gameObject.destroy();
+              card.gameObject = null;
+
+              if (foundInHand) {
+                cardListToFilter = playspaceComponent.phaserScene.hand.cards;
+              } else {
+                cardListToFilter = playspaceComponent.phaserScene.cards;
+              }
             }
           });
-        } else if (object.inHand === true) {
-          // Card was moved out of hand
 
-          hand.cards.forEach((card: Card) => {
-            // We only have a game object, so let's find the card it corresponds to
-            if (object.gameObject.texture.key === card.id.toString()) {
-              card.inHand = false;
-              playspaceComponent.phaserScene.cards.push(card); // Add the card back to the playspace
+          // If card removed from hand and not inserted in a deck
+          if (!inserted && !handOverlap && card.inHand) {
+            card.inHand = false;
+            playspaceComponent.phaserScene.cards.push(card);
 
-              // TODO:
+            // TODO
+            //if (playspaceComponent.conn) {
+            //  playspaceComponent.conn.send({
+            //    'action': 'insert',
+            //    'type': object.type,
+            //    'cardID': parseInt(object.gameObject.texture.key),
+            //    'deckID': deck.id,
+            //  });
+            //}
 
-              //if (playspaceComponent.conn) {
-              //  playspaceComponent.conn.send({
-              //    'action': 'insert',
-              //    'type': object.type,
-              //    'cardID': parseInt(object.gameObject.texture.key),
-              //    'deckID': null,
-              //    'handID': hand.id,
-              //  });
-              //}
+            cardListToFilter = playspaceComponent.phaserScene.hand.cards;
+          }
+        }
 
-              hand.cards = hand.cards.filter( (refCard: Card) => {
-                return card.id !== refCard.id;
-              });
-            }
+        if (cardListToFilter) {
+          cardListToFilter = cardListToFilter.filter( (refCard: Card) => {
+            return card.id !== refCard.id;
           });
         }
       }
