@@ -100,7 +100,6 @@ class MainScene extends Phaser.Scene {
     // --> Leads to the question of how to make them during runtime
     // ----> TODO: Investigate whether you can call scene.preload and scene.create whenever new cards are added???? Might be the key!
 
-    //this.cards.push(new CardObject(this, 250, 250, "1", 1, 'assets/images/playing-cards/ace_of_spades.png')); -- only if we are going to be extending Phaser.GameObjects.Image
     if (this.hand.gameObject == null) {
       this.hand.gameObject = this.add.image(0, this.handBeginY, 'grey-background').setOrigin(0); // SET ORIGIN IS THE KEY TO HAVING IT PLACED IN THE CORRECT POSITION! Why??
       this.hand.gameObject.setInteractive();
@@ -247,9 +246,6 @@ export class PlayspaceComponent implements OnInit {
   }
 
   onDragEnd(object: any, playspaceComponent: PlayspaceComponent, pointer: Phaser.Input.Pointer) {
-    // TODO: Find card first, then do operations
-    // Check both hand and decks
-    // Allows us to remove loops from the rest of this code
 
     if (object.type == 'card') {
       // Step 1: Find Card
@@ -292,15 +288,13 @@ export class PlayspaceComponent implements OnInit {
             card.inHand = true;
             hand.cards.push(card);
 
-            // TODO
-            //if (playspaceComponent.conn) {
-            //  playspaceComponent.conn.send({
-            //    'action': 'insert',
-            //    'type': object.type,
-            //    'cardID': parseInt(object.gameObject.texture.key),
-            //    'deckID': deck.id,
-            //  });
-            //}
+            if (playspaceComponent.conn) {
+              playspaceComponent.conn.send({
+                'action': 'insertIntoHand',
+                'type': object.type,
+                'cardID': parseInt(object.gameObject.texture.key),
+              });
+            }
   
             cardListToFilter = playspaceComponent.phaserScene.cards;
           }
@@ -314,10 +308,13 @@ export class PlayspaceComponent implements OnInit {
 
               if (playspaceComponent.conn) {
                 playspaceComponent.conn.send({
-                  'action': 'insert',
+                  'action': 'insertIntoDeck',
                   'type': object.type,
                   'cardID': parseInt(object.gameObject.texture.key),
                   'deckID': deck.id,
+                  'imagePath': object.imagePath,
+                  'x': object.gameObject.x,
+                  'y': object.gameObject.y,
                 });
               }
 
@@ -337,15 +334,17 @@ export class PlayspaceComponent implements OnInit {
             card.inHand = false;
             playspaceComponent.phaserScene.cards.push(card);
 
-            // TODO
-            //if (playspaceComponent.conn) {
-            //  playspaceComponent.conn.send({
-            //    'action': 'insert',
-            //    'type': object.type,
-            //    'cardID': parseInt(object.gameObject.texture.key),
-            //    'deckID': deck.id,
-            //  });
-            //}
+            if (playspaceComponent.conn) {
+              playspaceComponent.conn.send({
+                'action': 'removeFromHand',
+                'type': object.type,
+                'cardID': parseInt(object.gameObject.texture.key),
+                'handID': hand.id,
+                'imagePath': object.imagePath,
+                'x': object.gameObject.x,
+                'y': object.gameObject.y,
+              });
+            }
 
             cardListToFilter = playspaceComponent.phaserScene.hand.cards;
           }
@@ -383,7 +382,7 @@ export class PlayspaceComponent implements OnInit {
     if (card) {
       if (card.gameObject == null) {
         card.inDeck = false;
-        card.gameObject = playspaceComponent.phaserScene.add.image(card.x, card.y, card.id.toString());
+        card.gameObject = playspaceComponent.phaserScene.add.image(deck.gameObject.x, deck.gameObject.y, card.id.toString());
         card.gameObject.setInteractive();
         playspaceComponent.phaserScene.input.setDraggable(card.gameObject);
         card.gameObject.on('drag', playspaceComponent.onDragMove.bind(this, card, playspaceComponent));
@@ -394,12 +393,12 @@ export class PlayspaceComponent implements OnInit {
 
         if (playspaceComponent.conn) {
           playspaceComponent.conn.send({
-            'action': 'remove',
+            'action': 'removeFromDeck',
             'type': 'deck',
             'cardID': card.id,
             'deckID': deck.id,
-            'x': card.x,
-            'y': card.y
+            'x': deck.gameObject.x,
+            'y': deck.gameObject.y
           });
         }
       }
@@ -445,9 +444,9 @@ export class PlayspaceComponent implements OnInit {
     switch(data['action']) {
       case 'move':
         if (data['type'] === 'card') {
-          var gameObject: Phaser.GameObjects.Image = null;
+          let gameObject: Phaser.GameObjects.Image = null;
           for (let i = 0; i < this.phaserScene.cards.length; i++) {
-            if (parseInt(this.phaserScene.cards[i].gameObject.texture.key) == data['id']) {
+            if (this.phaserScene.cards[i].gameObject && parseInt(this.phaserScene.cards[i].gameObject.texture.key) == data['id']) {
               gameObject = this.phaserScene.cards[i].gameObject;
             }
           }
@@ -456,9 +455,9 @@ export class PlayspaceComponent implements OnInit {
             gameObject.setY(data['y']);
           }
         } else if (data['type'] === 'deck') {
-          var gameObject: Phaser.GameObjects.Image = null;
+          let gameObject: Phaser.GameObjects.Image = null;
           for (let i = 0; i < this.phaserScene.decks.length; i++) {
-            if (parseInt(this.phaserScene.decks[i].gameObject.texture.key) == data['id']) {
+            if (this.phaserScene.decks[i].gameObject && parseInt(this.phaserScene.decks[i].gameObject.texture.key) == data['id']) {
               gameObject = this.phaserScene.decks[i].gameObject;
             }
           }
@@ -469,15 +468,21 @@ export class PlayspaceComponent implements OnInit {
         }
         break;
 
-      case 'insert':
+      case 'insertIntoDeck':
         if (data['type'] === 'card') {
-          var card: Card = null;
-          var deck: Deck = null;
+          let card: Card = null;
+          let deck: Deck = null;
 
           for (let i = 0; i < this.phaserScene.cards.length; i++) {
             if (this.phaserScene.cards[i].id === data['cardID']) {
               card = this.phaserScene.cards[i];
             }
+          }
+
+          if (!card) {
+            // If we could not find the card, it was in someone's hand -- create it
+            card = new Card(data['cardID'], data['imagePath'], data['x'], data['y']);
+            this.phaserScene.cards.push(card);
           }
 
           for (let i = 0; i < this.phaserScene.decks.length; i++) {
@@ -498,10 +503,33 @@ export class PlayspaceComponent implements OnInit {
         }
         break;
 
-      case 'remove':
+      case 'insertIntoHand':
+        // If someone else inserts a card into their hand, we need to delete that card from everyone else's screen
+        if (data['type'] === 'card') {
+          let card: Card = null;
+
+          for (let i = 0; i < this.phaserScene.cards.length; i++) {
+            if (this.phaserScene.cards[i].id === data['cardID']) {
+              card = this.phaserScene.cards[i];
+            }
+          }
+
+          if (card) {
+            // Delete the card
+            card.gameObject.destroy();
+            card.gameObject = null;
+            this.phaserScene.cards = this.phaserScene.cards.filter( (refCard: Card) => {
+              return refCard.id != card.id;
+            });
+          }
+        }
+
+        break;
+
+      case 'removeFromDeck':
         if (data['type'] === 'deck') {
-          var card: Card = null;
-          var deck: Deck = null;
+          let card: Card = null;
+          let deck: Deck = null;
 
           for (let i = 0; i < this.phaserScene.decks.length; i++) {
             if (this.phaserScene.decks[i].id === data['deckID']) {
@@ -535,8 +563,22 @@ export class PlayspaceComponent implements OnInit {
         }
         break;
 
+      case 'removeFromHand':
+        let card: Card = new Card(data['cardID'], data['imagePath'], data['x'], data['y']);
+        card.gameObject = this.phaserScene.add.image(data['x'], data['y'], data['cardID'].toString());
+        card.gameObject.setInteractive();
+        this.phaserScene.input.setDraggable(card.gameObject);
+        card.gameObject.on('drag', this.onDragMove.bind(this, card, this));
+        card.gameObject.on('dragend', this.onDragEnd.bind(this, card, this));
+        card.gameObject.displayWidth = 200;
+        card.gameObject.displayHeight = 300;
+        this.phaserScene.cards.push(card);
+
+        break;
+
       case 'shuffle':
         if (data['type'] === 'deck') {
+          let deck: Deck = null;
 
           for (let i = 0; i < this.phaserScene.decks.length; i++) {
             if (this.phaserScene.decks[i].id === data['deckID']) {
