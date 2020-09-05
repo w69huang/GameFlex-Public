@@ -25,18 +25,20 @@ class OptionObject {
 class PopupScene extends Phaser.Scene {
 
     key: string;
-    zone: Phaser.GameObjects.Zone;
     playspaceComponent: PlayspaceComponent;
     deck: Deck;
+    x: number;
+    y: number;
     width: number;
     height: number;
     optionSeparation: number;
     optionObjects: OptionObject[];
 
-    constructor (handle, zone, playspaceComponent, deck, width, height, optionObjects: OptionObject[], optionSeparation: number) {
+    constructor (handle, x, y, playspaceComponent, deck, width, height, optionObjects: OptionObject[], optionSeparation: number) {
         super(handle);
         this.key = handle;
-        this.zone = zone;
+        this.x = x;
+        this.y = y;
         this.playspaceComponent = playspaceComponent;
         this.deck = deck;
         this.width = width;
@@ -45,9 +47,12 @@ class PopupScene extends Phaser.Scene {
         this.optionSeparation = optionSeparation;
     }
     create () {
-        this.cameras.main.setViewport(this.zone.x, this.zone.y, this.width, this.height);
+        this.cameras.main.setViewport(this.x, this.y, this.width, this.height);
 
-        this.add.image(0, 0, 'grey-background').setOrigin(0);
+        var popup = this.add.image(0, 0, 'grey-background').setOrigin(0);
+        popup.displayWidth = this.width;
+        popup.displayHeight = this.height;
+
         var closeButton = this.add.image(225, 0, 'close').setOrigin(0);
         closeButton.setInteractive();
         closeButton.on('pointerdown', this.playspaceComponent.popupClose.bind(this, this, this.playspaceComponent));
@@ -367,9 +372,9 @@ export class PlayspaceComponent implements OnInit {
       optionObjects.push(new OptionObject("retrieveCard", playspaceComponent.retrieveTopCard, 'assets/images/buttons/retrieveTopCard.png', 200, 75));
       optionObjects.push(new OptionObject("shuffleDeck", playspaceComponent.shuffleDeck, 'assets/images/buttons/shuffleDeck.png', 200, 75));
   
-      var zone = playspaceComponent.phaserScene.add.zone(pointer.x, pointer.y, width, height).setInteractive().setOrigin(0);
       var handle = "popup" + playspaceComponent.popupCount++;
-      var popupScene = new PopupScene(handle, zone, playspaceComponent, deck, width, height, optionObjects, 10);
+      
+      var popupScene = new PopupScene(handle, pointer.x, pointer.y, playspaceComponent, deck, width, height, optionObjects, 10);
   
       playspaceComponent.phaserScene.scene.add(handle, popupScene, true);
     }
@@ -404,7 +409,6 @@ export class PlayspaceComponent implements OnInit {
       }
     }
 
-    popupScene.zone.destroy();
     playspaceComponent.phaserScene.scene.remove(popupScene.key);
   }
 
@@ -430,13 +434,11 @@ export class PlayspaceComponent implements OnInit {
       });
     }
 
-    popupScene.zone.destroy();
     playspaceComponent.phaserScene.scene.remove(popupScene.key);
   }
 
   
   popupClose(popupScene: PopupScene, playspaceComponent: PlayspaceComponent) {
-    popupScene.zone.destroy();
     playspaceComponent.phaserScene.scene.remove(popupScene.key);
   }
 
