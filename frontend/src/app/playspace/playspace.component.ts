@@ -221,6 +221,24 @@ export class PlayspaceComponent implements OnInit {
     });
   }
 
+  loadCard() {
+    let card: Card = new Card(7, "assets/images/playing-cards/king_of_hearts.png", 100, 150);
+    this.phaserScene.load.image(card.id.toString(), card.imagePath);
+    this.phaserScene.load.once("complete", this.loadCallback.bind(this, card, this));
+    this.phaserScene.load.start();
+  }
+
+  loadCallback(card: Card, playspaceComponent: PlayspaceComponent) {
+    card.gameObject = playspaceComponent.phaserScene.add.image(card.x, card.y, card.id.toString());
+    card.gameObject.setInteractive();
+    playspaceComponent.phaserScene.input.setDraggable(card.gameObject);
+    card.gameObject.on('drag', playspaceComponent.onDragMove.bind(this, card, playspaceComponent));
+    card.gameObject.on('dragend', playspaceComponent.onDragEnd.bind(this, card, playspaceComponent));
+    card.gameObject.displayWidth = 200;
+    card.gameObject.displayHeight = 300;
+    playspaceComponent.phaserScene.cards.push(card);
+  }
+
   startConnection(peerID: string) {
     this.otherPeerId = peerID;
     var conn = this.peer.connect(this.otherPeerId);
