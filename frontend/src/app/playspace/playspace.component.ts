@@ -67,7 +67,7 @@ class PopupScene extends Phaser.Scene {
           button.displayWidth = object.optionWidth;
           button.displayHeight = object.optionHeight;
 
-          verticalPosition += verticalPosition + object.optionHeight + this.optionSeparation;
+          verticalPosition += object.optionHeight + this.optionSeparation;
         });
     }
 
@@ -173,6 +173,7 @@ export class PlayspaceComponent implements OnInit {
   public peerId: string;
   public otherPeerId: string;
   public conn: any;
+  public amHost: boolean = true;
   
   constructor() { 
     this.phaserScene = new MainScene(this, this.sceneWidth, this.sceneHeight, this.handBeginY);
@@ -210,6 +211,10 @@ export class PlayspaceComponent implements OnInit {
 
     this.peer.on('connection', (conn) => { 
       console.log(`Received connection request from peer with id ${conn.peer}.`);
+
+      // For now, if I receive a connection request I am not the host
+      this.amHost = false;
+
       this.conn = conn;
       this.otherPeerId = conn.peer;
       this.conn.on('open', () => {
@@ -219,24 +224,6 @@ export class PlayspaceComponent implements OnInit {
         });
       });
     });
-  }
-
-  loadCard() {
-    let card: Card = new Card(7, "assets/images/playing-cards/king_of_hearts.png", 100, 150);
-    this.phaserScene.load.image(card.id.toString(), card.imagePath);
-    this.phaserScene.load.once("complete", this.loadCallback.bind(this, card, this));
-    this.phaserScene.load.start();
-  }
-
-  loadCallback(card: Card, playspaceComponent: PlayspaceComponent) {
-    card.gameObject = playspaceComponent.phaserScene.add.image(card.x, card.y, card.id.toString());
-    card.gameObject.setInteractive();
-    playspaceComponent.phaserScene.input.setDraggable(card.gameObject);
-    card.gameObject.on('drag', playspaceComponent.onDragMove.bind(this, card, playspaceComponent));
-    card.gameObject.on('dragend', playspaceComponent.onDragEnd.bind(this, card, playspaceComponent));
-    card.gameObject.displayWidth = 200;
-    card.gameObject.displayHeight = 300;
-    playspaceComponent.phaserScene.cards.push(card);
   }
 
   startConnection(peerID: string) {
@@ -262,10 +249,17 @@ export class PlayspaceComponent implements OnInit {
           'type': object.type,
           'id': parseInt(object.gameObject.texture.key),
           'x': dragX,
-          'y': dragY
+          'y': dragY,
+          'amHost': playspaceComponent.amHost
         });
       }
     }
+  }
+
+  filterOutID(objectListToFilter: any[], object: any) {
+    return objectListToFilter.filter( (refObject: any) => {
+      return object.id !== refObject.id;
+    });
   }
 
   onDragEnd(object: any, playspaceComponent: PlayspaceComponent, pointer: Phaser.Input.Pointer) {
@@ -316,18 +310,25 @@ export class PlayspaceComponent implements OnInit {
                 'action': 'insertIntoHand',
                 'type': object.type,
                 'cardID': parseInt(object.gameObject.texture.key),
+                'amHost': playspaceComponent.amHost
               });
             }
   
-            cardListToFilter = playspaceComponent.phaserScene.cards;
+            playspaceComponent.phaserScene.cards = playspaceComponent.filterOutID(playspaceComponent.phaserScene.cards, card);
           }
         } else {
           playspaceComponent.phaserScene.decks.forEach((deck: Deck) => {
             if (!inserted && myCenterX > deck.gameObject.x && myCenterX < deck.gameObject.x + deck.gameObject.displayWidth && myCenterY > deck.gameObject.y && myCenterY < deck.gameObject.y + deck.gameObject.displayHeight) {
+              // If card overlapping with deck
+              
               inserted = true;
               card.inDeck = true;
               card.inHand = false;
-              deck.cards.push(card);
+
+              if (playspaceComponent.amHost) {
+                // If we're not the host, we don't know what's in the deck
+                deck.cards.push(card);
+              }
 
               if (playspaceComponent.conn) {
                 playspaceComponent.conn.send({
@@ -338,16 +339,18 @@ export class PlayspaceComponent implements OnInit {
                   'imagePath': object.imagePath,
                   'x': object.gameObject.x,
                   'y': object.gameObject.y,
+                  'amHost': playspaceComponent.amHost
                 });
               }
 
               card.gameObject.destroy();
               card.gameObject = null;
 
+              // We need to remove the card from where it originated
               if (foundInHand) {
-                cardListToFilter = playspaceComponent.phaserScene.hand.cards;
+                playspaceComponent.phaserScene.hand.cards = playspaceComponent.filterOutID(playspaceComponent.phaserScene.hand.cards, card);
               } else {
-                cardListToFilter = playspaceComponent.phaserScene.cards;
+                playspaceComponent.phaserScene.cards = playspaceComponent.filterOutID(playspaceComponent.phaserScene.cards, card);
               }
             }
           });
@@ -366,17 +369,12 @@ export class PlayspaceComponent implements OnInit {
                 'imagePath': object.imagePath,
                 'x': object.gameObject.x,
                 'y': object.gameObject.y,
+                'amHost': playspaceComponent.amHost
               });
             }
 
-            cardListToFilter = playspaceComponent.phaserScene.hand.cards;
+            playspaceComponent.phaserScene.hand.cards = playspaceComponent.filterOutID(playspaceComponent.phaserScene.hand.cards, card);
           }
-        }
-
-        if (cardListToFilter) {
-          cardListToFilter = cardListToFilter.filter( (refCard: Card) => {
-            return card.id !== refCard.id;
-          });
         }
       }
     }
@@ -384,15 +382,19 @@ export class PlayspaceComponent implements OnInit {
 
   deckRightClick(deck: Deck, playspaceComponent: PlayspaceComponent, pointer: Phaser.Input.Pointer) {
     if (pointer.rightButtonDown()) {
-      var width = 250;
-      var height = 160;
-      var optionObjects = [];
-      optionObjects.push(new OptionObject("retrieveCard", playspaceComponent.retrieveTopCard, 'assets/images/buttons/retrieveTopCard.png', 200, 75));
-      optionObjects.push(new OptionObject("shuffleDeck", playspaceComponent.shuffleDeck, 'assets/images/buttons/shuffleDeck.png', 200, 75));
-  
-      var handle = "popup" + playspaceComponent.popupCount++;
+      let optionWidth = 200;
+      let optionHeight = 75;
+      let optionObjects = [];
+      let optionSeparation = 10;
+      optionObjects.push(new OptionObject("retrieveCard", playspaceComponent.retrieveTopCard, 'assets/images/buttons/retrieveTopCard.png', optionWidth, optionHeight));
+      optionObjects.push(new OptionObject("shuffleDeck", playspaceComponent.shuffleDeck, 'assets/images/buttons/shuffleDeck.png', optionWidth, optionHeight));
+      optionObjects.push(new OptionObject("importDeck", playspaceComponent.importDeck, 'assets/images/buttons/importDeck.png', optionWidth, optionHeight));
+      let width = 250;
+      let height = optionHeight*optionObjects.length + (optionObjects.length - 1)*optionSeparation;
+
+      let handle = "popup" + playspaceComponent.popupCount++;
       
-      var popupScene = new PopupScene(handle, pointer.x, pointer.y, playspaceComponent, deck, width, height, optionObjects, 10);
+      let popupScene = new PopupScene(handle, pointer.x, pointer.y, playspaceComponent, deck, width, height, optionObjects, optionSeparation);
   
       playspaceComponent.phaserScene.scene.add(handle, popupScene, true);
     }
@@ -400,59 +402,92 @@ export class PlayspaceComponent implements OnInit {
 
   retrieveTopCard(popupScene: PopupScene, deck: Deck, playspaceComponent: PlayspaceComponent, pointer: Phaser.Input.Pointer) {
 
-    var card = deck.cards.pop();
+    if (playspaceComponent.amHost) {
+      var card = deck.cards.pop();
 
-    if (card) {
-      if (card.gameObject == null) {
-        card.inDeck = false;
-        card.gameObject = playspaceComponent.phaserScene.add.image(deck.gameObject.x, deck.gameObject.y, card.id.toString());
-        card.gameObject.setInteractive();
-        playspaceComponent.phaserScene.input.setDraggable(card.gameObject);
-        card.gameObject.on('drag', playspaceComponent.onDragMove.bind(this, card, playspaceComponent));
-        card.gameObject.on('dragend', playspaceComponent.onDragEnd.bind(this, card, playspaceComponent));
-        card.gameObject.displayWidth = 200;
-        card.gameObject.displayHeight = 300;
-        playspaceComponent.phaserScene.cards.push(card);
+      if (card) {
+        if (card.gameObject == null) {
+          card.inDeck = false;
+          card.gameObject = playspaceComponent.phaserScene.add.image(deck.gameObject.x, deck.gameObject.y, card.id.toString());
+          card.gameObject.setInteractive();
+          playspaceComponent.phaserScene.input.setDraggable(card.gameObject);
+          card.gameObject.on('drag', playspaceComponent.onDragMove.bind(this, card, playspaceComponent));
+          card.gameObject.on('dragend', playspaceComponent.onDragEnd.bind(this, card, playspaceComponent));
+          card.gameObject.displayWidth = 200;
+          card.gameObject.displayHeight = 300;
+          playspaceComponent.phaserScene.cards.push(card);
 
-        if (playspaceComponent.conn) {
-          playspaceComponent.conn.send({
-            'action': 'removeFromDeck',
-            'type': 'deck',
-            'cardID': card.id,
-            'deckID': deck.id,
-            'x': deck.gameObject.x,
-            'y': deck.gameObject.y
-          });
+          if (playspaceComponent.conn) {
+            playspaceComponent.conn.send({
+              'action': 'sendTopCard',
+              'type': 'card',
+              'cardID': card.id,
+              'imagePath': card.imagePath,
+              'deckID': deck.id,
+              'x': deck.gameObject.x,
+              'y': deck.gameObject.y,
+              'amHost': playspaceComponent.amHost
+            });
+          }
         }
       }
+    } else if (playspaceComponent.conn) {
+      playspaceComponent.conn.send({
+        'action': 'retrieveTopCard',
+        'type': 'card',
+        'deckID': deck.id,
+        'amHost': playspaceComponent.amHost
+      });
     }
 
     playspaceComponent.phaserScene.scene.remove(popupScene.key);
   }
 
   shuffleDeck(popupScene: PopupScene, deck: Deck, playspaceComponent: PlayspaceComponent, pointer: Phaser.Input.Pointer) {
-    let shuffled = deck.cards.map((card) => ({randomVal: Math.random(), card: card}))
-                             .sort((object1, object2) => object1.randomVal - object2.randomVal)
-                             .map((object) => object.card);
+    if (playspaceComponent.amHost) {
+      let shuffled = deck.cards.map((card) => ({randomVal: Math.random(), card: card}))
+                               .sort((object1, object2) => object1.randomVal - object2.randomVal)
+                               .map((object) => object.card);
 
-    deck.cards = shuffled;
+      deck.cards = shuffled;
 
-    let shuffledCardIDs = [];
+      let shuffledCardIDs = [];
 
-    shuffled.forEach((card: Card) => {
+      shuffled.forEach((card: Card) => {
       shuffledCardIDs.push(card.id);
-    });
-
-    if (playspaceComponent.conn) {
-      playspaceComponent.conn.send({
-        'action': 'shuffle',
-        'type': 'deck',
-        'deckID': deck.id,
-        'shuffledCardIDs': shuffledCardIDs
       });
+
+      // TODO: Only host can shuffle, and host is not sending shuffled data to players
+      // Can change if necessary
+
+      //if (playspaceComponent.conn) {
+      //  playspaceComponent.conn.send({
+      //  'action': 'shuffle',
+      //  'type': 'deck',
+      //  'deckID': deck.id,
+      //  'shuffledCardIDs': shuffledCardIDs,
+      //  'amHost': playspaceComponent.amHost
+      //  });
+      //}
     }
+  
+    playspaceComponent.phaserScene.scene.remove(popupScene.key);
+  }
+
+  // TODO: Figure out how we are going to tell the other peers that a card's image has not been loaded.
+  // Is it a variable within the card object? Perhaps upon clicking import deck it sends a P2P data object that tells it the image paths to load & their keys (arrays probably)?
+  // --> The latter sounds pretty reasonable
+  importDeck(popupScene: PopupScene, deck: Deck, playspaceComponent: PlayspaceComponent, pointer: Phaser.Input.Pointer) {
+    let card: Card = new Card(10 + Math.round(Math.random()*90), "assets/images/playing-cards/king_of_hearts.png", 100, 150);
+    playspaceComponent.phaserScene.load.image(card.id.toString(), card.imagePath);
+    playspaceComponent.phaserScene.load.once("complete", playspaceComponent.importCallback.bind(this, card, deck));
+    playspaceComponent.phaserScene.load.start();
 
     playspaceComponent.phaserScene.scene.remove(popupScene.key);
+  }
+
+  importCallback(card: Card, deck: Deck) {
+    deck.cards.push(card);
   }
 
   
@@ -461,6 +496,12 @@ export class PlayspaceComponent implements OnInit {
   }
 
   handleData(data: String) {
+    if (this.amHost && data['amHost']) {
+      // Error! Both parties claim to the be the host! Abort!
+      console.log("Fatal error: both parties claim to be the host.");
+      return;
+    }
+
     switch(data['action']) {
       case 'move':
         if (data['type'] === 'card') {
@@ -488,8 +529,9 @@ export class PlayspaceComponent implements OnInit {
         }
         break;
 
+      // Received by the host when a player inserts a card into the deck or by the player when the host inserts a card into the deck
       case 'insertIntoDeck':
-        if (data['type'] === 'card') {
+        if (data['type'] === 'card' && this.amHost) {
           let card: Card = null;
           let deck: Deck = null;
 
@@ -513,17 +555,113 @@ export class PlayspaceComponent implements OnInit {
 
           if (card && deck) {
             deck.cards.push(card);
-            card.gameObject.destroy();
-            card.gameObject = null;
 
-            this.phaserScene.cards = this.phaserScene.cards.filter( (refCard: Card) => {
-              return refCard.id != card.id;
+            if (card.gameObject) {
+              card.gameObject.destroy();
+              card.gameObject = null;
+            }
+
+            this.phaserScene.cards = this.filterOutID(this.phaserScene.cards, card);
+          }
+        } else if (data['type'] === 'card' && !this.amHost) {
+          let card: Card = null;
+
+          for (let i = 0; i < this.phaserScene.cards.length; i++) {
+            if (this.phaserScene.cards[i].id === data['cardID']) {
+              card = this.phaserScene.cards[i];
+            }
+          }
+
+          if (card) {
+            // If I am not the host and someone inserts a card into the deck, completely remove all reference to it
+
+            card.gameObject.destroy();
+            this.phaserScene.cards = this.filterOutID(this.phaserScene.cards, card);
+          }
+        }
+        break;
+
+      // The host receives this action, which was sent by a non-host requesting the top card of the deck
+      case 'retrieveTopCard':
+        if (data['type'] === 'card' && this.amHost) {
+          let deck: Deck = null;
+
+          for (let i = 0; i < this.phaserScene.decks.length; i++) {
+            if (this.phaserScene.decks[i].id === data['deckID']) {
+              deck = this.phaserScene.decks[i];
+            }
+          }
+  
+          if (deck && deck.cards.length > 0) {
+            let card: Card = deck.cards[deck.cards.length - 1];
+
+            card.gameObject = this.phaserScene.add.image(deck.gameObject.x, deck.gameObject.y, card.id.toString());
+            card.gameObject.setInteractive();
+            this.phaserScene.input.setDraggable(card.gameObject);
+            card.gameObject.on('drag', this.onDragMove.bind(this, card, this));
+            card.gameObject.on('dragend', this.onDragEnd.bind(this, card, this));
+            card.gameObject.displayWidth = 200;
+            card.gameObject.displayHeight = 300;
+            this.phaserScene.cards.push(card);
+
+            deck.cards = this.filterOutID(deck.cards, card);
+
+            this.conn.send({
+              'action': 'sendTopCard',
+              'type': 'card',
+              'cardID': card.id,
+              'imagePath': card.imagePath,
+              'deckID': deck.id,
+              'x': deck.gameObject.x,
+              'y': deck.gameObject.y,
+              'amHost': this.amHost
             });
           }
         }
         break;
 
+      // The non-host receives this action, which was sent by the host after the non-host requested the top card from a deck
+      case 'sendTopCard':
+        if (data['type'] === 'card' && !this.amHost) {
+          let deck: Deck = null;
+
+          for (let i = 0; i < this.phaserScene.decks.length; i++) {
+            if (this.phaserScene.decks[i].id === data['deckID']) {
+              deck = this.phaserScene.decks[i];
+            }
+          }
+
+          if (deck) {
+  
+            let card: Card = new Card(data['cardID'], data['imagePath'], data['x'], data['y']);
+
+            card.inDeck = false;
+
+            if (this.phaserScene.textures.exists(card.id.toString())) {
+              // If the image already exists in the texture manager's cache, we can create the object now
+
+              card.gameObject = this.phaserScene.add.image(data['x'], data['y'], data['cardID'].toString());
+              card.gameObject.setInteractive();
+              this.phaserScene.input.setDraggable(card.gameObject);
+              card.gameObject.on('drag', this.onDragMove.bind(this, card, this));
+              card.gameObject.on('dragend', this.onDragEnd.bind(this, card, this));
+              card.gameObject.displayWidth = 200;
+              card.gameObject.displayHeight = 300;
+              this.phaserScene.cards.push(card);
+            } else {
+              // Otherwise, we have to dynamically load it
+              this.phaserScene.load.image(card.id.toString(), card.imagePath);
+              this.phaserScene.load.once("complete", this.cardCreationCallback.bind(this, card, data));
+              this.phaserScene.load.start();
+            }
+          }
+        }
+        break;
+
+      // Anyone can receive this action, which is sent by someone who inserts a card into their hand
       case 'insertIntoHand':
+        // TODO: The host needs to keep a copy of what cards should be in each person's hand to prevent cheating?
+
         // If someone else inserts a card into their hand, we need to delete that card from everyone else's screen
         if (data['type'] === 'card') {
           let card: Card = null;
@@ -538,92 +676,81 @@ export class PlayspaceComponent implements OnInit {
             // Delete the card
             card.gameObject.destroy();
             card.gameObject = null;
-            this.phaserScene.cards = this.phaserScene.cards.filter( (refCard: Card) => {
-              return refCard.id != card.id;
-            });
+            this.phaserScene.cards = this.filterOutID(this.phaserScene.cards, card);
           }
         }
 
-        break;
+        break;        
 
-      case 'removeFromDeck':
-        if (data['type'] === 'deck') {
-          let card: Card = null;
-          let deck: Deck = null;
-
-          for (let i = 0; i < this.phaserScene.decks.length; i++) {
-            if (this.phaserScene.decks[i].id === data['deckID']) {
-              deck = this.phaserScene.decks[i];
-            }
-          }
-
-          if (deck) {
-            for (let i = 0; i < deck.cards.length; i++) {
-              if (deck.cards[i].id === data['cardID']) {
-                card = deck.cards[i];
-              }
-            }
-  
-            if (card) {
-              card.inDeck = false;
-              card.gameObject = this.phaserScene.add.image(data['x'], data['y'], data['cardID'].toString());
-              card.gameObject.setInteractive();
-              this.phaserScene.input.setDraggable(card.gameObject);
-              card.gameObject.on('drag', this.onDragMove.bind(this, card, this));
-              card.gameObject.on('dragend', this.onDragEnd.bind(this, card, this));
-              card.gameObject.displayWidth = 200;
-              card.gameObject.displayHeight = 300;
-              this.phaserScene.cards.push(card);
-  
-              deck.cards = deck.cards.filter( (refCard: Card) => {
-                return refCard.id != card.id;
-              });
-            }
-          }
-        }
-        break;
-
+      // Anyone can receive this action, and it is sent by someone who places a card from their hand on the table (NOT inserting it into a)
       case 'removeFromHand':
-        let card: Card = new Card(data['cardID'], data['imagePath'], data['x'], data['y']);
-        card.gameObject = this.phaserScene.add.image(data['x'], data['y'], data['cardID'].toString());
-        card.gameObject.setInteractive();
-        this.phaserScene.input.setDraggable(card.gameObject);
-        card.gameObject.on('drag', this.onDragMove.bind(this, card, this));
-        card.gameObject.on('dragend', this.onDragEnd.bind(this, card, this));
-        card.gameObject.displayWidth = 200;
-        card.gameObject.displayHeight = 300;
-        this.phaserScene.cards.push(card);
+        if (data['type'] === 'card') {
+          let card: Card = new Card(data['cardID'], data['imagePath'], data['x'], data['y']);
+          if (this.phaserScene.textures.exists(card.id.toString())) {
+            // If the image already exists in the texture manager's cache, we can create the object now
+  
+            card.gameObject = this.phaserScene.add.image(data['x'], data['y'], data['cardID'].toString());
+            card.gameObject.setInteractive();
+            this.phaserScene.input.setDraggable(card.gameObject);
+            card.gameObject.on('drag', this.onDragMove.bind(this, card, this));
+            card.gameObject.on('dragend', this.onDragEnd.bind(this, card, this));
+            card.gameObject.displayWidth = 200;
+            card.gameObject.displayHeight = 300;
+            this.phaserScene.cards.push(card);
+          } else {
+            // Otherwise, we have to dynamically load it
+            this.phaserScene.load.image(card.id.toString(), card.imagePath);
+            this.phaserScene.load.once("complete", this.cardCreationCallback.bind(this, card, data));
+            this.phaserScene.load.start();
+          }
+        }
 
         break;
 
       case 'shuffle':
-        if (data['type'] === 'deck') {
-          let deck: Deck = null;
+        // TODO: Right now, only hosts can shuffle because only they know what is in the deck, and so no one should be receiving this call
+        // Can change if necessary
 
-          for (let i = 0; i < this.phaserScene.decks.length; i++) {
-            if (this.phaserScene.decks[i].id === data['deckID']) {
-              deck = this.phaserScene.decks[i];
-            }
-          }
-
-          if (deck) {
-            let shuffled = [];
-            data['shuffledCardIDs'].forEach((id) => {
-              for (let i = 0; i < deck.cards.length; i++) {
-                if (id === deck.cards[i].id) {
-                  shuffled.push(deck.cards[i]);
-                  break;
-                }
-              }
-            });
-
-            deck.cards = shuffled;
-          }
-        }
+        //if (data['type'] === 'deck' && this.amHost) {
+        //  let deck: Deck = null;
+        //
+        //  for (let i = 0; i < this.phaserScene.decks.length; i++) {
+        //    if (this.phaserScene.decks[i].id === data['deckID']) {
+        //      deck = this.phaserScene.decks[i];
+        //    }
+        //  }
+        //
+        //  if (deck) {
+        //    let shuffled = [];
+        //    data['shuffledCardIDs'].forEach((id) => {
+        //      for (let i = 0; i < deck.cards.length; i++) {
+        //        if (id === deck.cards[i].id) {
+        //          shuffled.push(deck.cards[i]);
+        //          break;
+        //        }
+        //      }
+        //    });
+        //
+        //    deck.cards = shuffled;
+        //  }
+        //}
         break;
 
       default:
         break;
     }
+  }
+
+  cardCreationCallback(card: Card, data: any) {
+    // TODO: Needs testing, may fail because of 'this' reference
+
+    card.gameObject = this.phaserScene.add.image(data['x'], data['y'], data['cardID'].toString());
+    card.gameObject.setInteractive();
+    this.phaserScene.input.setDraggable(card.gameObject);
+    card.gameObject.on('drag', this.onDragMove.bind(this, card, this));
+    card.gameObject.on('dragend', this.onDragEnd.bind(this, card, this));
+    card.gameObject.displayWidth = 200;
+    card.gameObject.displayHeight = 300;
+    this.phaserScene.cards.push(card);
   }
 }
