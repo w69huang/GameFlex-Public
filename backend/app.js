@@ -2,17 +2,28 @@
 
 const express = require('express')
 
+// The body parser will simplify the request data for mysql
+const bodyParser = require('body-parser')
+
 // The express() library will be used to handle backend routing
 const app = express()
+const mysqlapp = express()
 
 // allows our app to use json data
 app.use(express.json())
 
+// Allows use to parse application/json type post data
+mysqlapp.use(bodyParser.json());
+mysqlapp.use(bodyParser.urlencoded({extended:true}));
+
+
 // instantiate our database that was set up and connected in mongoose.js
 const mongoose = require('./database/mongoose')
+const mysql_connection = require('./database/mysql')
 
 const List = require('./database/models/list')
 const Task = require('./database/models/task')
+const test = require('./database/models/mysql.test.model')
 
 /*
     CORS: Cross-origin resource sharing
@@ -130,5 +141,19 @@ app.delete('/lists/:listId/tasks/:taskId', (req, res) => {
         .catch((error) => console.log(error))
 })
 
+
+
+
+// MY SQL:
+mysqlapp.get('/', (req, res) => {
+    res.send("Hello World");
+});
+
+const testRoutes = require('./routes/mysql.test.routes')
+
+mysqlapp.use('/test', testRoutes)
+
  // port number to listen on, callback fxn for when it completes
 app.listen(3000, () => console.log("Server Connected on port 3000"))
+
+mysqlapp.listen(5000, () => console.log("Mysql Server Connected on port 5000"))
