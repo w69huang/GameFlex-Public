@@ -2,12 +2,12 @@ import Card from './card';
 
 export default class Deck {
     gameObject: Phaser.GameObjects.Image = null;
-    id: number;
+    playerID: number;
     cards: Card[];
     type: string = "hand";
 
-    constructor(id: number, cards: Card[]) {
-        this.id = id;
+    constructor(playerID: number, cards: Card[]) {
+        this.playerID = playerID;
 
         if (cards) {
             this.cards = cards;
