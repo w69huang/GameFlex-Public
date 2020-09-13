@@ -214,11 +214,9 @@ export class PlayspaceComponent implements OnInit {
 
       this.conn = conn;
       this.otherPeerId = conn.peer;
-      this.conn.on('open', () => {
-        // Receive messages
-        this.conn.on('data', (data) => {
-          this.handleData(data);
-        });
+
+      this.conn.on('data', (data) => {
+        this.handleData(data);
       });
     });
   }
@@ -464,9 +462,6 @@ export class PlayspaceComponent implements OnInit {
     playspaceComponent.phaserScene.scene.remove(popupScene.key);
   }
 
-  // TODO: Figure out how we are going to tell the other peers that a card's image has not been loaded.
-  // Is it a variable within the card object? Perhaps upon clicking import deck it sends a P2P data object that tells it the image paths to load & their keys (arrays probably)?
-  // --> The latter sounds pretty reasonable
   importDeck(popupScene: PopupScene, deck: Deck, playspaceComponent: PlayspaceComponent, pointer: Phaser.Input.Pointer) {
     let imagePaths: string[] = ["assets/images/playing-cards/king_of_hearts.png", "assets/images/playing-cards/king_of_hearts.png"];
 
@@ -758,8 +753,6 @@ export class PlayspaceComponent implements OnInit {
   }
 
   cardCreationCallback(card: Card, playspaceComponent: PlayspaceComponent) {
-    // TODO: Needs testing, may fail because of 'this' reference
-
     card.gameObject = playspaceComponent.phaserScene.add.image(card.x, card.y, card.imagePath);
     card.gameObject.setInteractive();
     playspaceComponent.phaserScene.input.setDraggable(card.gameObject);
