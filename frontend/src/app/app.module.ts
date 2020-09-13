@@ -10,7 +10,11 @@ import { NewTaskComponent } from './pages/new-task/new-task.component';
 import { PlayspaceComponent } from './playspace/playspace.component';
 import { DeckEditorComponent } from './deck-editor/deck-editor.component';
 import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
-import { MatToolbarModule, MatIconModule, MatCardModule, MatButtonModule, MatProgressBarModule } from '@angular/material';
+import { MatToolbarModule } from '@angular/material/toolbar';
+import { MatIconModule } from '@angular/material/icon';
+import { MatCardModule } from '@angular/material/card';
+import { MatButtonModule } from '@angular/material/button';
+import { MatProgressBarModule } from '@angular/material/progress-bar';
 
 @NgModule({
   declarations: [
