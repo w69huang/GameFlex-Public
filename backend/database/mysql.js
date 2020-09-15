@@ -1,7 +1,15 @@
+// const mysql = require('mysql');
+// const mysql_connection = mysql.createConnection({
+//   host: 'localhost',
+//   user: 'w69huang',
+//   password: '123',
+//   database: 'testdb'
+// });
+
 const mysql = require('mysql');
 const mysql_connection = mysql.createConnection({
-  host: 'localhost',
-  user: 'w69huang',
+  host: '35.188.40.76',
+  user: 'root',
   password: '123',
   database: 'testdb'
 });
