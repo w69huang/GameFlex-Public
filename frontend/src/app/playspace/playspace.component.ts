@@ -1,9 +1,14 @@
 import { Component, OnInit, ViewChild, ElementRef, AfterViewInit } from '@angular/core';
+import { DataConnection } from 'peerjs';
 import Phaser from 'phaser';
 import Card from '../models/card';
+import CardMin from '../models/cardMin';
 import Deck from '../models/deck';
+import DeckMin from '../models/deckMin';
 import Hand from '../models/hand';
+import HandMin from '../models/handMin';
 import GameState from '../models/gameState';
+import SentGameState from '../models/sentGameState';
 
 declare var Peer: any;
 
@@ -165,7 +170,7 @@ export class PlayspaceComponent implements OnInit {
   public peer: any;
   public peerId: string;
   public otherPeerId: string;
-  public conn: any;
+  public conn: DataConnection;
   public highestID: number = 1;
 
   // State
@@ -227,6 +232,25 @@ export class PlayspaceComponent implements OnInit {
       this.conn.on('data', (data) => {
         this.handleData(data);
       });
+      this.conn.on('close', () => {
+        console.log("Peer-to-Peer Error: Other party disconnected.");
+        this.conn = null;
+        this.otherPeerId = null;
+      });
+      this.conn.on('error', (err) => {
+        console.log("Unspecified Peer-to-Peer Error:");
+        console.log(err);
+        this.conn = null;
+        this.otherPeerId = null;
+      });
+
+      this.conn.on('open', () => {
+        this.conn.send({
+          'action': 'sendState',
+          'amHost': this.amHost,
+          'playerID': this.playerID
+        });
+      });
     });
   }
 
@@ -239,7 +263,19 @@ export class PlayspaceComponent implements OnInit {
       conn.on('data', (data) => {
         this.handleData(data);
       });
+      conn.on('close', () => {
+        console.log("Peer-to-Peer Error: Other party disconnected.");
+        this.conn = null;
+        this.otherPeerId = null;
+      });
+      conn.on('error', (err) => {
+        console.log("Unspecified Peer-to-Peer Error:");
+        console.log(err);
+        this.conn = null;
+        this.otherPeerId = null;
+      });
     });
+
   }
   
   onDragMove(object: any, playspaceComponent: PlayspaceComponent, pointer: Phaser.Input.Pointer, dragX: number, dragY: number) {
@@ -514,6 +550,29 @@ export class PlayspaceComponent implements OnInit {
     }
 
     switch(data['action']) {
+
+      // Received by the host after being sent by the player upon connection to the host, in which the player asks for the game state
+      case 'sendState':
+        const sentGameState: SentGameState = new SentGameState(this.gameState, data['playerID']);
+
+        console.log("Sending state.");
+        this.conn.send({
+          'action': 'replicateState',
+          'state': sentGameState,
+          'amHost': this.amHost,
+          'playerID': this.playerID
+        });
+        break;
+
+      case 'replicateState':
+        console.log("Received state.");
+        const receivedGameState: SentGameState = data['state'];
+
+        receivedGameState.cardMins.forEach((cardMin: CardMin) => {
+
+        });
+        break;
+
       case 'move':
         if (data['type'] === 'card') {
           let gameObject: Phaser.GameObjects.Image = null;
