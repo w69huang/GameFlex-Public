@@ -197,6 +197,8 @@ export class PlayspaceComponent implements OnInit {
     // 2. peerjs --port 9000 --key peerjs --path /peerserver
     this.peer = new Peer({ // You can pass in a specific ID as the first argument if you want to hardcode the peer ID
       host: 'localhost',
+      // host: '35.236.57.123', This is reserved for the external IP of the mongo DB instance. Replace this IP with the new IP generated when starting up the 
+      // Mongo instance.
       port: 9000,
       path: '/peerserver' // Make sure this path matches the path you used to launch it
     }); 
