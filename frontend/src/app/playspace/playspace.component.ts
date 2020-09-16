@@ -1,6 +1,6 @@
 import { Component, OnInit, ViewChild, ElementRef, AfterViewInit } from '@angular/core';
 import { DataConnection } from 'peerjs';
-import Phaser from 'phaser';
+import Phaser, { GameObjects } from 'phaser';
 import Card from '../models/card';
 import CardMin from '../models/cardMin';
 import Deck from '../models/deck';
@@ -11,6 +11,11 @@ import GameState from '../models/gameState';
 import SentGameState from '../models/sentGameState';
 
 declare var Peer: any;
+
+enum DestinationEnum {
+  TABLE = "Table",
+  HAND = "Hand"
+}
 
 class OptionObject {
   optionKey: string;
@@ -101,6 +106,13 @@ class MainScene extends Phaser.Scene {
   }
 
   create() {
+    this.input.mouse.disableContextMenu();
+
+    let cardList: Card[] = [new Card(this.playspaceComponent.highestID++, "assets/images/playing-cards/ace_of_spades.png", 250, 250),
+                            new Card(this.playspaceComponent.highestID++, "assets/images/playing-cards/ace_of_clubs.png", 550, 250),
+                            new Card(this.playspaceComponent.highestID++, "assets/images/playing-cards/ace_of_hearts.png", 250, 350),
+                            new Card(this.playspaceComponent.highestID++, "assets/images/playing-cards/ace_of_diamonds.png", 550, 350)];
+    let deckList: Deck[] = [new Deck(this.playspaceComponent.highestID++, "assets/images/playing-cards/deck.png", [], 400, 250)];
 
 
     if (this.playspaceComponent.gameState.myHand.gameObject == null) {
@@ -110,30 +122,12 @@ class MainScene extends Phaser.Scene {
       this.playspaceComponent.gameState.myHand.gameObject.displayHeight = this.height - this.handBeginY;
     }
 
-    this.playspaceComponent.gameState.cards.forEach(card => {
-        if (card.gameObject == null) {
-          card.gameObject = this.add.image(card.x, card.y, card.imagePath);
-          card.gameObject.setInteractive();
-          this.input.setDraggable(card.gameObject);
-          card.gameObject.on('drag', this.playspaceComponent.onDragMove.bind(this, card, this.playspaceComponent));
-          card.gameObject.on('dragend', this.playspaceComponent.onDragEnd.bind(this, card, this.playspaceComponent));
-          card.gameObject.displayWidth = 200;
-          card.gameObject.displayHeight = 300;
-        }
+    cardList.forEach(card => {
+        this.playspaceComponent.createCard(card, this.playspaceComponent, DestinationEnum.TABLE, card.x, card.y);
     });
 
-    this.playspaceComponent.gameState.decks.forEach(deck => {
-      if (deck.gameObject == null) {
-        deck.gameObject = this.add.image(deck.x, deck.y, deck.imagePath);
-        deck.gameObject.setInteractive();
-        this.input.mouse.disableContextMenu();
-        this.input.setDraggable(deck.gameObject);
-        deck.gameObject.on('drag', this.playspaceComponent.onDragMove.bind(this, deck, this.playspaceComponent));
-        // Binding allows you to add extra parameters in the callback!
-        deck.gameObject.on('pointerdown', this.playspaceComponent.deckRightClick.bind(this, deck, this.playspaceComponent));
-        deck.gameObject.displayWidth = 200;
-        deck.gameObject.displayHeight = 300;
-      }
+    deckList.forEach(deck => {
+      this.playspaceComponent.createDeck(deck, this.playspaceComponent, deck.x, deck.y);
     });
 
   }
@@ -193,15 +187,8 @@ export class PlayspaceComponent implements OnInit {
   }
 
   ngOnInit(): void {
-    this.gameState = new GameState([], [], [], null);
-    this.gameState.cards.push(new Card(this.highestID++, "assets/images/playing-cards/ace_of_spades.png", 250, 250))
-    this.gameState.cards.push(new Card(this.highestID++, "assets/images/playing-cards/ace_of_clubs.png", 550, 250))
-    this.gameState.cards.push(new Card(this.highestID++, "assets/images/playing-cards/ace_of_hearts.png", 250, 350))
-    this.gameState.cards.push(new Card(this.highestID++, "assets/images/playing-cards/ace_of_diamonds.png", 550, 350))
-    this.gameState.decks.push(new Deck(this.highestID++, "assets/images/playing-cards/deck.png", null, 400, 250))
-    
     // TODO: Based off player ID, need to ensure the other person has a different playerID
-    this.gameState.myHand = new Hand(this.playerID, null);
+    this.gameState = new GameState([], [], [], new Hand(this.playerID, []));
 
     this.phaserGame = new Phaser.Game(this.config);
 
@@ -280,6 +267,8 @@ export class PlayspaceComponent implements OnInit {
   
   onDragMove(object: any, playspaceComponent: PlayspaceComponent, pointer: Phaser.Input.Pointer, dragX: number, dragY: number) {
     if (object.type == 'deck' || object.type == 'card') {
+      object.x = dragX;
+      object.y = dragY;
       object.gameObject.setX(dragX);
       object.gameObject.setY(dragY);
   
@@ -452,7 +441,7 @@ export class PlayspaceComponent implements OnInit {
         if (card.gameObject == null) {
           card.inDeck = false;
 
-          playspaceComponent.createCard(card, playspaceComponent, deck.gameObject.x, deck.gameObject.y);
+          playspaceComponent.createCard(card, playspaceComponent, DestinationEnum.TABLE, deck.gameObject.x, deck.gameObject.y);
 
           if (playspaceComponent.conn) {
             playspaceComponent.conn.send({
@@ -568,35 +557,72 @@ export class PlayspaceComponent implements OnInit {
         console.log("Received state.");
         const receivedGameState: SentGameState = data['state'];
 
-        receivedGameState.cardMins.forEach((cardMin: CardMin) => {
+        this.cleanUpGameState();
 
+        this.gameState = new GameState([], [], [], this.gameState.myHand);
+
+        receivedGameState.cardMins.forEach((cardMin: CardMin) => {
+          let card: Card = new Card(cardMin.id, cardMin.imagePath, cardMin.x, cardMin.y);
+          this.createCard(card, this, DestinationEnum.TABLE, card.x, card.y);
+        });
+        receivedGameState.deckMins.forEach((deckMin: DeckMin) => {
+          let deck: Deck = new Deck(deckMin.id, deckMin.imagePath, [], deckMin.x, deckMin.y);
+          this.createDeck(deck, this, deck.x, deck.y);
+        });
+        receivedGameState.handMin.cardMins.forEach((cardMin: CardMin) => {
+          let card: Card = new Card(cardMin.id, cardMin.imagePath, cardMin.x, cardMin.y, true);
+          this.createCard(card, this, DestinationEnum.HAND, card.x, card.y);
         });
         break;
 
       case 'move':
         if (data['type'] === 'card') {
-          let gameObject: Phaser.GameObjects.Image = null;
+          let card: Card = null;
+          let found: boolean = true;
+          
           for (let i = 0; i < this.gameState.cards.length; i++) {
-            if (this.gameState.cards[i].gameObject && this.gameState.cards[i].id == data['id']) {
-              gameObject = this.gameState.cards[i].gameObject;
+            if (this.gameState.cards[i].id === data['id']) {
+              card = this.gameState.cards[i];
+              found = false;
               break;
             }
           }
-          if (gameObject != null) {
-            gameObject.setX(data['x']);
-            gameObject.setY(data['y']);
+
+          if (!found && this.amHost) {
+            for (let i = 0; i < this.gameState.hands.length; i++) {
+              if (data['playerID'] === this.gameState.hands[i].playerID) {
+                for (let j = 0; j < this.gameState.hands[i].cards.length; j++) {
+                  if (this.gameState.hands[i].cards[j].id === data['id']) {
+                    card = this.gameState.hands[i].cards[j];
+                    break;
+                  }
+                }
+                break;
+              }
+            }
+          }
+
+          if (card) {
+            card.x = data['x'];
+            card.y = data['y'];
+            if (card.gameObject) { 
+              card.gameObject.setX(data['x']);
+              card.gameObject.setY(data['y']);
+            }
           }
         } else if (data['type'] === 'deck') {
-          let gameObject: Phaser.GameObjects.Image = null;
+          let deck: Deck = null;
           for (let i = 0; i < this.gameState.decks.length; i++) {
-            if (this.gameState.decks[i].gameObject && this.gameState.decks[i].id == data['id']) {
-              gameObject = this.gameState.decks[i].gameObject;
+            if (this.gameState.decks[i].id === data['id']) {
+              deck = this.gameState.decks[i];
               break;
             }
           }
-          if (gameObject != null) {
-            gameObject.setX(data['x']);
-            gameObject.setY(data['y']);
+          if (deck) {
+            deck.x = data['x'];
+            deck.y = data['y'];
+            deck.gameObject.setX(data['x']);
+            deck.gameObject.setY(data['y']);
           }
         }
         break;
@@ -623,8 +649,8 @@ export class PlayspaceComponent implements OnInit {
                 handIndex = i;
 
                 for (let j = 0; j < hand.cards.length; j++) {
-                  if (hand.cards[i].id === data['cardID']) {
-                    card = hand.cards[i];
+                  if (hand.cards[j].id === data['cardID']) {
+                    card = hand.cards[j];
                     break;
                   }
                 }
@@ -690,7 +716,7 @@ export class PlayspaceComponent implements OnInit {
             let card: Card = deck.cards[deck.cards.length - 1];
 
             card.inDeck = false;
-            this.createCard(card, this, deck.gameObject.x, deck.gameObject.y);
+            this.createCard(card, this, DestinationEnum.TABLE, deck.gameObject.x, deck.gameObject.y);
 
             deck.cards = this.filterOutID(deck.cards, card);
 
@@ -726,7 +752,7 @@ export class PlayspaceComponent implements OnInit {
             let card: Card = new Card(data['cardID'], data['imagePath'], data['x'], data['y']);
             card.inDeck = false;
 
-            this.createCard(card, this, deck.gameObject.x, deck.gameObject.y);
+            this.createCard(card, this, DestinationEnum.TABLE, deck.gameObject.x, deck.gameObject.y);
           }
         }
         break;
@@ -776,23 +802,26 @@ export class PlayspaceComponent implements OnInit {
       // Anyone can receive this action, and it is sent by someone who places a card from their hand on the table (NOT inserting it into a deck)
       case 'removeFromHand':
         if (data['type'] === 'card') {
-          let card: Card = new Card(data['cardID'], data['imagePath'], data['x'], data['y']);
-          if (this.phaserScene.textures.exists(card.imagePath)) {
-            // If the image already exists in the texture manager's cache, we can create the object now
-  
-            card.gameObject = this.phaserScene.add.image(card.x, card.y, card.imagePath);
-            card.gameObject.setInteractive();
-            this.phaserScene.input.setDraggable(card.gameObject);
-            card.gameObject.on('drag', this.onDragMove.bind(this, card, this));
-            card.gameObject.on('dragend', this.onDragEnd.bind(this, card, this));
-            card.gameObject.displayWidth = 200;
-            card.gameObject.displayHeight = 300;
-            this.gameState.cards.push(card);
+          let card: Card = null;
+          if (this.amHost) {
+            // Card already exists
+            for (let i = 0; i < this.gameState.hands.length; i++) {
+              if (this.gameState.hands[i].playerID === data['playerID']) {
+                for (let j = 0; j < this.gameState.hands[i].cards.length; j++) {
+                  if (this.gameState.hands[i].cards[j].id === data['cardID']) {
+                    card = this.gameState.hands[i].cards[j];
+                    card.inHand = false;
+                    this.gameState.hands[i].cards = this.filterOutID(this.gameState.hands[i].cards, card);
+                    this.createCard(card, this, DestinationEnum.TABLE, data['x'], data['y'])
+                    break;
+                  }
+                }
+                break;
+              }
+            }
           } else {
-            // Otherwise, we have to dynamically load it
-            this.phaserScene.load.image(card.imagePath, card.imagePath);
-            this.phaserScene.load.once("complete", this.cardCreationCallback.bind(this, card, this));
-            this.phaserScene.load.start();
+            card = new Card(data['cardID'], data['imagePath'], data['x'], data['y']);
+            this.createCard(card, this, DestinationEnum.TABLE, data['x'], data['y']);
           }
         }
 
@@ -852,37 +881,31 @@ export class PlayspaceComponent implements OnInit {
     }
   }
 
-  createCard(card: Card, playspaceComponent: PlayspaceComponent, x: number, y: number) {
-    let cardAlreadyExists: boolean = false;
-    for (let i = 0; i < playspaceComponent.gameState.cards.length; i++) {
-      if (playspaceComponent.gameState.cards[i].id === card.id) {
-        cardAlreadyExists = true;
-        break;
-      }
-    }
+  createCard(card: Card, playspaceComponent: PlayspaceComponent, destination: string, x: number, y: number) {
+    if (playspaceComponent.phaserScene.textures.exists(card.imagePath)) {
+      // If the image already exists in the texture manager's cache, we can create the object now
 
-    if (!cardAlreadyExists) { // Ensures we don't create the same card twice, for ex if 2 events fired on a button click for some reason or another
-      if (playspaceComponent.phaserScene.textures.exists(card.imagePath)) {
-        // If the image already exists in the texture manager's cache, we can create the object now
-  
-        card.gameObject = playspaceComponent.phaserScene.add.image(x, y, card.imagePath);
-        card.gameObject.setInteractive();
-        playspaceComponent.phaserScene.input.setDraggable(card.gameObject);
-        card.gameObject.on('drag', playspaceComponent.onDragMove.bind(this, card, playspaceComponent));
-        card.gameObject.on('dragend', playspaceComponent.onDragEnd.bind(this, card, playspaceComponent));
-        card.gameObject.displayWidth = 200;
-        card.gameObject.displayHeight = 300;
+      card.gameObject = playspaceComponent.phaserScene.add.image(x, y, card.imagePath);
+      card.gameObject.setInteractive();
+      playspaceComponent.phaserScene.input.setDraggable(card.gameObject);
+      card.gameObject.on('drag', playspaceComponent.onDragMove.bind(this, card, playspaceComponent));
+      card.gameObject.on('dragend', playspaceComponent.onDragEnd.bind(this, card, playspaceComponent));
+      card.gameObject.displayWidth = 200;
+      card.gameObject.displayHeight = 300;
+      if (destination === DestinationEnum.TABLE) {
         playspaceComponent.gameState.cards.push(card);
       } else {
-        // Otherwise, we have to dynamically load it
-        playspaceComponent.phaserScene.load.image(card.imagePath, card.imagePath);
-        playspaceComponent.phaserScene.load.once("complete", playspaceComponent.cardCreationCallback.bind(this, card, playspaceComponent, x, y));
-        playspaceComponent.phaserScene.load.start();
+        playspaceComponent.gameState.myHand.cards.push(card);
       }
+    } else {
+      // Otherwise, we have to dynamically load it
+      playspaceComponent.phaserScene.load.image(card.imagePath, card.imagePath);
+      playspaceComponent.phaserScene.load.once("complete", playspaceComponent.cardCreationCallback.bind(this, card, playspaceComponent, destination, x, y));
+      playspaceComponent.phaserScene.load.start();
     }
   }
 
-  cardCreationCallback(card: Card, playspaceComponent: PlayspaceComponent, x: number, y: number) {
+  cardCreationCallback(card: Card, playspaceComponent: PlayspaceComponent, destination: string, x: number, y: number) {
     card.gameObject = playspaceComponent.phaserScene.add.image(x, y, card.imagePath);
     card.gameObject.setInteractive();
     playspaceComponent.phaserScene.input.setDraggable(card.gameObject);
@@ -890,6 +913,56 @@ export class PlayspaceComponent implements OnInit {
     card.gameObject.on('dragend', playspaceComponent.onDragEnd.bind(this, card, playspaceComponent));
     card.gameObject.displayWidth = 200;
     card.gameObject.displayHeight = 300;
-    playspaceComponent.gameState.cards.push(card);
+    if (destination === DestinationEnum.TABLE) {
+      playspaceComponent.gameState.cards.push(card);
+    } else {
+      playspaceComponent.gameState.myHand.cards.push(card);
+    }
+  }
+
+  createDeck(deck: Deck, playspaceComponent: PlayspaceComponent, x: number, y: number) {
+    if (playspaceComponent.phaserScene.textures.exists(deck.imagePath)) {
+      // If the image already exists in the texture manager's cache, we can create the object now
+
+      deck.gameObject = playspaceComponent.phaserScene.add.image(x, y, deck.imagePath);
+      deck.gameObject.setInteractive();
+      playspaceComponent.phaserScene.input.setDraggable(deck.gameObject);
+      deck.gameObject.on('drag', playspaceComponent.onDragMove.bind(this, deck, playspaceComponent));
+      deck.gameObject.on('pointerdown', playspaceComponent.deckRightClick.bind(this, deck, playspaceComponent));
+      deck.gameObject.displayWidth = 200;
+      deck.gameObject.displayHeight = 300;
+      playspaceComponent.gameState.decks.push(deck);
+    } else {
+      // Otherwise, we have to dynamically load it
+      playspaceComponent.phaserScene.load.image(deck.imagePath, deck.imagePath);
+      playspaceComponent.phaserScene.load.once("complete", playspaceComponent.deckCreationCallback.bind(this, deck, playspaceComponent, x, y));
+      playspaceComponent.phaserScene.load.start();
+    }
+  }
+
+  deckCreationCallback(deck: Deck, playspaceComponent: PlayspaceComponent, x: number, y: number) {
+    deck.gameObject = playspaceComponent.phaserScene.add.image(x, y, deck.imagePath);
+    deck.gameObject.setInteractive();
+    playspaceComponent.phaserScene.input.setDraggable(deck.gameObject);
+    deck.gameObject.on('drag', playspaceComponent.onDragMove.bind(this, deck, playspaceComponent));
+    deck.gameObject.on('pointerdown', playspaceComponent.deckRightClick.bind(this, deck, playspaceComponent));
+    deck.gameObject.displayWidth = 200;
+    deck.gameObject.displayHeight = 300;
+    playspaceComponent.gameState.decks.push(deck);
+  }
+
+  cleanUpGameState() {
+    this.gameState.cards.forEach((card: Card) => {
+      card.gameObject.destroy();
+    });
+    this.gameState.cards = [];
+    this.gameState.decks.forEach((deck: Deck) => {
+      deck.gameObject.destroy();
+    });
+    this.gameState.decks = [];
+    this.gameState.myHand.cards.forEach((card: Card) => {
+      card.gameObject.destroy();
+    });
+    this.gameState.myHand.cards = [];
   }
 }

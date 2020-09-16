@@ -9,7 +9,7 @@ export default class CardMin {
     constructor(card: Card) {
         this.id = card.id;
         this.imagePath = card.imagePath;
-        this.x = card.gameObject.x;
-        this.y = card.gameObject.y;
+        this.x = card.x;
+        this.y = card.y;
     }
 }

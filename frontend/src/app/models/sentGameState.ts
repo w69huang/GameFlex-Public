@@ -19,11 +19,17 @@ export default class SentGameState {
             this.deckMins.push(new DeckMin(deck));
         });
 
+        let handFound: boolean = false;
         for (let i = 0; i < gameState.hands.length; i++) {
             if (gameState.hands[i].playerID === playerID) {
                 this.handMin = new HandMin(gameState.hands[i]);
+                handFound = true;
                 break;
             }
+        }
+
+        if (!handFound) {
+            this.handMin = new HandMin(new Hand(playerID, []));
         }
     }
 }
