@@ -118,3 +118,21 @@ It is good practice to make sure that a connection is closed once you are done u
 connection.end((err) => {
     // The error is just to make sure we can log stuff is something fails.
 });
+
+
+## Remote mySQL and MongoDB servers:
+
+### MySQL:
+
+To start the mySQL server, log onto the GCP console and select the **_SQL_** option in the side bar. Click on gcp-gameflex-sql and then select **_Start_** from the triple dot beside **_Overview_**. Wait a couple seconds and it should be up. The public IP Address should be used to replace **_localhost_** inside the connection code.
+
+Currently only on user exists:
+- **User**: root
+- **Password**: 123
+
+### MongoDB: 
+
+Similar to the mySQL server, select the **_Compute Engine_** from the side bar and click the box beside **_gameflex-mongodb-arbiters-vm-0_** and  **_gameflex-mongodb-servers-vm-0_** to select them. Press the play button beside VM Instances. Wait a couple seconds and it should be up. The external IP of **_gameflex-mongodb-servers-vm-0_** should be what is used to replace **_127.0.0.1_** inside the connection code. 
+
+***NOTE:*** The External IP and the Public IP Address can be subject to change without a dedicated IP address saved for our instances if GCP handles IP addresses in a similar fashion to AWS. If this is the case, we can either choose to spend some money on creating these saved IP addresses in the future, or just remember to double check the connections each time we start up the servers. 
+
