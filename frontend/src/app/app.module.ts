@@ -9,6 +9,7 @@ import { NewListComponent } from './pages/new-list/new-list.component';
 import { NewTaskComponent } from './pages/new-task/new-task.component';
 import { PlayspaceComponent } from './playspace/playspace.component';
 import { DeckEditorComponent } from './deck-editor/deck-editor.component';
+import { GameBrowserComponent } from './game-browser/game-browser.component';
 
 @NgModule({
   declarations: [
@@ -17,7 +18,8 @@ import { DeckEditorComponent } from './deck-editor/deck-editor.component';
     NewListComponent,
     NewTaskComponent,
     PlayspaceComponent,
-    DeckEditorComponent
+    DeckEditorComponent,
+    GameBrowserComponent
   ],
   imports: [
     BrowserModule,

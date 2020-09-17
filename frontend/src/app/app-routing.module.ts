@@ -5,12 +5,14 @@ import { NewListComponent } from './pages/new-list/new-list.component';
 import { NewTaskComponent } from './pages/new-task/new-task.component';
 import { PlayspaceComponent } from './playspace/playspace.component';
 import { DeckEditorComponent } from './deck-editor/deck-editor.component';
+import { GameBrowserComponent } from './game-browser/game-browser.component';
 
 
 const routes: Routes = [
   { path: '', redirectTo: 'playspace', pathMatch: 'full' },
-  { path: 'playspace', component: PlayspaceComponent},
-  { path: 'deckeditor', component: DeckEditorComponent},
+  { path: 'playspace', component: PlayspaceComponent },
+  { path: 'deckeditor', component: DeckEditorComponent },
+  { path: 'gamebrowser', component: GameBrowserComponent },
 
   { path: 'lists', component: TaskViewComponent },
   { path: 'lists/:listId', component: TaskViewComponent },
