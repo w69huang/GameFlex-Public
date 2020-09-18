@@ -11,8 +11,8 @@ import { GameBrowserComponent } from './game-browser/game-browser.component';
 const routes: Routes = [
   { path: '', redirectTo: 'playspace', pathMatch: 'full' },
   { path: 'playspace', component: PlayspaceComponent },
-  { path: 'deckeditor', component: DeckEditorComponent },
-  { path: 'gamebrowser', component: GameBrowserComponent },
+  { path: 'deckEditor', component: DeckEditorComponent },
+  { path: 'gameBrowser', component: GameBrowserComponent },
 
   { path: 'lists', component: TaskViewComponent },
   { path: 'lists/:listId', component: TaskViewComponent },

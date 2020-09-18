@@ -1,1 +1,19 @@
-<p>game-browser works!</p>
+
+<mat-card class="gameList" *ngFor="let onlineGame of onlineGames">
+    <div>
+        Host ID: {{ onlineGame.hostID }}
+    </div>
+    <div>
+        Game Name: {{ onlineGame.name }}
+    </div>
+    <div>
+        Game Code: {{ onlineGame.onlineGameCode }}
+    </div>
+    <div>
+        Max Players: {{ onlineGame.maxPlayers }}
+    </div>
+    <div>
+        Configuration ID: {{ onlineGame.configurationID }}
+    </div>
+    <button mat-raised-button (click)="joinGame()">Join</button>
+</mat-card>

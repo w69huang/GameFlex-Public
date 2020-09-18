@@ -10,6 +10,12 @@ import { NewTaskComponent } from './pages/new-task/new-task.component';
 import { PlayspaceComponent } from './playspace/playspace.component';
 import { DeckEditorComponent } from './deck-editor/deck-editor.component';
 import { GameBrowserComponent } from './game-browser/game-browser.component';
+import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
+import { MatToolbarModule } from '@angular/material/toolbar';
+import { MatIconModule } from '@angular/material/icon';
+import { MatCardModule } from '@angular/material/card';
+import { MatButtonModule } from '@angular/material/button';
+import { MatProgressBarModule } from '@angular/material/progress-bar';
 
 @NgModule({
   declarations: [
@@ -24,7 +30,13 @@ import { GameBrowserComponent } from './game-browser/game-browser.component';
   imports: [
     BrowserModule,
     AppRoutingModule,
-    HttpClientModule
+    HttpClientModule,
+    BrowserAnimationsModule,
+    MatToolbarModule,
+    MatIconModule,
+    MatCardModule,
+    MatButtonModule,
+    MatProgressBarModule
   ],
   providers: [],
   bootstrap: [AppComponent]
