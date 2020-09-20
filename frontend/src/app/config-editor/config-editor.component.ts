@@ -181,6 +181,12 @@ export class ConfigEditorComponent implements OnInit {
     configEditorComponent.phaserScene.scene.remove(popupScene.key);
   }
 
+  initDeck() {
+    // Just for the create deck button
+    let deck: Deck = new Deck(this.highestID++, "assets/images/playing-cards/deck.png", [], 400, 250);
+    this.createDeck(deck, this, deck.x, deck.y);
+  }
+
   createDeck(deck: Deck, configEditorComponent: ConfigEditorComponent, x: number, y: number) {
     if (configEditorComponent.phaserScene.textures.exists(deck.imagePath)) {
       // If the image already exists in the texture manager's cache, we can create the object now
