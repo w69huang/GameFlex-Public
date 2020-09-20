@@ -45,5 +45,5 @@ Note: Close vscode if you're running it from Ubuntu (WSL) and run `killall node`
 ### Run
     ng serve
 
-### Generate Component and other info on Angluar cli
+### Generate Component and other info on Angular cli
 https://cli.angular.io/
