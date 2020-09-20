@@ -15,5 +15,8 @@
     <div>
         Configuration ID: {{ onlineGame.configurationID }}
     </div>
-    <button mat-raised-button (click)="joinGame()">Join</button>
+    <div>
+        Password Protected: {{ onlineGame.passwordProtected ? "Yes" : "No" }}
+    </div>
+    <button mat-raised-button (click)="joinGame(onlineGame)">Join</button>
 </mat-card>

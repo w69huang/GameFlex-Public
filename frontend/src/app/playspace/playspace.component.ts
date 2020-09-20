@@ -1,4 +1,5 @@
-import { Component, OnInit, ViewChild, ElementRef, AfterViewInit } from '@angular/core';
+import { ActivatedRoute } from '@angular/router';
+import { Component, OnInit, ViewChild, ElementRef, AfterViewInit, HostBindingDecorator } from '@angular/core';
 import { DataConnection } from 'peerjs';
 import Phaser, { GameObjects } from 'phaser';
 import Card from '../models/card';
@@ -170,12 +171,14 @@ export class PlayspaceComponent implements OnInit {
   // State
   public playerID: number = 1;
   public gameState: GameState;
-  
+
+  // Query Parameters
+  public hostID: string;
 
   // NOTE: In the future, this should be populated by a DB call for a specific game
   public amHost: boolean = true;
   
-  constructor() { 
+  constructor(private route: ActivatedRoute) { 
     this.phaserScene = new MainScene(this, this.sceneWidth, this.sceneHeight, this.handBeginY);
     this.config = {
       type: Phaser.AUTO,
@@ -187,6 +190,10 @@ export class PlayspaceComponent implements OnInit {
   }
 
   ngOnInit(): void {
+    this.route.queryParams.subscribe(params => {
+      this.hostID = params['host'];
+    });
+
     // TODO: Based off player ID, need to ensure the other person has a different playerID
     this.gameState = new GameState([], [], [], new Hand(this.playerID, []));
 
@@ -895,7 +902,7 @@ export class PlayspaceComponent implements OnInit {
       card.gameObject.displayWidth = 200;
       card.gameObject.displayHeight = 300;
       if (destination === DestinationEnum.TABLE) {
-        playspaceComponent.gameState.cards.push(card);
+        playspaceComponent.gameState.cards.push(card)
       } else {
         playspaceComponent.gameState.myHand.cards.push(card);
       }

@@ -1,7 +1,10 @@
 import { Component, OnInit } from '@angular/core';
 import { HostService } from 'src/app/host.service';
+import { MatDialog } from '@angular/material/dialog';
+
+import { PopupComponent } from '../popup/popup.component';
+
 import OnlineGame from '../models/onlineGame';
-import { Router } from '@angular/router';
 
 @Component({
   selector: 'app-game-browser',
@@ -12,11 +15,11 @@ export class GameBrowserComponent implements OnInit {
   
   onlineGames: OnlineGame[];
 
-  constructor(private hostService: HostService, private router: Router) { 
+  constructor(private hostService: HostService, private dialog: MatDialog) { 
     this.onlineGames = [
-      new OnlineGame(hostService.getHostID(), "Game1", 8, false, false, "", 1),
+      new OnlineGame(hostService.getHostID(), "Game1", 8, false, true, "", 1),
       new OnlineGame(hostService.getHostID(), "Game2", 5, false, false, "", 2),
-      new OnlineGame(hostService.getHostID(), "Game3", 2, false, false, "", 12),
+      new OnlineGame(hostService.getHostID(), "Game3", 2, false, true, "", 12),
       new OnlineGame(hostService.getHostID(), "Game4", 4, false, false, "", 3),
       new OnlineGame(hostService.getHostID(), "Game5", 3, false, false, "", 4),
       new OnlineGame(hostService.getHostID(), "Game6", 6, false, false, "", 1),
@@ -25,8 +28,19 @@ export class GameBrowserComponent implements OnInit {
 
   ngOnInit(): void { }
 
-  joinGame(): void {
-    this.router.navigate(['/playspace']);
+  joinGame(onlineGame: OnlineGame): void {
+    if (onlineGame.passwordProtected) {
+      let dialogRef = this.dialog.open(PopupComponent, {
+        height: '175px',
+        width: '300px',
+      });
+  
+      dialogRef.afterClosed().subscribe(password => {
+        this.hostService.verifyGamePassword(onlineGame, password);
+      });
+    } else {
+      this.hostService.verifyGamePassword(onlineGame, "");
+    }
   }
 
 }

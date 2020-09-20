@@ -16,6 +16,8 @@ import { MatIconModule } from '@angular/material/icon';
 import { MatCardModule } from '@angular/material/card';
 import { MatButtonModule } from '@angular/material/button';
 import { MatProgressBarModule } from '@angular/material/progress-bar';
+import { MatDialogModule } from '@angular/material/dialog';
+import { PopupComponent } from './popup/popup.component';
 
 @NgModule({
   declarations: [
@@ -25,7 +27,8 @@ import { MatProgressBarModule } from '@angular/material/progress-bar';
     NewTaskComponent,
     PlayspaceComponent,
     DeckEditorComponent,
-    GameBrowserComponent
+    GameBrowserComponent,
+    PopupComponent
   ],
   imports: [
     BrowserModule,
@@ -36,7 +39,11 @@ import { MatProgressBarModule } from '@angular/material/progress-bar';
     MatIconModule,
     MatCardModule,
     MatButtonModule,
-    MatProgressBarModule
+    MatProgressBarModule,
+    MatDialogModule
+  ],
+  entryComponents: [
+    PopupComponent
   ],
   providers: [],
   bootstrap: [AppComponent]
