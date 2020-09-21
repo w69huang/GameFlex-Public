@@ -104,8 +104,8 @@ export class PlayspaceComponent implements OnInit {
     // 1. npm install -g peer
     // 2. peerjs --port 9000 --key peerjs --path /peerserver
     this.peer = new Peer({ // You can pass in a specific ID as the first argument if you want to hardcode the peer ID
-      host: 'localhost',
-      // host:'35.215.71.108',
+      // host: 'localhost',
+      host:'35.215.71.108',
       port: 9000,
       path: '/peerserver' // Make sure this path matches the path you used to launch it
     }); 
