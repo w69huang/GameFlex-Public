@@ -2,7 +2,9 @@ import { PlayspaceComponent } from '../../playspace/playspace.component';
 import Deck from '../deck';
 import OptionObject from '../optionObject';
 
-import * as HelperFunctions from '../../helper-functions';
+function popupClose(popupScene: PopupScene, playspaceComponent: PlayspaceComponent) {
+    playspaceComponent.phaserScene.scene.remove(popupScene.key);
+}
 
 export default class PopupScene extends Phaser.Scene {
     key: string;
@@ -36,7 +38,7 @@ export default class PopupScene extends Phaser.Scene {
 
         var closeButton = this.add.image(225, 0, 'close').setOrigin(0);
         closeButton.setInteractive();
-        closeButton.on('pointerdown', HelperFunctions.popupClose.bind(this, this, this.playspaceComponent));
+        closeButton.on('pointerdown', popupClose.bind(this, this, this.playspaceComponent));
         closeButton.displayWidth = 25;
         closeButton.displayHeight = 25;
 

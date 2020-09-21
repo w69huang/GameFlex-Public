@@ -5,10 +5,15 @@ import OptionObject from '../models/optionObject';
 import PopupScene from '../models/phaser-scenes/popupScene';
 
 import * as HelperFunctions from '../helper-functions';
+import * as SharedActions from '../actions/sharedActions';
 
 enum DestinationEnum {
     TABLE = "Table",
     HAND = "Hand"
+}
+
+function popupClose(popupScene: PopupScene, playspaceComponent: PlayspaceComponent) {
+    playspaceComponent.phaserScene.scene.remove(popupScene.key);
 }
 
 export function deckRightClick(deck: Deck, playspaceComponent: PlayspaceComponent, pointer: Phaser.Input.Pointer) {
@@ -40,7 +45,7 @@ export function retrieveTopCard(popupScene: PopupScene, deck: Deck, playspaceCom
             if (card.gameObject == null) {
                 card.inDeck = false;
 
-                HelperFunctions.createCard(card, playspaceComponent, DestinationEnum.TABLE, deck.gameObject.x, deck.gameObject.y);
+                HelperFunctions.createCard(card, playspaceComponent, SharedActions.onDragMove, SharedActions.onDragEnd, DestinationEnum.TABLE, deck.gameObject.x, deck.gameObject.y);
 
                 if (playspaceComponent.conn) {
                     playspaceComponent.conn.send({
@@ -67,7 +72,7 @@ export function retrieveTopCard(popupScene: PopupScene, deck: Deck, playspaceCom
         });
     }
 
-    HelperFunctions.popupClose(popupScene, playspaceComponent);
+    popupClose(popupScene, playspaceComponent);
 }
 
 export function shuffleDeck(popupScene: PopupScene, deck: Deck, playspaceComponent: PlayspaceComponent, pointer: Phaser.Input.Pointer) {
@@ -99,7 +104,7 @@ export function shuffleDeck(popupScene: PopupScene, deck: Deck, playspaceCompone
         //}
     }
 
-    HelperFunctions.popupClose(popupScene, playspaceComponent);
+    popupClose(popupScene, playspaceComponent);
 }
 
 export function importDeck(popupScene: PopupScene, deck: Deck, playspaceComponent: PlayspaceComponent, pointer: Phaser.Input.Pointer) {
@@ -122,5 +127,5 @@ export function importDeck(popupScene: PopupScene, deck: Deck, playspaceComponen
         });
     }
 
-    HelperFunctions.popupClose(popupScene, playspaceComponent);
+   popupClose(popupScene, playspaceComponent);
 }

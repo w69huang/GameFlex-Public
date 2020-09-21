@@ -3,6 +3,8 @@ import Card from '../card';
 import Deck from '../deck';
 
 import * as HelperFunctions from '../../helper-functions';
+import * as DeckActions from '../../actions/deckActions';
+import * as SharedActions from '../../actions/sharedActions';
 
 export default class MainScene extends Phaser.Scene {
     playspaceComponent: PlayspaceComponent;
@@ -36,11 +38,11 @@ export default class MainScene extends Phaser.Scene {
       }
   
       cardList.forEach(card => {
-        HelperFunctions.createCard(card, this.playspaceComponent, HelperFunctions.DestinationEnum.TABLE, card.x, card.y);
+        HelperFunctions.createCard(card, this.playspaceComponent, SharedActions.onDragMove, SharedActions.onDragEnd, HelperFunctions.DestinationEnum.TABLE, card.x, card.y);
       });
   
       deckList.forEach(deck => {
-        HelperFunctions.createDeck(deck, this.playspaceComponent, deck.x, deck.y);
+        HelperFunctions.createDeck(deck, this.playspaceComponent, SharedActions.onDragMove, DeckActions.deckRightClick, deck.x, deck.y);
       });
   
     }

@@ -11,6 +11,8 @@ import SentGameState from '../models/sentGameState';
 import MainScene from '../models/phaser-scenes/mainScene';
 
 import * as HelperFunctions from '../helper-functions';
+import * as SharedActions from '../actions/sharedActions';
+import * as DeckActions from '../actions/deckActions';
 
 declare var Peer: any;
 
@@ -174,15 +176,15 @@ export class PlayspaceComponent implements OnInit {
 
         receivedGameState.cardMins.forEach((cardMin: CardMin) => {
           let card: Card = new Card(cardMin.id, cardMin.imagePath, cardMin.x, cardMin.y);
-          HelperFunctions.createCard(card, this, HelperFunctions.DestinationEnum.TABLE, card.x, card.y);
+          HelperFunctions.createCard(card, this, SharedActions.onDragMove, SharedActions.onDragEnd, HelperFunctions.DestinationEnum.TABLE, card.x, card.y);
         });
         receivedGameState.deckMins.forEach((deckMin: DeckMin) => {
           let deck: Deck = new Deck(deckMin.id, deckMin.imagePath, [], deckMin.x, deckMin.y);
-          HelperFunctions.createDeck(deck, this, deck.x, deck.y);
+          HelperFunctions.createDeck(deck, this, SharedActions.onDragMove, DeckActions.deckRightClick, deck.x, deck.y);
         });
         receivedGameState.handMin.cardMins.forEach((cardMin: CardMin) => {
           let card: Card = new Card(cardMin.id, cardMin.imagePath, cardMin.x, cardMin.y, true);
-          HelperFunctions.createCard(card, this, HelperFunctions.DestinationEnum.HAND, card.x, card.y);
+          HelperFunctions.createCard(card, this, SharedActions.onDragMove, SharedActions.onDragEnd, HelperFunctions.DestinationEnum.HAND, card.x, card.y);
         });
         break;
 
@@ -327,7 +329,7 @@ export class PlayspaceComponent implements OnInit {
             let card: Card = deck.cards[deck.cards.length - 1];
 
             card.inDeck = false;
-            HelperFunctions.createCard(card, this, HelperFunctions.DestinationEnum.TABLE, deck.gameObject.x, deck.gameObject.y);
+            HelperFunctions.createCard(card, this, SharedActions.onDragMove, SharedActions.onDragEnd, HelperFunctions.DestinationEnum.TABLE, deck.gameObject.x, deck.gameObject.y);
 
             deck.cards = this.filterOutID(deck.cards, card);
 
@@ -363,7 +365,7 @@ export class PlayspaceComponent implements OnInit {
             let card: Card = new Card(data['cardID'], data['imagePath'], data['x'], data['y']);
             card.inDeck = false;
 
-            HelperFunctions.createCard(card, this, HelperFunctions.DestinationEnum.TABLE, deck.gameObject.x, deck.gameObject.y);
+            HelperFunctions.createCard(card, this, SharedActions.onDragMove, SharedActions.onDragEnd, HelperFunctions.DestinationEnum.TABLE, deck.gameObject.x, deck.gameObject.y);
           }
         }
         break;
@@ -423,7 +425,7 @@ export class PlayspaceComponent implements OnInit {
                     card = this.gameState.hands[i].cards[j];
                     card.inHand = false;
                     this.gameState.hands[i].cards = this.filterOutID(this.gameState.hands[i].cards, card);
-                    HelperFunctions.createCard(card, this, HelperFunctions.DestinationEnum.TABLE, data['x'], data['y'])
+                    HelperFunctions.createCard(card, this,  SharedActions.onDragMove, SharedActions.onDragEnd, HelperFunctions.DestinationEnum.TABLE, data['x'], data['y'])
                     break;
                   }
                 }
@@ -432,7 +434,7 @@ export class PlayspaceComponent implements OnInit {
             }
           } else {
             card = new Card(data['cardID'], data['imagePath'], data['x'], data['y']);
-            HelperFunctions.createCard(card, this, HelperFunctions.DestinationEnum.TABLE, data['x'], data['y']);
+            HelperFunctions.createCard(card, this, SharedActions.onDragMove, SharedActions.onDragEnd, HelperFunctions.DestinationEnum.TABLE, data['x'], data['y']);
           }
         }
 
