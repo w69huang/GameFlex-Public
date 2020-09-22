@@ -1,5 +1,4 @@
 const test = require('../database/models/mysql.test.model');
-const e = require('express');
 
 exports.create = function (req, res) {
     const new_test = new test(req.body);
@@ -55,7 +54,7 @@ exports.update = function(req, res) {
     }
 };
 
-exports.delete = function(req, res) {
+exports.deleteUser = function(req, res) {
     test.delete(req.body.username, function(err, test) {
         if (err) {
             res.send(err);
@@ -64,3 +63,27 @@ exports.delete = function(req, res) {
         }
     });
 };
+
+
+
+
+
+
+// Router Code:
+
+const express = require('express');
+
+const router = express.Router();
+
+
+router.post('/testcreate', this.create);
+
+router.get('/testget', this.findByID);
+
+router.get('/testgetall', this.findAll);
+
+router.put('/testupdate', this.update);
+
+router.delete('/testdelete', this.deleteUser);
+
+module.exports = router

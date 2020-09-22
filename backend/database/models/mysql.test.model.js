@@ -8,7 +8,7 @@ var test = function(test) {
 }
 
 test.create = function (newtest, result) {
-    // mysql.query('INSERT INTO User (UserID, Username, Password, EmailAddress) VALUES (1, "test2", "test2", "test2");', function (err, res) {
+    // mysql.query('INSERT INTO UserMySQL (UserID, Username, Password, EmailAddress) VALUES (1, "test2", "test2", "test2");', function (err, res) {
     //     if (err) {
     //         console.log("Error: ", err);
     //         result(err, null);
@@ -17,7 +17,7 @@ test.create = function (newtest, result) {
     //         console.log(res)
     //     }
     // });
-    mysql_connection.query("INSERT INTO User set ?", newtest, function (err, res) {
+    mysql_connection.query("INSERT INTO UserMySQL set ?", newtest, function (err, res) {
         if (err) {
             console.log("Error: ", err);
             result(err, null);
@@ -30,7 +30,7 @@ test.create = function (newtest, result) {
 }
 
 test.getUser = function(username, result) {
-    mysql_connection.query("SELECT * FROM User WHERE username=?", username, function(err, res) {
+    mysql_connection.query("SELECT * FROM UserMySQL WHERE username=?", username, function(err, res) {
       if (err) {
         console.log("Error: ", err);
         result(err, null);
@@ -42,7 +42,7 @@ test.getUser = function(username, result) {
   }
   
   test.getAllUsers = function(result) {
-    mysql_connection.query("SELECT * FROM User", function(err, res) {
+    mysql_connection.query("SELECT * FROM UserMySQL", function(err, res) {
       if (err) {
         console.log("Error: ", err);
         result(err, null);
@@ -55,7 +55,7 @@ test.getUser = function(username, result) {
   
   test.update = function(test, result) {
     mysql_connection.query(
-      "UPDATE User SET username=?, password=?, email=? WHERE username=?",
+      "UPDATE UserMySQL SET username=?, password=?, email=? WHERE username=?",
       [test.username, test.password, test.email, test.username],
       function(err, res) {
         if (err) {
@@ -70,7 +70,7 @@ test.getUser = function(username, result) {
   
   test.delete = function(username, result) {
     mysql_connection.query(
-      "DELETE FROM User WHERE username =?", username, function(err, res) {
+      "DELETE FROM UserMySQL WHERE username =?", username, function(err, res) {
         if (err) {
           console.log("error: ", err);
           result(null, err);
