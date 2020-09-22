@@ -1,6 +1,7 @@
 import { BrowserModule } from '@angular/platform-browser';
 import { NgModule } from '@angular/core';
 import { HttpClientModule } from "@angular/common/http";
+import {FormsModule} from '@angular/forms';
 
 import { AppRoutingModule } from './app-routing.module';
 import { AppComponent } from './app.component';
@@ -18,6 +19,7 @@ import { MatButtonModule } from '@angular/material/button';
 import { MatProgressBarModule } from '@angular/material/progress-bar';
 import { MatDialogModule } from '@angular/material/dialog';
 import { PopupComponent } from './popup/popup.component';
+import { DummyComponent } from './dummy/dummy.component';
 
 @NgModule({
   declarations: [
@@ -28,7 +30,8 @@ import { PopupComponent } from './popup/popup.component';
     PlayspaceComponent,
     DeckEditorComponent,
     GameBrowserComponent,
-    PopupComponent
+    PopupComponent,
+    DummyComponent
   ],
   imports: [
     BrowserModule,
@@ -43,7 +46,8 @@ import { PopupComponent } from './popup/popup.component';
     MatDialogModule
   ],
   entryComponents: [
-    PopupComponent
+    PopupComponent,
+    FormsModule
   ],
   providers: [],
   bootstrap: [AppComponent]

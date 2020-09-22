@@ -1,0 +1,29 @@
+<form #dummyForm="ngForm">
+    <div class="form-group">
+        <label for="username">Username</label> 
+        <input required (ngModel)="username" (change)="log(username)" name="username" #username="ngModel" type="text" id="username" class="form-control">
+        <!-- <div class="alert alert-danger" *ngIf="username.touched && !username.valid"> Username Required!</div> -->
+    </div>
+    <div class="form-group">
+        <label for="password">Password</label>
+        <input required (ngModel)="password" name="password" #password="ngModel" type="text" id="password" class="form-control">
+        <!-- <div class="alert alert-danger" *ngIf="!password.valid && password.touched"> Password Required!</div> -->
+    </div>  
+    <div class="form-group">
+        <label for="email">Email</label>
+        <input required (ngModel)="email" name="email" #email="ngModel" type="text" id="email" class="form-control">
+        <!-- <div class="alert alert-danger" *ngIf="!email.valid && email.touched"> Email Required!</div> -->
+    </div> 
+
+    <button (click)="onSubmit(dummyForm)" type="button submit" class="btn btn-primary btn-default"> New Dummy </button>
+    <!-- <button (click)="onUpdate(dummyForm)" type="button submit" class="btn btn-primary">Update Dummy</button>
+    <button (click)="onDelete(username)" type="button submit" class="btn btn-primary">Delete Dummy</button> -->
+</form>
+
+<br>
+
+<div>
+    <p> {{ getbox }}</p>
+    <button type="button submit" (click)="onGetAll()">Get All Users</button>
+</div>
+
