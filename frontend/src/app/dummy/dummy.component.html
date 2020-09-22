@@ -15,15 +15,15 @@
         <!-- <div class="alert alert-danger" *ngIf="!email.valid && email.touched"> Email Required!</div> -->
     </div> 
 
-    <button (ngSubmit)="onSubmit(dummyForm)" type="button submit" class="btn btn-primary btn-default"> New Dummy </button>
+    <button (click)="onSubmit(dummyForm)" type="button submit" class="btn btn-primary btn-default"> New Dummy </button>
     <!-- <button (ngSubmit)="onUpdate(dummyForm)" type="button submit" class="btn btn-primary">Update Dummy</button>
     <button (ngSubmit)="onDelete(username)" type="button submit" class="btn btn-primary">Delete Dummy</button> -->
-
-
 </form>
+
 <br>
+
 <div>
-<p> {{ getbox }}</p>
-<button type="button submit" (ngSubmit)="onGetAll()">GetAll</button>
+    <p> {{ getbox }}</p>
+    <button type="button submit" (click)="onGetAll()">Get All Users</button>
 </div>
 
