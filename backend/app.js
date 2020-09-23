@@ -1,30 +1,34 @@
+// ~~~~~~~ Use `nodemon app.js` to start the server ~~~~~~~~~ //
+
 const createError = require('http-errors'),
 express = require('express');
 const path = require('path');
-const cookieParser = require('cookie-parser');
-const logger = require('morgan');
-const methodOverride = require('method-override'),
+//const cookieParser = require('cookie-parser');
+//const logger = require('morgan');
+//const methodOverride = require('method-override'),
 config = require('./config');
 const multer = require('multer');
 const GridFsStorage = require('multer-gridfs-storage');
 const crypto = require('crypto');
 const cors = require('cors');
+const bodyparser = require('body-parser');
 
-const router = require('./routes/routes');
+//Routes to handle requests
+const router = require('../backend/routes/routes');
 
 //TODO: ADD CONFIG FILES. GET FILE UPLOADS WORKING
 
-// ~~~~~~~ Use `nodemon app.js` to start the server ~~~~~~~~~ //
-
 // The express() library will be used to handle backend routing
-const app = express()
-
-// allows our app to use json data
-app.use(express.json())
+const app = express();
+app.use(bodyparser.json());
+app.use(bodyparser.urlencoded({
+    extended: false
+}));
+app.use(cors());
 
 // instantiate our database that was set up and connected in mongoose.js
-const mongoose = require('./database/mongoose')
-mongoose.Promise = require('bluebird')
+const mongoose = require('./database/mongoose');
+mongoose.Promise = require('bluebird');
 
 const url = config.mongoURI;
 const connect = mongoose.connect(url, {useNewUrlParser: true, useUnifiedTopology: true });
@@ -56,27 +60,35 @@ const storage = new GridFsStorage({
 
 const upload = multer({ storage });
 
-app.use('/', imageRouter(upload));
+app.use('/', router(upload));
 
 // catch 404 and forward to error handler
 app.use(function(req, res, next) {
   next(createError(404));
 });
 
-// error handler
-app.use(function(err, req, res, next) {
-  // set locals, only providing error in development
-  res.locals.message = err.message;
-  res.locals.error = req.app.get('env') === 'development' ? err : {};
+const port = process.env.PORT || 4000;
+const server = app.listen(port, () => {
+  console.log('Connected to port ' + port)
+})
 
-  // render the error page
-  res.status(err.status || 500);
-  res.render('error');
+// error handler
+app.use((req, res, next) => {
+    // Error goes via `next()` method
+    setImmediate(() => {
+      next(new Error('Something went wrong'));
+    });
+  });
+  
+  app.use(function (err, req, res, next) {
+    console.error(err.message);
+    if (!err.statusCode) err.statusCode = 500;
+    res.status(err.statusCode).send(err.message);
 });
 
 //module.exports = app;
 // port number to listen on, callback fxn for when it completes
-app.listen(3000, () => console.log("Server Connected on port 3000"))
+// app.listen(3000, () => console.log("Server Connected on port 3000"))
 
 // const List = require('./database/models/list')
 // const Task = require('./database/models/task')
