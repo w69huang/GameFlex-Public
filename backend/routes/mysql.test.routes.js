@@ -1,17 +1,17 @@
-const express = require('express');
+// const express = require('express');
 
-const router = express.Router();
+// const router = express.Router();
 
-const testController = require('../controller/mysql.test.controller');
+// const testController = require('../controller/mysql.test.controller');
 
-router.post('/testcreate',testController.create);
+// router.post('/testcreate',testController.create);
 
-router.get('/testget', testController.findByID);
+// router.get('/testget', testController.findByID);
 
-router.get('/testgetall', testController.findAll);
+// router.get('/testgetall', testController.findAll);
 
-router.put('/testupdate', testController.update);
+// router.put('/testupdate', testController.update);
 
-router.delete('/testdelete', testController.delete);
+// router.delete('/testdelete', testController.delete);
 
-module.exports = router
+// module.exports = router

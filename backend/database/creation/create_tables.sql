@@ -8,7 +8,7 @@ DROP TABLE IF EXISTS `SavedGameStateMySQL`;
 DROP TABLE IF EXISTS `ConfigurationMySQL`;
 
 CREATE TABLE `UserMySQL` (
-    `userID` int UNSIGNED AUTO_INCREMENT,
+    `userID` char(50) NOT NULL,
     `username` char(20) NOT NULL,
     `password` char(50) NOT NULL,
     `email` char(50) NOT NULL,
@@ -16,20 +16,20 @@ CREATE TABLE `UserMySQL` (
 );
 
 CREATE TABLE `StoredDeckMySQL` (
-    `storedDeckID` int UNSIGNED NOT NULL,
-    `userID` int UNSIGNED NOT NULL,
+    `storedDeckID` char(50) NOT NULL,
+    `userID` char(50)  NOT NULL,
     `name` char(100),
     PRIMARY KEY (`storedDeckID`)
 );
 
 CREATE TABLE `OnlineGameMySQL` (
-    `onlineGameCode` int UNSIGNED NOT NULL,
+    `onlineGameCode` char(50) NOT NULL,
     `name` char(100) NOT NULL,
-    `hostID` int NOT NULL, 
+    `hostID` char(50) NOT NULL, 
     `numPlayers` int NOT NULL,
     `maxPlayers` int NOT NULL,
     `passwordProtected` BOOLEAN NOT NULL,
-    `private` BOOLEAN NOT NULL,
+    `privateGame` BOOLEAN NOT NULL,
     `encryptedPassword` char(50) DEFAULT NULL,
     `configurationID` int NOT NULL,
 
@@ -37,8 +37,8 @@ CREATE TABLE `OnlineGameMySQL` (
 );
 
 CREATE TABLE `SavedGameStateMySQL` (
-    `gameStateID` int UNSIGNED NOT NULL,
-    `userID` int UNSIGNED NOT NULL,
+    `gameStateID` char(50) NOT NULL,
+    `userID` char(50) NOT NULL,
     `name` char(100) NOT NULL,
     `date` DATETIME DEFAULT CURRENT_TIMESTAMP,
 
@@ -47,9 +47,9 @@ CREATE TABLE `SavedGameStateMySQL` (
 
 CREATE TABLE `ConfigurationMySQL` (
     `configurationID` int UNSIGNED NOT NULL,
-    `userID` int UNSIGNED NOT NULL,
+    `userID` char(50) NOT NULL,
     `name` char(100) NOT NULL,
-    `private` BOOLEAN NOT NULL,
+    `privateConfig` BOOLEAN NOT NULL,
     `upvotes` int UNSIGNED DEFAULT 0,
 
     PRIMARY KEY(`configurationID`)

@@ -1,5 +1,10 @@
 <form #dummyForm="ngForm">
     <div class="form-group">
+        <label for="userID">UserID</label> 
+        <input required (ngModel)="userID" (change)="log(userID)" name="userID" #userID="ngModel" type="text" id="userID" class="form-control">
+        <!-- <div class="alert alert-danger" *ngIf="username.touched && !username.valid"> Username Required!</div> -->
+    </div>
+    <div class="form-group">
         <label for="username">Username</label> 
         <input required (ngModel)="username" (change)="log(username)" name="username" #username="ngModel" type="text" id="username" class="form-control">
         <!-- <div class="alert alert-danger" *ngIf="username.touched && !username.valid"> Username Required!</div> -->
@@ -17,7 +22,7 @@
 
     <button (click)="onSubmit(dummyForm)" type="button submit" class="btn btn-primary btn-default"> New Dummy </button>
     <button (click)="onUpdate(dummyForm)" type="button submit" class="btn btn-primary">Update Dummy</button>
-    <button (click)="onDelete(username)" type="button submit" class="btn btn-primary">Delete Dummy (Only needs Username)</button>
+    <button (click)="onDelete(dummyForm)" type="button submit" class="btn btn-primary">Delete Dummy (Only needs Username)</button>
 </form>
 
 <br>

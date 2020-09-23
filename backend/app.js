@@ -156,7 +156,8 @@ mysqlapp.get('/', (req, res) => {
     res.send("Hello World");
 });
 
-const testRoutes = require('./routes/mysql.test.routes')
+// const testRoutes = require('./routes/mysql.test.routes')
+const testRoutes = require('./controller/mysql.test.controller');
 
 mysqlapp.use('/test', testRoutes)
 

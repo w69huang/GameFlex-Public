@@ -1,7 +1,7 @@
 var mysql_connection = require('../mysql');
 
 var test = function(test) {
-    this.userid = test.userid;
+    this.userID = test.userID;
     this.username = test.username;
     this.password = test.password;
     this.email = test.email;
@@ -55,8 +55,8 @@ test.getUser = function(username, result) {
   
   test.update = function(test, result) {
     mysql_connection.query(
-      "UPDATE UserMySQL SET username=?, password=?, email=? WHERE username=?",
-      [test.username, test.password, test.email, test.username],
+      "UPDATE UserMySQL SET username=?, password=?, email=? WHERE userID=?",
+      [test.username, test.password, test.email, test.userID],
       function(err, res) {
         if (err) {
           console.log("Error: ", err);
@@ -68,9 +68,9 @@ test.getUser = function(username, result) {
     );
   };
   
-  test.delete = function(username, result) {
+  test.delete = function(userID, result) {
     mysql_connection.query(
-      "DELETE FROM UserMySQL WHERE username =?", username, function(err, res) {
+      "DELETE FROM UserMySQL WHERE userID =?", userID, function(err, res) {
         if (err) {
           console.log("error: ", err);
           result(null, err);

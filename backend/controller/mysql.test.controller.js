@@ -1,6 +1,6 @@
 const test = require('../database/models/mysql.test.model');
 
-exports.create = function (req, res) {
+function create (req, res) {
     const new_test = new test(req.body);
     
     if(req.body.constructor === Object && Object.keys(req.body).length ===0) {
@@ -17,7 +17,7 @@ exports.create = function (req, res) {
     }
 };
 
-exports.findAll = function(req, res) {
+function findAll (req, res) {
     test.getAllUsers( function(err, test) {
         console.log("Get all Controller");
         if (err) {
@@ -28,8 +28,8 @@ exports.findAll = function(req, res) {
     });
 };
 
-exports.findByID = function(req, res) {
-    test.getUser(req.body.username, function(err, test) {
+function findByID (req, res) {
+    test.getUser(req.body, function(err, test) {
         if (err) {
             res.send(err);
         } else {
@@ -38,7 +38,7 @@ exports.findByID = function(req, res) {
     });
 };
 
-exports.update = function(req, res) {
+function update (req, res) {
     const new_test = new test(req.body);
     if(req.body.constructor === Object && Object.keys(req.body).length === 0 ){
         res.status(400).send({error:true, message: 'Missing Fields'});
@@ -54,12 +54,17 @@ exports.update = function(req, res) {
     }
 };
 
-exports.deleteUser = function(req, res) {
-    test.delete(req.body.username, function(err, test) {
+function deleteUser (req, res) {
+    // console.log(req)
+    test.delete(req.body.userID, function(err, test) {
         if (err) {
             res.send(err);
+            console.log(req.body);
         } else{
-            res.json({error:false, message: 'Deleted'});
+
+            // res.json({error:false, message: 'Deleted'});
+            res.json({error: false, message: req.body})
+            console.log(req.body);
         }
     });
 };
@@ -76,14 +81,14 @@ const express = require('express');
 const router = express.Router();
 
 
-router.post('/testcreate', this.create);
+router.post('/testcreate', create);
 
-router.get('/testget', this.findByID);
+router.get('/testget', findByID);
 
-router.get('/testgetall', this.findAll);
+router.get('/testgetall', findAll);
 
-router.put('/testupdate', this.update);
+router.put('/testupdate', update);
 
-router.delete('/testdelete', this.deleteUser);
+router.delete('/testdelete', deleteUser);
 
 module.exports = router
