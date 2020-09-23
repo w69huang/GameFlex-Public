@@ -112,6 +112,15 @@ If the request your making is one that requires a parameter to be passed to it, 
 
 To confirm that this works, once you press the send button, the response section should show you json for a 200 code. If not, something went wrong so ask for some help! :) 
 
+Additionally after starting up the front and backend (making sure the SQL instance is running on GCP), go to localhost:4200/dummy to test the database and see how they work. The code for these requests and such can be found in the following files:
+- ../frontend/src/app/dummy
+- ../backend/database/models/mysql.test.model.js
+- ../backend/database/mysql.js
+- ../backend/controller/mysql.test.controller.js
+- ../backend/app.js
+
+***NOTE***: If the ../backend/routes/mysql.test.routes.js file still exist, this does not play a role in the demo as its been merged with the controller file.
+
 ### Closing a connection. 
 It is good practice to make sure that a connection is closed once you are done using it. To do this, just call:
 
