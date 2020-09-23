@@ -18,6 +18,7 @@ import { MatCardModule } from '@angular/material/card';
 import { MatButtonModule } from '@angular/material/button';
 import { MatProgressBarModule } from '@angular/material/progress-bar';
 import { MatDialogModule } from '@angular/material/dialog';
+import { MatFormFieldModule } from '@angular/material/form-field';
 import { PopupComponent } from './popup/popup.component';
 import { DummyComponent } from './dummy/dummy.component';
 
@@ -43,7 +44,8 @@ import { DummyComponent } from './dummy/dummy.component';
     MatCardModule,
     MatButtonModule,
     MatProgressBarModule,
-    MatDialogModule
+    MatDialogModule,
+    MatFormFieldModule
   ],
   entryComponents: [
     PopupComponent,

@@ -1,7 +1,7 @@
 export default class OnlineGame {
-    hostID: string;
     onlineGameCode: string;
     name: string;
+    hostID: string;
     numPlayers: number;
     maxPlayers: number;
     passwordProtected: boolean;
@@ -10,15 +10,15 @@ export default class OnlineGame {
     configurationID: number;
 
     constructor (hostID: string, name: string, maxPlayers: number, privateGame: boolean, passwordProtected: boolean, encryptedPassword: string, configurationID: number) {
-        this.hostID = hostID;
+        this.onlineGameCode = this.generateRandomString(6);
         this.name = name;
+        this.hostID = hostID;
+        this.numPlayers = 1;
         this.maxPlayers = maxPlayers;
-        this.privateGame = privateGame;
         this.passwordProtected = passwordProtected;
+        this.privateGame = privateGame;
         this.encryptedPassword = encryptedPassword;
         this.configurationID = configurationID;
-        this.numPlayers = 1;
-        this.onlineGameCode = this.generateRandomString(6);
     }
 
     generateRandomString (length: number) {

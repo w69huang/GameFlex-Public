@@ -1,5 +1,6 @@
 import { Component, OnInit } from '@angular/core';
 import { HostService } from 'src/app/host.service';
+import { OnlineGamesService } from 'src/app/online-games.service';
 import { MatDialog } from '@angular/material/dialog';
 
 import { PopupComponent } from '../popup/popup.component';
@@ -15,7 +16,7 @@ export class GameBrowserComponent implements OnInit {
   
   onlineGames: OnlineGame[];
 
-  constructor(private hostService: HostService, private dialog: MatDialog) { 
+  constructor(private hostService: HostService, private onlineGamesService: OnlineGamesService, private dialog: MatDialog) { 
     this.onlineGames = [
       new OnlineGame(hostService.getHostID(), "Game1", 8, false, true, "", 1),
       new OnlineGame(hostService.getHostID(), "Game2", 5, false, false, "", 2),
@@ -36,11 +37,20 @@ export class GameBrowserComponent implements OnInit {
       });
   
       dialogRef.afterClosed().subscribe(password => {
-        this.hostService.verifyGamePassword(onlineGame, password);
+        this.onlineGamesService.verifyGamePassword(onlineGame, password);
       });
     } else {
-      this.hostService.verifyGamePassword(onlineGame, "");
+      this.onlineGamesService.verifyGamePassword(onlineGame, "");
     }
   }
 
+  getAllGames(): void {
+    this.onlineGamesService.getAll();
+  }
+
+  createGame(): void {
+    const onlineGame: OnlineGame = this.onlineGames[Math.round(Math.random()*5)];
+
+    this.onlineGamesService.create(onlineGame);
+  }
 }

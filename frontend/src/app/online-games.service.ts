@@ -1,17 +1,14 @@
 import { Injectable } from '@angular/core';
-import { HttpClient } from '@angular/common/http';
 import { Router } from '@angular/router';
+import { WebService } from './web.service';
 import OnlineGame from './models/onlineGame';
 
 @Injectable({
   providedIn: 'root'
 })
 export class OnlineGamesService {
-  readonly ROOT_URL;
 
-  constructor (private http: HttpClient, private router: Router) {
-    this.ROOT_URL = "http://localhost:3000";
-  }
+  constructor (private webService: WebService, private router: Router) { }
 
   verifyGamePassword(onlineGame: OnlineGame, password: string): void {
     // TODO: Replace with http.get request for the hostID, passing in the password
@@ -22,8 +19,21 @@ export class OnlineGamesService {
     this.router.navigate(['/playspace'], { queryParams: { host: hostID } });
   }
 
-  getAll(): OnlineGame[] {
-    
+  getAll() {
+    this.webService.get('online-games/get')
+        .subscribe(
+          (data) => {
+            console.log(data);
+          }
+        );
+  }
 
+  create(onlineGame: OnlineGame) {
+    this.webService.post('online-games/post', onlineGame)
+        .subscribe(
+          (data) => {
+            console.log(data);
+          }
+        )
   }
 }

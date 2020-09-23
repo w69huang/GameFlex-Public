@@ -148,19 +148,15 @@ app.delete('/lists/:listId/tasks/:taskId', (req, res) => {
         .catch((error) => console.log(error))
 })
 
-
-
-
 // MY SQL:
 mysqlapp.get('/', (req, res) => {
     res.send("Hello World");
 });
 
-const testRoutes = require('./routes/mysql.test.routes')
+const onlineGamesRoutes = require('./controllers/online-games.controller');
 
-mysqlapp.use('/test', testRoutes)
+mysqlapp.use('/online-games', onlineGamesRoutes);
 
- // port number to listen on, callback fxn for when it completes
-app.listen(3000, () => console.log("Server Connected on port 3000"))
-
-mysqlapp.listen(5000, () => console.log("Mysql Server Connected on port 5000"))
+// port number to listen on, callback fxn for when it completes
+app.listen(3000, () => console.log("Server Connected on port 3000"));
+mysqlapp.listen(5000, () => console.log("Mysql Server Connected on port 5000"));
