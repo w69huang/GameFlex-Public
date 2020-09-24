@@ -15,6 +15,7 @@ import { MatIconModule } from '@angular/material/icon';
 import { MatCardModule } from '@angular/material/card';
 import { MatButtonModule } from '@angular/material/button';
 import { MatProgressBarModule } from '@angular/material/progress-bar';
+import { SignupLoginComponent } from './signup-login/signup-login.component';
 
 @NgModule({
   declarations: [
@@ -23,7 +24,8 @@ import { MatProgressBarModule } from '@angular/material/progress-bar';
     NewListComponent,
     NewTaskComponent,
     PlayspaceComponent,
-    DeckEditorComponent
+    DeckEditorComponent,
+    SignupLoginComponent
   ],
   imports: [
     BrowserModule,
