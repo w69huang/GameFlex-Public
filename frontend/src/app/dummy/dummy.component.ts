@@ -1,6 +1,6 @@
 import { Component, OnInit } from '@angular/core';
 import { Dummy } from './dummy';
-import { HttpClient } from '@angular/common/http';
+import { HttpClient, HttpHeaders } from '@angular/common/http';
 
 @Component({
   selector: 'dummy',
@@ -22,7 +22,7 @@ export class DummyComponent{
     this.onCreatePost(x.form.value);
   };
 
-  onCreatePost(postData: {username:string, password:string, email:string}){
+  onCreatePost(postData: {userID: string, username:string, password:string, email:string}){
     console.log("heree");
     console.log(postData);
     this.http.post(
@@ -34,7 +34,7 @@ export class DummyComponent{
   }
 
   onGetUser( username) {
-    console.log("Get User", username);
+    console.log("Get User", username.value);
     this.http.get(
       'http://localhost:5000/test/testget', 
       username).subscribe(
@@ -51,13 +51,14 @@ export class DummyComponent{
       responseData => {
         console.log("This Response Data");
         console.log(responseData);
-        this.getbox = 'test';
+        this.getbox = JSON.stringify(responseData);
       }
     );
   }
 
   onUpdate(x) {
     console.log("Update User");
+    console.log(x.form.value)
     this.http.put(
       'http://localhost:5000/test/testupdate',
       x.form.value
@@ -68,11 +69,22 @@ export class DummyComponent{
     );
   }
 
-  onDelete(username) {
+
+  // http.delete(url, options). There is no body sent inside of delete. So must create a new options 
+  // header and send that with a body instead. 
+  onDelete(x) {
     console.log("Delete User");
+    console.log(x.form.value)
+    const options = {
+      headers: new HttpHeaders({
+        'Content-Type': 'application/json',
+      }),
+      body: {
+        userID: x.form.value.userID
+      },
+    };
     this.http.delete(
-      'http://localhost:5000/test/testdelete',
-      username).subscribe(
+      'http://localhost:5000/test/testdelete', options).subscribe(
         responseData => {
           console.log(responseData);
         }

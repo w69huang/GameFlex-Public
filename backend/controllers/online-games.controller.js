@@ -20,6 +20,9 @@ function getAll(request, result) {
 function create(request, result) {
     var onlineGame = request.body;
     console.log(onlineGame);
+    
+    // TODO: ADD VALIDATION!
+
     mysql_connection.query("INSERT INTO OnlineGameMySQL set ?", onlineGame, function (err, res) {
         if (err) {
             console.log("Error: ", err);

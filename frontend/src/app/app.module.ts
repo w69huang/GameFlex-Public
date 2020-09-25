@@ -1,7 +1,7 @@
 import { BrowserModule } from '@angular/platform-browser';
 import { NgModule } from '@angular/core';
 import { HttpClientModule } from "@angular/common/http";
-import {FormsModule} from '@angular/forms';
+import { FormsModule } from '@angular/forms';
 
 import { AppRoutingModule } from './app-routing.module';
 import { AppComponent } from './app.component';
@@ -19,8 +19,9 @@ import { MatButtonModule } from '@angular/material/button';
 import { MatProgressBarModule } from '@angular/material/progress-bar';
 import { MatDialogModule } from '@angular/material/dialog';
 import { MatFormFieldModule } from '@angular/material/form-field';
-import { PopupComponent } from './popup/popup.component';
+import { GameBrowserPopupComponent } from './popups/game-browser-password-popup/game-browser-password-popup.component';
 import { DummyComponent } from './dummy/dummy.component';
+import { GameSetupPopupComponent } from './popups/game-setup-popup/game-setup-popup.component';
 
 @NgModule({
   declarations: [
@@ -31,7 +32,8 @@ import { DummyComponent } from './dummy/dummy.component';
     PlayspaceComponent,
     DeckEditorComponent,
     GameBrowserComponent,
-    PopupComponent,
+    GameBrowserPopupComponent,
+    GameSetupPopupComponent,
     DummyComponent
   ],
   imports: [
@@ -45,11 +47,12 @@ import { DummyComponent } from './dummy/dummy.component';
     MatButtonModule,
     MatProgressBarModule,
     MatDialogModule,
-    MatFormFieldModule
+    MatFormFieldModule,
+    FormsModule
   ],
   entryComponents: [
-    PopupComponent,
-    FormsModule
+    GameBrowserPopupComponent,
+    GameSetupPopupComponent
   ],
   providers: [],
   bootstrap: [AppComponent]

@@ -3,7 +3,8 @@ import { HostService } from 'src/app/host.service';
 import { OnlineGamesService } from 'src/app/online-games.service';
 import { MatDialog } from '@angular/material/dialog';
 
-import { PopupComponent } from '../popup/popup.component';
+import { GameBrowserPopupComponent } from '../popups/game-browser-password-popup/game-browser-password-popup.component';
+import { GameSetupPopupComponent } from '../popups/game-setup-popup/game-setup-popup.component';
 
 import OnlineGame from '../models/onlineGame';
 
@@ -31,13 +32,15 @@ export class GameBrowserComponent implements OnInit {
 
   joinGame(onlineGame: OnlineGame): void {
     if (onlineGame.passwordProtected) {
-      let dialogRef = this.dialog.open(PopupComponent, {
-        height: '175px',
+      let dialogRef = this.dialog.open(GameBrowserPopupComponent, {
+        height: '225px',
         width: '300px',
       });
   
       dialogRef.afterClosed().subscribe(password => {
-        this.onlineGamesService.verifyGamePassword(onlineGame, password);
+        if (password) {
+          this.onlineGamesService.verifyGamePassword(onlineGame, password);
+        }
       });
     } else {
       this.onlineGamesService.verifyGamePassword(onlineGame, "");
@@ -49,8 +52,16 @@ export class GameBrowserComponent implements OnInit {
   }
 
   createGame(): void {
-    const onlineGame: OnlineGame = this.onlineGames[Math.round(Math.random()*5)];
+    let dialogRef = this.dialog.open(GameSetupPopupComponent, {
+      height: '500px',
+      width: '500px',
+    });
 
-    this.onlineGamesService.create(onlineGame);
+    dialogRef.afterClosed().subscribe(gameSetupData => {
+      if (gameSetupData) {
+        const onlineGame: OnlineGame = new OnlineGame(this.hostService.getHostID(), gameSetupData.name, gameSetupData.maxPlayers, gameSetupData.privateGame, gameSetupData.password != "" ? true : false, gameSetupData.password, 1);
+        this.onlineGamesService.create(onlineGame);
+      }
+    });
   }
 }

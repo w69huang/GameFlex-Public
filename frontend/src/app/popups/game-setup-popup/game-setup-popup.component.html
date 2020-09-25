@@ -1,0 +1,30 @@
+<div mat-dialog-content>
+    <p>Please Enter a Room Name:</p>
+    <input matInput #roomNameInput type="text" placeholder="Name" required />
+    <p>Maximum Number of Players:</p>
+    <select matInput #maxPlayersInput>
+        <option value="1">1</option>
+        <option value="2">2</option>
+        <option value="3">3</option>
+        <option value="4">4</option>
+        <option value="5">5</option>
+        <option value="6">6</option>
+        <option value="7">7</option>
+        <option value="8">8</option>
+        <option value="9">9</option>
+        <option value="10">10</option>
+    </select>
+    <p>Is the Room Private?</p>
+    <input matInput #privateInput type="checkbox">
+    <p>Room Password (Leave Blank for No Password):</p>
+    <input matInput #roomPasswordInput type="text" placeholder="Password">
+</div>
+<div #errorsDiv id="errorsDiv"></div>
+<div class="actions" mat-dialog-actions>
+    <mat-card>
+        <button mat-button (click)="cancel()">Cancel</button>
+    </mat-card>
+    <mat-card>
+        <button mat-button (click)="submit(roomNameInput.value, maxPlayersInput.value, privateInput.checked, roomPasswordInput.value)" value="Submit">Submit</button>
+    </mat-card>
+</div>
