@@ -1,13 +1,13 @@
 var mysql_connection = require('../mysql');
 
-var test = function(test) {
-    this.userID = test.userID;
-    this.username = test.username;
-    this.password = test.password;
-    this.email = test.email;
+var user = function(user) {
+    this.userID = user.userID;
+    this.username = user.username;
+    this.password = user.password;
+    this.email = user.email;
 }
 
-test.create = function (newtest, result) {
+user.create = function (newUser, result) {
     // mysql.query('INSERT INTO UserMySQL (UserID, Username, Password, EmailAddress) VALUES (1, "test2", "test2", "test2");', function (err, res) {
     //     if (err) {
     //         console.log("Error: ", err);
@@ -17,7 +17,7 @@ test.create = function (newtest, result) {
     //         console.log(res)
     //     }
     // });
-    mysql_connection.query("INSERT INTO UserMySQL set ?", newtest, function (err, res) {
+    mysql_connection.query("INSERT INTO UserMySQL set ?", newUser, function (err, res) {
         if (err) {
             console.log("Error: ", err);
             result(err, null);
@@ -29,7 +29,7 @@ test.create = function (newtest, result) {
     });
 }
 
-test.getUser = function(username, result) {
+user.getUser = function(username, result) {
     mysql_connection.query("SELECT * FROM UserMySQL WHERE username=?", username, function(err, res) {
       if (err) {
         console.log("Error: ", err);
@@ -41,7 +41,7 @@ test.getUser = function(username, result) {
     })
   }
   
-  test.getAllUsers = function(result) {
+  user.getAllUsers = function(result) {
     mysql_connection.query("SELECT * FROM UserMySQL", function(err, res) {
       if (err) {
         console.log("Error: ", err);
@@ -53,10 +53,10 @@ test.getUser = function(username, result) {
     });
   };
   
-  test.update = function(test, result) {
+  user.update = function(user, result) {
     mysql_connection.query(
       "UPDATE UserMySQL SET username=?, password=?, email=? WHERE userID=?",
-      [test.username, test.password, test.email, test.userID],
+      [user.username, user.password, user.email, user.userID],
       function(err, res) {
         if (err) {
           console.log("Error: ", err);
@@ -68,7 +68,7 @@ test.getUser = function(username, result) {
     );
   };
   
-  test.delete = function(userID, result) {
+  user.delete = function(userID, result) {
     mysql_connection.query(
       "DELETE FROM UserMySQL WHERE userID =?", userID, function(err, res) {
         if (err) {
@@ -82,4 +82,4 @@ test.getUser = function(username, result) {
     )
   }
 
-module.exports = test;
+module.exports = user;

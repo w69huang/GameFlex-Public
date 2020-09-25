@@ -6,6 +6,8 @@ import { NewTaskComponent } from './pages/new-task/new-task.component';
 import { PlayspaceComponent } from './playspace/playspace.component';
 import { DeckEditorComponent } from './deck-editor/deck-editor.component';
 import { DummyComponent } from './dummy/dummy.component';
+import { SignupComponent } from './signup/signup.component';
+import { LoginComponent } from './login/login.component';
 
 
 const routes: Routes = [
@@ -13,6 +15,8 @@ const routes: Routes = [
   { path: 'playspace', component: PlayspaceComponent},
   { path: 'deckeditor', component: DeckEditorComponent},
   { path: 'dummy', component: DummyComponent},
+  { path: 'signup', component: SignupComponent},
+  { path: 'login', component: LoginComponent},
 
   { path: 'lists', component: TaskViewComponent },
   { path: 'lists/:listId', component: TaskViewComponent },

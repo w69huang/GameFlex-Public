@@ -1,0 +1,34 @@
+<mat-toolbar>
+    <span>Registration</span>
+ </mat-toolbar>
+ <mat-card class="my-card">
+    <mat-card-content>
+        <form #signupForm="ngForm">
+            <div>
+                <label for="username">Username:</label>
+                <input required (ngModel)="username" name="username" #password="ngModel" id="username" class="form-control" type="text">
+            </div>
+            <br>
+            <div>
+                <label for="password">Password:</label>
+                <input required (ngModel)="password" name="password" #password="ngModel" id="password" class="form-control" type="password">
+            </div>
+            <br>
+            <div>
+                <label for="confirmPassword">Confirm Password:</label>
+                <input required (ngModel)="confirmPassword" name="confirmPassword" #password="ngModel" id="confirmPassword" class="form-control" type="password">
+            </div>
+            <br>
+            <div>
+                <label for="email">Email:</label>
+                <input required (ngModel)="email" name="email" #email="ngModel" id="email" class="form-control" type="text">
+            </div>
+        </form>
+      <!-- CONTENT HERE -->
+         
+    </mat-card-content>
+    <mat-card-actions>
+      <!-- REGISTER BUTTON -->
+        <button (click)="onSubmit(signupForm)" type="button submit" class="btn btn-primary" >Register</button>
+    </mat-card-actions>
+ </mat-card>

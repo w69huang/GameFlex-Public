@@ -25,7 +25,7 @@ var List = require('./database/models/list');
 
 var Task = require('./database/models/task');
 
-var test = require('./database/models/mysql.test.model');
+var user = require('./database/models/mysql.user.model');
 /*
     CORS: Cross-origin resource sharing
     localhost:3000 - back-end api
@@ -37,6 +37,12 @@ var test = require('./database/models/mysql.test.model');
 
 
 app.use(function (req, res, next) {
+  res.header("Access-Control-Allow-Origin", '*');
+  res.header("Access-Control-Allow-Methods", "GET, POST, HEAD, OPTIONS, PUT, PATCH, DELETE");
+  res.header("Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Accept");
+  next();
+});
+mysqlapp.use(function (req, res, next) {
   res.header("Access-Control-Allow-Origin", '*');
   res.header("Access-Control-Allow-Methods", "GET, POST, HEAD, OPTIONS, PUT, PATCH, DELETE");
   res.header("Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Accept");
@@ -181,11 +187,11 @@ app["delete"]('/lists/:listId/tasks/:taskId', function (req, res) {
 
 mysqlapp.get('/', function (req, res) {
   res.send("Hello World");
-});
+}); // const userRoutes = require('./routes/mysql.user.routes')
 
-var testRoutes = require('./routes/mysql.test.routes');
+var userRoutes = require('./controller/mysql.user.controller');
 
-mysqlapp.use('/test', testRoutes); // port number to listen on, callback fxn for when it completes
+mysqlapp.use('/user', userRoutes); // port number to listen on, callback fxn for when it completes
 
 app.listen(3000, function () {
   return console.log("Server Connected on port 3000");

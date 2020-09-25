@@ -1,50 +1,50 @@
-const test = require('../database/models/mysql.test.model');
+const user = require('../database/models/mysql.user.model');
 
 function create (req, res) {
-    const new_test = new test(req.body);
+    const new_user = new user(req.body);
     
     if(req.body.constructor === Object && Object.keys(req.body).length ===0) {
         res.status(400)
             .send({error:true, message:'Please Provide all required fields'});
     } else {
-        test.create(new_test, function(err, test){
+        user.create(new_user, function(err, user){
             if (err) {
                 res.send(err);
             } else {
-                res.json({error: false, message: "Test Created Successfully!", data:test});
+                res.json({error: false, message: "user Created Successfully!", data:user});
             }
         });
     }
 };
 
 function findAll (req, res) {
-    test.getAllUsers( function(err, test) {
+    user.getAllUsers( function(err, user) {
         console.log("Get all Controller");
         if (err) {
             res.send(err);
         } else {
-            res.send(test);
+            res.send(user);
         }
     });
 };
 
 function findByID (req, res) {
-    test.getUser(req.body, function(err, test) {
+    user.getUser(req.body, function(err, user) {
         if (err) {
             res.send(err);
         } else {
-            res.json(test);
+            res.json(user);
         }
     });
 };
 
 function update (req, res) {
-    const new_test = new test(req.body);
+    const new_user = new user(req.body);
     if(req.body.constructor === Object && Object.keys(req.body).length === 0 ){
         res.status(400).send({error:true, message: 'Missing Fields'});
 
     } else {
-        test.update(new_test, function(err, test) {
+        user.update(new_user, function(err, user) {
             if (err) {
                 res.send(err);
             } else {
@@ -56,7 +56,7 @@ function update (req, res) {
 
 function deleteUser (req, res) {
     // console.log(req)
-    test.delete(req.body.userID, function(err, test) {
+    user.delete(req.body.userID, function(err, user) {
         if (err) {
             res.send(err);
             console.log(req.body);
@@ -81,14 +81,14 @@ const express = require('express');
 const router = express.Router();
 
 
-router.post('/testcreate', create);
+router.post('/usercreate', create);
 
-router.get('/testget', findByID);
+router.get('/userget', findByID);
 
-router.get('/testgetall', findAll);
+router.get('/usergetall', findAll);
 
-router.put('/testupdate', update);
+router.put('/userupdate', update);
 
-router.delete('/testdelete', deleteUser);
+router.delete('/userdelete', deleteUser);
 
 module.exports = router

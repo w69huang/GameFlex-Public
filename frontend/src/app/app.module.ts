@@ -16,8 +16,9 @@ import { MatIconModule } from '@angular/material/icon';
 import { MatCardModule } from '@angular/material/card';
 import { MatButtonModule } from '@angular/material/button';
 import { MatProgressBarModule } from '@angular/material/progress-bar';
-import { SignupLoginComponent } from './signup-login/signup-login.component';
 import { DummyComponent } from './dummy/dummy.component';
+import { SignupComponent } from './signup/signup.component';
+import { LoginComponent } from './login/login.component';
 
 @NgModule({
   declarations: [
@@ -27,8 +28,9 @@ import { DummyComponent } from './dummy/dummy.component';
     NewTaskComponent,
     PlayspaceComponent,
     DeckEditorComponent,
-    SignupLoginComponent,
-    DummyComponent
+    DummyComponent,
+    SignupComponent,
+    LoginComponent
   ],
   imports: [
     BrowserModule,

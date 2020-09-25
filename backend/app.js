@@ -23,7 +23,7 @@ const mysql_connection = require('./database/mysql')
 
 const List = require('./database/models/list')
 const Task = require('./database/models/task')
-const test = require('./database/models/mysql.test.model')
+const user = require('./database/models/mysql.user.model')
 
 /*
     CORS: Cross-origin resource sharing
@@ -156,10 +156,10 @@ mysqlapp.get('/', (req, res) => {
     res.send("Hello World");
 });
 
-// const testRoutes = require('./routes/mysql.test.routes')
-const testRoutes = require('./controller/mysql.test.controller');
+// const userRoutes = require('./routes/mysql.user.routes')
+const userRoutes = require('./controller/mysql.user.controller');
 
-mysqlapp.use('/test', testRoutes)
+mysqlapp.use('/user', userRoutes)
 
  // port number to listen on, callback fxn for when it completes
 app.listen(3000, () => console.log("Server Connected on port 3000"))
