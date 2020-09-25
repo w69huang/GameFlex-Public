@@ -13,6 +13,7 @@ const mongoose = require('./database/mongoose')
 
 const List = require('./database/models/list')
 const Task = require('./database/models/task')
+const Configuration = require('./database/models/configuration')
 
 /*
     CORS: Cross-origin resource sharing
@@ -55,7 +56,7 @@ app.get('/lists', (req, res) => {
     List.find({}) // get all lists in the mongoDB
         .then(lists => res.send(lists)) // send the lists in the response to the request
         .catch((error) => console.log(error))
-}) 
+})
 
 app.get('/lists/:listId', (req, res) => {
     // note: `_id` is the auto-generated id for the list
@@ -65,7 +66,7 @@ app.get('/lists/:listId', (req, res) => {
 })
 
 app.post('/lists', (req, res) => {
-    (new List({'title': req.body.title}))
+    (new List({ 'title': req.body.title }))
         .save()
         .then((list) => res.send(list)) // send back to user
         .catch((error) => console.log(error))
@@ -75,14 +76,14 @@ app.patch('/lists/:listId', (req, res) => {
     // List.findOneAndUpdate will look for a `List` with a parameter of `_id` equal to `req.params.listId`
     // `$set: req.body` will set the parameters of the list according to what was set in the request body - if a title was specified, it'll set the title
     // We could also use findByIdAndUpdate in this scenario
-    List.findOneAndUpdate({ _id: req.params.listId }, { $set: req.body }) 
+    List.findOneAndUpdate({ _id: req.params.listId }, { $set: req.body })
         .then((list) => res.send(list))
         .catch((error) => console.log(error))
 })
 
 app.delete('/lists/:listId', (req, res) => {
     const deleteTasks = (list) => {
-        Task.deleteMany({_listId: list._id})
+        Task.deleteMany({ _listId: list._id })
             .then(() => list)
             .catch((error) => console.log(error))
     }
@@ -100,35 +101,57 @@ app.delete('/lists/:listId', (req, res) => {
 app.get('/lists/:listId/tasks', (req, res) => {
     // note: `_listId` is of type `mongoose.Types.ObjectId`
     Task.find({ _listId: req.params.listId })
-        .then((tasks) => res.send(tasks)) 
+        .then((tasks) => res.send(tasks))
         .catch((error) => console.log(error))
 })
 
 app.get('/lists/:listId/tasks/:taskId', (req, res) => {
     // note: `_id` is the auto-generated id for the task
     Task.find({ _listId: req.params.listId, _id: req.params.taskId })
-        .then((task) => res.send(task)) 
+        .then((task) => res.send(task))
         .catch((error) => console.log(error))
 })
 
 app.post('/lists/:listId/tasks', (req, res) => {
     (new Task({ '_listId': req.params.listId, 'title': req.body.title }))
         .save()
-        .then((task) => res.send(task)) 
+        .then((task) => res.send(task))
         .catch((error) => console.log(error))
 })
 
 app.patch('/lists/:listId/tasks/:taskId', (req, res) => {
     Task.findOneAndUpdate({ _listId: req.params.listId, _id: req.params.taskId }, { $set: req.body })
-        .then((task) => res.send(task)) 
+        .then((task) => res.send(task))
         .catch((error) => console.log(error))
 })
 
 app.delete('/lists/:listId/tasks/:taskId', (req, res) => {
     Task.findByIdAndDelete({ _listId: req.params.listId, _id: req.params.taskId })
-        .then((task) => res.send(task)) 
+        .then((task) => res.send(task))
         .catch((error) => console.log(error))
 })
 
- // port number to listen on, callback fxn for when it completes
+
+
+// Configuration Routes //
+
+app.get('/configpost', (req, res) => {
+    // note: `_id` is the auto-generated id for the task
+    Configuration.find({ _userId: req.params.userId, _id: req.params.configurationId })
+        .then((configuration) => res.send("OK"))
+        .catch((error) => console.log(error))
+})
+
+app.post('/configpost', (req, res) => {
+    (new Configuration({ _userId: req.body.userId, numPlayers: req.body.numPlayers, handsVisibleOnInsert: req.body.handsVisibleOnInsert, decks: [], counters: [] }))
+        .save()
+        .then((configuration) => res.send("OK"))
+        .catch((error) => console.log(error))
+})
+
+
+
+// port number to listen on, callback fxn for when it completes
 app.listen(3000, () => console.log("Server Connected on port 3000"))
+
+

@@ -3,6 +3,10 @@ import { HttpEventType, HttpErrorResponse } from '@angular/common/http';
 import { of } from 'rxjs';
 import { catchError, map } from 'rxjs/operators';
 
+import { ConfigurationService } from 'src/app/services/configuration.service';
+import { Router, ActivatedRoute, Params } from '@angular/router';
+
+import Configuration from '../models/configuration'
 import Deck from '../models/deck';
 import DeckMin from '../models/deckMin';
 import Hand from '../models/hand';
@@ -26,7 +30,6 @@ class OptionObject {
     this.optionHeight = optionHeight;
   }
 }
-
 
 class PopupScene extends Phaser.Scene {
 
@@ -130,10 +133,6 @@ class MainScene extends Phaser.Scene {
   // update() {}
 }
 
-
-
-
-
 @Component({
   selector: 'app-config-editor',
   templateUrl: './config-editor.component.html',
@@ -156,8 +155,14 @@ export class ConfigEditorComponent implements OnInit {
   public playerID: number = 1;
   public gameState: GameState;
 
+  configuration: Configuration;
+  //configurationId: string;
 
-  constructor() {
+  constructor(
+    private configurationService: ConfigurationService,
+    private route: ActivatedRoute,
+    private router: Router
+  ) {
     this.phaserScene = new MainScene(this, this.sceneWidth, this.sceneHeight, this.handBeginY);
     this.config = {
       type: Phaser.AUTO,
@@ -166,6 +171,7 @@ export class ConfigEditorComponent implements OnInit {
       scene: [this.phaserScene],
       parent: 'configEditorContainer',
     };
+    this.configuration = new Configuration(1, 2, 3, true, [], []);
   }
 
   ngOnInit(): void {
@@ -173,8 +179,29 @@ export class ConfigEditorComponent implements OnInit {
 
     this.phaserGame = new Phaser.Game(this.config);
 
+    // this.route.params.subscribe((params: Params) => this.configurationId = params.configurationId)
+    // this.configurationService.getConfiguration(this.configurationId)
+    // this.configurationService.getConfiguration()
+    //   .subscribe((configuration: Configuration) => this.configuration = configuration)
+
   }
 
+  saveConfig(configurationId: number) {
+    // if(configurationId){ this.configurationService.updateConfiguration(........)} else {}
+    this.configurationService.createConfiguration(this.configuration)
+      .subscribe()
+    //.subscribe(() => this.router.navigate(['../'], { relativeTo: this.route })) // We want it to navigate to configuration/:configurationId:
+  }
+
+  addConfig(configurationId: number) {
+    this.configurationService.createConfiguration(this.configuration)
+      .subscribe(() => this.router.navigate(['../'], { relativeTo: this.route }))
+  }
+
+  getConfig(configurationId: number) {
+    this.configurationService.getConfiguration()
+      .subscribe((configuration: Configuration) => this.configuration = configuration)
+  }
 
 
   popupClose(popupScene: PopupScene, configEditorComponent: ConfigEditorComponent) {
