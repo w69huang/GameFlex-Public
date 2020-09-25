@@ -154,7 +154,9 @@ mysqlapp.get('/', (req, res) => {
 });
 
 const onlineGamesRoutes = require('./controllers/online-games.controller');
+const testRoutes = require('./controller/mysql.test.controller');
 
+mysqlapp.use('/test', testRoutes)
 mysqlapp.use('/online-games', onlineGamesRoutes);
 
 // port number to listen on, callback fxn for when it completes

@@ -112,6 +112,13 @@ If the request your making is one that requires a parameter to be passed to it, 
 
 To confirm that this works, once you press the send button, the response section should show you json for a 200 code. If not, something went wrong so ask for some help! :) 
 
+Additionally after starting up the front and backend (making sure the SQL instance is running on GCP), go to localhost:4200/dummy to test the database and see how they work. The code for these requests and such can be found in the following files:
+- ../frontend/src/app/dummy
+- ../backend/database/models/mysql.test.model.js
+- ../backend/database/mysql.js
+- ../backend/controller/mysql.test.controller.js
+- ../backend/app.js
+
 ### Closing a connection. 
 It is good practice to make sure that a connection is closed once you are done using it. To do this, just call:
 
@@ -126,7 +133,7 @@ connection.end((err) => {
 
 To start the mySQL server, log onto the GCP console and select the **_SQL_** option in the side bar. Click on gcp-gameflex-sql and then select **_Start_** from the triple dot beside **_Overview_**. Wait a couple seconds and it should be up. The public IP Address should be used to replace **_localhost_** inside the connection code.
 
-Currently only on user exists:
+Currently only one user exists:
 - **User**: root
 - **Password**: 123
 
@@ -134,5 +141,4 @@ Currently only on user exists:
 
 Similar to the mySQL server, select the **_Compute Engine_** from the side bar and click the box beside **_gameflex-mongodb-arbiters-vm-0_** and  **_gameflex-mongodb-servers-vm-0_** to select them. Press the play button beside VM Instances. Wait a couple seconds and it should be up. The external IP of **_gameflex-mongodb-servers-vm-0_** should be what is used to replace **_127.0.0.1_** inside the connection code. 
 
-***NOTE:*** The External IP and the Public IP Address can be subject to change without a dedicated IP address saved for our instances if GCP handles IP addresses in a similar fashion to AWS. If this is the case, we can either choose to spend some money on creating these saved IP addresses in the future, or just remember to double check the connections each time we start up the servers. 
 
