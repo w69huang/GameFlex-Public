@@ -66,4 +66,10 @@ export class GameBrowserComponent implements OnInit {
       }
     });
   }
+
+  deleteAllGames(): void {
+    this.onlineGamesService.deleteAll().subscribe((data) => {
+      this.onlineGames = [];
+    });
+  }
 }

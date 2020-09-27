@@ -33,4 +33,8 @@ export class OnlineGamesService {
           }
         )
   }
+
+  deleteAll(): any {
+    return this.webService.delete('online-games/delete');
+  }
 }
