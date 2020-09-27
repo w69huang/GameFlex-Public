@@ -1,6 +1,7 @@
 import { Component, OnInit } from '@angular/core';
 import { DataConnection } from 'peerjs';
 import { ActivatedRoute } from '@angular/router';
+import { HostService } from '../host.service';
 import Phaser from 'phaser';
 import Card from '../models/card';
 import CardMin from '../models/cardMin';
@@ -49,7 +50,7 @@ export class PlayspaceComponent implements OnInit {
   // NOTE: In the future, this should be populated by a DB call for a specific game
   public amHost: boolean = true;
   
-  constructor(private route: ActivatedRoute) { 
+  constructor(private route: ActivatedRoute, private hostService: HostService) { 
     this.phaserScene = new MainScene(this, this.sceneWidth, this.sceneHeight, this.handBeginY);
     this.config = {
       type: Phaser.AUTO,
@@ -58,13 +59,11 @@ export class PlayspaceComponent implements OnInit {
       scene: [ this.phaserScene ],
       parent: 'gameContainer',
     };
+
+    this.hostID = this.hostService.getHostID();
   }
 
   ngOnInit(): void {
-    this.route.queryParams.subscribe(params => {
-      this.hostID = params['host'];
-    });
-
     // TODO: Based off player ID, need to ensure the other person has a different playerID
     this.gameState = new GameState([], [], [], new Hand(this.playerID, []));
 
@@ -73,25 +72,15 @@ export class PlayspaceComponent implements OnInit {
     // NOTE: Launch a local peer server:
     // 1. npm install -g peer
     // 2. peerjs --port 9000 --key peerjs --path /peerserver
-    this.peer = new Peer({ // You can pass in a specific ID as the first argument if you want to hardcode the peer ID
+    this.peer = new Peer(this.hostID, { // You can pass in a specific ID as the first argument if you want to hardcode the peer ID
       host: 'localhost',
-      // host: '35.215.71.108', This is reserved for the external IP of the mongo DB instance. Replace this IP with the new IP generated when starting up the 
+      // host: '35.215.71.108', // This is reserved for the external IP of the mongo DB instance. Replace this IP with the new IP generated when starting up the 
       port: 9000,
       path: '/peerserver' // Make sure this path matches the path you used to launch it
     }); 
-    this.peer.on('open', (id) => {
-      this.peerId = id;
-      console.log('My peer ID is: ' + id);
-    });
 
     this.peer.on('connection', (conn) => { 
       console.log(`Received connection request from peer with id ${conn.peer}.`);
-
-      // For now, if I receive a connection request I am not the host
-      this.amHost = false;
-      // For now, we default the other person's playerID to be 2
-      this.playerID = 2;
-
       this.conn = conn;
       this.otherPeerId = conn.peer;
 
@@ -109,39 +98,41 @@ export class PlayspaceComponent implements OnInit {
         this.conn = null;
         this.otherPeerId = null;
       });
+    });
 
-      this.conn.on('open', () => {
-        this.conn.send({
-          'action': 'sendState',
-          'amHost': this.amHost,
-          'playerID': this.playerID
+    this.route.queryParams.subscribe(params => {
+      let mainHostID = params['host'];
+
+      if (mainHostID != this.hostID) {
+        this.amHost = false;
+        this.playerID = 2;
+        this.otherPeerId = mainHostID;
+        var conn = this.peer.connect(this.otherPeerId);
+        this.conn = conn;
+        conn.on('open', () => {
+          // Receive messages
+          conn.on('data', (data) => {
+            this.handleData(data);
+          });
+          conn.on('close', () => {
+            console.log("Peer-to-Peer Error: Other party disconnected.");
+            this.conn = null;
+            this.otherPeerId = null;
+          });
+          conn.on('error', (err) => {
+            console.log("Unspecified Peer-to-Peer Error:");
+            console.log(err);
+            this.conn = null;
+            this.otherPeerId = null;
+          });
+          conn.send({
+            'action': 'sendState',
+            'amHost': this.amHost,
+            'playerID': this.playerID
+          });
         });
-      });
+      }
     });
-  }
-
-  startConnection(peerID: string) {
-    this.otherPeerId = peerID;
-    var conn = this.peer.connect(this.otherPeerId);
-    this.conn = conn;
-    conn.on('open', () => {
-      // Receive messages
-      conn.on('data', (data) => {
-        this.handleData(data);
-      });
-      conn.on('close', () => {
-        console.log("Peer-to-Peer Error: Other party disconnected.");
-        this.conn = null;
-        this.otherPeerId = null;
-      });
-      conn.on('error', (err) => {
-        console.log("Unspecified Peer-to-Peer Error:");
-        console.log(err);
-        this.conn = null;
-        this.otherPeerId = null;
-      });
-    });
-
   }
 
   filterOutID(objectListToFilter: any[], object: any) {
@@ -168,7 +159,7 @@ export class PlayspaceComponent implements OnInit {
           'action': 'replicateState',
           'state': sentGameState,
           'amHost': this.amHost,
-          'playerID': this.playerID
+          'playerID': this.playerID,
         });
         break;
 

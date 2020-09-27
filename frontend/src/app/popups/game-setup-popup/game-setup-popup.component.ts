@@ -21,10 +21,10 @@ export class GameSetupPopupComponent implements OnInit {
     this.dialogRef.close();
   }
 
-  submit(roomName: string, maxPlayers: number, privateRoom: boolean, roomPassword: string): void {
-    if (roomName != "") {
+  submit(name: string, maxPlayers: number, privateGame: boolean, password: string): void {
+    if (name != "") {
       this.errorsDiv.nativeElement.innerHTML = "";
-      this.dialogRef.close({ roomName: roomName, maxPlayers: maxPlayers, privateRoom: privateRoom, roomPassword: roomPassword });
+      this.dialogRef.close({ name: name, maxPlayers: maxPlayers, privateGame: privateGame, password: password });
     } else {
       this.errorsDiv.nativeElement.innerHTML = "Missing name field.";
     }

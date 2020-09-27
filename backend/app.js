@@ -154,7 +154,7 @@ mysqlapp.get('/', (req, res) => {
 });
 
 const onlineGamesRoutes = require('./controllers/online-games.controller');
-const testRoutes = require('./controller/mysql.test.controller');
+const testRoutes = require('./controllers/mysql.test.controller');
 
 mysqlapp.use('/test', testRoutes)
 mysqlapp.use('/online-games', onlineGamesRoutes);

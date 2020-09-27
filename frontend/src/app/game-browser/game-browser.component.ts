@@ -17,18 +17,15 @@ export class GameBrowserComponent implements OnInit {
   
   onlineGames: OnlineGame[];
 
-  constructor(private hostService: HostService, private onlineGamesService: OnlineGamesService, private dialog: MatDialog) { 
-    this.onlineGames = [
-      new OnlineGame(hostService.getHostID(), "Game1", 8, false, true, "", 1),
-      new OnlineGame(hostService.getHostID(), "Game2", 5, false, false, "", 2),
-      new OnlineGame(hostService.getHostID(), "Game3", 2, false, true, "", 12),
-      new OnlineGame(hostService.getHostID(), "Game4", 4, false, false, "", 3),
-      new OnlineGame(hostService.getHostID(), "Game5", 3, false, false, "", 4),
-      new OnlineGame(hostService.getHostID(), "Game6", 6, false, false, "", 1),
-    ];
+  constructor(private hostService: HostService,
+              private onlineGamesService: OnlineGamesService, 
+              private dialog: MatDialog) { 
+    this.onlineGames = [];
   }
 
-  ngOnInit(): void { }
+  ngOnInit(): void { 
+    this.getAllGames();
+  }
 
   joinGame(onlineGame: OnlineGame): void {
     if (onlineGame.passwordProtected) {
@@ -48,7 +45,11 @@ export class GameBrowserComponent implements OnInit {
   }
 
   getAllGames(): void {
-    this.onlineGamesService.getAll();
+    this.onlineGamesService.getAll().subscribe(
+      (onlineGames: OnlineGame[]) => {
+        this.onlineGames = onlineGames;
+      }
+    );
   }
 
   createGame(): void {
@@ -59,6 +60,7 @@ export class GameBrowserComponent implements OnInit {
 
     dialogRef.afterClosed().subscribe(gameSetupData => {
       if (gameSetupData) {
+        console.log(gameSetupData);
         const onlineGame: OnlineGame = new OnlineGame(this.hostService.getHostID(), gameSetupData.name, gameSetupData.maxPlayers, gameSetupData.privateGame, gameSetupData.password != "" ? true : false, gameSetupData.password, 1);
         this.onlineGamesService.create(onlineGame);
       }

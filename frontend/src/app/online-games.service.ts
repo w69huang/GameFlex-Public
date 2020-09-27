@@ -2,6 +2,8 @@ import { Injectable } from '@angular/core';
 import { Router } from '@angular/router';
 import { WebService } from './web.service';
 import OnlineGame from './models/onlineGame';
+import { Observable } from 'rxjs/internal/Observable';
+import { of } from 'rxjs';
 
 @Injectable({
   providedIn: 'root'
@@ -19,20 +21,15 @@ export class OnlineGamesService {
     this.router.navigate(['/playspace'], { queryParams: { host: hostID } });
   }
 
-  getAll() {
-    this.webService.get('online-games/get')
-        .subscribe(
-          (data) => {
-            console.log(data);
-          }
-        );
+  getAll(): any {
+    return this.webService.get('online-games/get');
   }
 
-  create(onlineGame: OnlineGame) {
+  create(onlineGame: OnlineGame): void {
     this.webService.post('online-games/post', onlineGame)
         .subscribe(
           (data) => {
-            console.log(data);
+            this.router.navigate(['/playspace'], { queryParams: { host: onlineGame.hostID } });
           }
         )
   }
