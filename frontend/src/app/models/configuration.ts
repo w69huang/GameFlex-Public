@@ -4,14 +4,14 @@ import Counter from './counter';
 
 export default class Configuration {
     id: number;
-    userId: number;
+    userId: string;
     numPlayers: integer;
     handsVisibleOnInsert: boolean;
     decks: Deck[];
     // counters: Counter[];
 
 
-    constructor(id: number, userId: number, numPlayers: integer, handsVisibleOnInsert: boolean, decks: Deck[], counters: Counter[]) {
+    constructor(id: number, userId: string, numPlayers: integer, handsVisibleOnInsert: boolean, decks: Deck[], counters: Counter[]) {
         this.id = id;
         this.userId = userId;
         this.numPlayers = numPlayers;

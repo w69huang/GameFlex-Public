@@ -9,27 +9,28 @@ export class ConfigurationService {
 
   constructor(private webService: WebService) { }
 
-  getConfiguration() {
-    return this.webService.get('configeditor');
+  getConfiguration(configurationId) {
+    return this.webService.get(`configpost/${configurationId}`);
   }
 
   createConfiguration(configuration: Configuration) {
-    return this.webService.post('configpost', { configuration });
+    console.log('Front end createConfig!');
+    return this.webService.post(`configpost`, { configuration });
   }
 
   // getTasks (listId: string) {
   //   return this.webService.get(`lists/${listId}/tasks`);
   // }
 
-  createTask (listId: string, title: string) {
-    return this.webService.post(`lists/${listId}/tasks`, { title });
-  }
+  // createTask(listId: string, title: string) {
+  //   return this.webService.post(`lists/${listId}/tasks`, { title });
+  // }
 
   // deleteList (listId: string) {
   //   return this.webService.delete(`lists/${listId}`);
   // }
 
-  // deleteTask ( listId: string, taskId: string ) {
+  // deleteTask(listId: string, taskId: string) {
   //   return this.webService.delete(`lists/${listId}/tasks/${taskId}`);
   // }
 

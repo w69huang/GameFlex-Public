@@ -6,9 +6,8 @@ const Deck = require('./deck').schema;
 
 // Takes in an object equal to the def of our schema
 const ConfigurationSchema = new mongoose.Schema({
-    _userId: {
-        type: mongoose.Types.ObjectId,
-        required: true
+    userId: {
+        type: String
     },
     numPlayers: Number,
     handsVisibleOnInsert: {

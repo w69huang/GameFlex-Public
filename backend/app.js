@@ -1,12 +1,15 @@
 // ~~~~~~~ Use `nodemon app.js` to start the server ~~~~~~~~~ //
 
 const express = require('express')
+bodyParser = require('body-parser');
 
 // The express() library will be used to handle backend routing
 const app = express()
 
 // allows our app to use json data
 app.use(express.json())
+app.use(bodyParser.urlencoded({ extended: false })); // Parses urlencoded bodies
+app.use(bodyParser.json()); // Send JSON responses
 
 // instantiate our database that was set up and connected in mongoose.js
 const mongoose = require('./database/mongoose')
@@ -135,18 +138,20 @@ app.delete('/lists/:listId/tasks/:taskId', (req, res) => {
 
 // Configuration Routes //
 
-app.get('/configpost', (req, res) => {
+app.get('/configpost/:configurationId', (req, res) => {
     // note: `_id` is the auto-generated id for the task
-    Configuration.find({ _userId: req.params.userId, _id: req.params.configurationId })
-        .then((configuration) => res.send("OK"))
+    Configuration.find({ _id: req.params.configurationId })
+        .then((configuration) => res.send(configuration))
         .catch((error) => console.log(error))
+    console.log('Config Get Backend has run!',);
 })
 
 app.post('/configpost', (req, res) => {
-    (new Configuration({ _userId: req.body.userId, numPlayers: req.body.numPlayers, handsVisibleOnInsert: req.body.handsVisibleOnInsert, decks: [], counters: [] }))
+    (new Configuration({ userId: req.body.userId, numPlayers: req.body.numPlayers, handsVisibleOnInsert: req.body.handsVisibleOnInsert, decks: [], counters: [] }))
         .save()
-        .then((configuration) => res.send("OK"))
+        .then((configuration) => res.send(configuration))
         .catch((error) => console.log(error))
+    console.log('Config Post Backend has run!');
 })
 
 

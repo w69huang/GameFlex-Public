@@ -171,7 +171,7 @@ export class ConfigEditorComponent implements OnInit {
       scene: [this.phaserScene],
       parent: 'configEditorContainer',
     };
-    this.configuration = new Configuration(1, 2, 3, true, [], []);
+    this.configuration = new Configuration(1, "BIG TURD", 3, true, [], []);
   }
 
   ngOnInit(): void {
@@ -199,8 +199,9 @@ export class ConfigEditorComponent implements OnInit {
   }
 
   getConfig(configurationId: number) {
-    this.configurationService.getConfiguration()
+    const config1 = this.configurationService.getConfiguration('5f6d5a615064133767b40710')
       .subscribe((configuration: Configuration) => this.configuration = configuration)
+    console.log(config1, this.configuration);
   }
 
 
