@@ -58,7 +58,7 @@ user.update = function (user, result) {
   mysql_connection.query("UPDATE UserMySQL SET username=?, password=?, email=? WHERE userID=?", [user.username, user.password, user.email, user.userID], function (err, res) {
     if (err) {
       console.log("Error: ", err);
-      result(null, err);
+      result(err, null);
     } else {
       result(null, res);
     }
@@ -69,8 +69,34 @@ user["delete"] = function (userID, result) {
   mysql_connection.query("DELETE FROM UserMySQL WHERE userID =?", userID, function (err, res) {
     if (err) {
       console.log("error: ", err);
-      result(null, err);
+      result(err, null);
     } else {
+      result(null, res);
+    }
+  });
+};
+
+user.checkUsername = function (username, result) {
+  mysql_connection.query("SELECT * FROM UserMySQL WHERE username=?", username, function (err, res) {
+    if (err) {
+      console.log("Error", err);
+      result(err, null);
+    } else {
+      console.log("Model");
+      console.log(res);
+      result(null, res);
+    }
+  });
+};
+
+user.checkEmail = function (email, result) {
+  mysql_connection.query("SELECT * FROM UserMySQL WHERE email=?", email, function (err, res) {
+    if (err) {
+      console.log("Error", err);
+      result(err, null);
+    } else {
+      console.log("Model");
+      console.log(res);
       result(null, res);
     }
   });

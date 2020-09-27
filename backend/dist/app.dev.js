@@ -8,14 +8,18 @@ var bodyParser = require('body-parser'); // The express() library will be used t
 
 
 var app = express();
-var mysqlapp = express(); // allows our app to use json data
+var mysqlapp = express();
+
+var cors = require('cors'); // allows our app to use json data
+
 
 app.use(express.json()); // Allows use to parse application/json type post data
 
 mysqlapp.use(bodyParser.json());
 mysqlapp.use(bodyParser.urlencoded({
   extended: true
-})); // instantiate our database that was set up and connected in mongoose.js
+})); // mysqlapp.use(cors());
+// instantiate our database that was set up and connected in mongoose.js
 
 var mongoose = require('./database/mongoose');
 
@@ -28,8 +32,9 @@ var Task = require('./database/models/task');
 var user = require('./database/models/mysql.user.model');
 /*
     CORS: Cross-origin resource sharing
-    localhost:3000 - back-end api
+    localhost:3000 - back-end api (mongo)
     localhost:4200 - front-end
+    localhost:5000 - back-end api (mysql)
 
     For our back-end, CORS will take any request that comes from ports other than 3000 and reject it
 */

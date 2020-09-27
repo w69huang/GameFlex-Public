@@ -8,22 +8,109 @@ var __decorate = (this && this.__decorate) || function (decorators, target, key,
 exports.__esModule = true;
 exports.SignupComponent = void 0;
 var core_1 = require("@angular/core");
+var rxjs_1 = require("rxjs");
 var SignupComponent = /** @class */ (function () {
-    function SignupComponent() {
+    function SignupComponent(http, router) {
+        this.http = http;
+        this.router = router;
         this.username = "";
         this.password = "";
         this.confirmPassword = "";
         this.email = "";
+        this.userExists = false;
+        this.emailExists = false;
+        this.passwordMatch = true;
     }
     SignupComponent.prototype.ngOnInit = function () {
     };
     SignupComponent.prototype.onSubmit = function (obj) {
+        var _this = this;
         // Does SQL checks to confirm if a username exists or an email address is in use;
-        console.log(obj);
+        // console.log(obj);
+        if (obj.value.password != obj.value.confirmPassword) {
+            this.passwordMatch = false;
+        }
+        else {
+            this.passwordMatch = true;
+        }
+        console.log(this.passwordMatch);
+        console.log(obj.value.username);
+        if (obj.value.username != '' && obj.value.email != '') {
+            // this.http.post('http://localhost:5000/user/userget', obj.value)
+            //   .subscribe((responseData) => {
+            //     console.log(responseData)
+            //     if(responseData instanceof Array) {
+            //       if (responseData.length >= 1){ 
+            //         // UserID exists.
+            //         this.userExists = true;
+            //       } else {
+            //         this.userExists = false;
+            //       }
+            //       console.log("Successfully sent SQL");
+            //     } else {
+            //       console.log("Failed to either send data or SQL failed.")
+            //     }
+            //   });
+            // this.http.post('http://localhost:5000/user/checkemail', obj.value)
+            //   .subscribe( (responseData) => {
+            //     console.log(responseData);
+            //     if(responseData instanceof Array) {
+            // if(responseData.length >= 1) {
+            //   this.emailExists = true;
+            // } else {
+            //   this.emailExists = false;
+            // }
+            //     } else {
+            //       console.log("SQL failed somewhere")
+            //     }
+            //   });
+            rxjs_1.forkJoin(this.http.post('http://localhost:5000/user/userget', obj.value), this.http.post('http://localhost:5000/user/checkemail', obj.value)).subscribe(function (data) {
+                if (data instanceof Array && data[0] instanceof Array && data[1] instanceof Array) {
+                    if (data[0].length >= 1) {
+                        // UserID exists.
+                        _this.userExists = true;
+                    }
+                    else {
+                        _this.userExists = false;
+                    }
+                    if (data[1].length >= 1) {
+                        _this.emailExists = true;
+                    }
+                    else {
+                        _this.emailExists = false;
+                    }
+                }
+                else {
+                    console.log("Failed to either send data or SQL failed.");
+                }
+                if (!_this.userExists && !_this.emailExists) {
+                    _this.onRegister(obj);
+                }
+            });
+        }
     };
+    ;
     SignupComponent.prototype.onRegister = function (obj) {
+        var _this = this;
         // Confirms the SQL check and creates a new user into the sql table
         console.log(obj);
+        obj.value['userID'] = this.hash(obj.value.username);
+        // console.log(obj.userID);
+        this.http.post('http://localhost:5000/user/usercreate', obj.value)
+            .subscribe(function (responseData) {
+            console.log("Created");
+            _this.router.navigate(['/login']);
+        });
+    };
+    SignupComponent.prototype.hash = function (string) {
+        var i, char;
+        var hash = 0;
+        for (i = 0; i < string.length; i++) {
+            char = string.charCodeAt(i);
+            hash = ((hash << 5) - hash) + char;
+            hash = hash & hash;
+        }
+        return hash;
     };
     SignupComponent = __decorate([
         core_1.Component({

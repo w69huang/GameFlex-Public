@@ -42,7 +42,8 @@ function findAll(req, res) {
 ;
 
 function findByID(req, res) {
-  user.getUser(req.body, function (err, user) {
+  console.log(req.body);
+  user.getUser(req.body.username, function (err, user) {
     if (err) {
       res.send(err);
     } else {
@@ -96,14 +97,43 @@ function deleteUser(req, res) {
   });
 }
 
-; // Router Code:
+;
+
+function checkUsername(req, res) {
+  user.checkUsername(req.body.username, function (err, user) {
+    if (err) {
+      res.send(err);
+      console.log(req.body);
+    } else {
+      res.json(user);
+      console.log("Controller");
+      console.log(req.body);
+    }
+  });
+}
+
+function checkEmail(req, res) {
+  user.checkEmail(req.body.email, function (err, user) {
+    if (err) {
+      res.send(err);
+      console.log(req.body);
+    } else {
+      res.json(user);
+      console.log("Controller");
+      console.log(req.body);
+    }
+  });
+} // Router Code:
+
 
 var express = require('express');
 
 var router = express.Router();
 router.post('/usercreate', create);
-router.get('/userget', findByID);
+router.post('/userget', findByID);
 router.get('/usergetall', findAll);
 router.put('/userupdate', update);
 router["delete"]('/userdelete', deleteUser);
+router.post('/checkusername', checkUsername);
+router.post('/checkemail', checkEmail);
 module.exports = router;

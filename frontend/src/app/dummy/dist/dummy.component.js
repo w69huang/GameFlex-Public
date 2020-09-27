@@ -29,20 +29,20 @@ var DummyComponent = /** @class */ (function () {
     DummyComponent.prototype.onCreatePost = function (postData) {
         console.log("heree");
         console.log(postData);
-        this.http.post('http://localhost:5000/test/testcreate', postData).subscribe(function (responseData) {
+        this.http.post('http://localhost:5000/user/usercreate', postData).subscribe(function (responseData) {
             console.log(responseData);
         });
     };
     DummyComponent.prototype.onGetUser = function (username) {
         console.log("Get User", username.value);
-        this.http.get('http://localhost:5000/test/testget', username).subscribe(function (responseData) {
+        this.http.get('http://localhost:5000/user/userget', username).subscribe(function (responseData) {
             console.log(responseData);
         });
     };
     DummyComponent.prototype.onGetAll = function () {
         var _this = this;
         console.log("Get All");
-        this.http.get('http://localhost:5000/test/testgetall').subscribe(function (responseData) {
+        this.http.get('http://localhost:5000/user/usergetall').subscribe(function (responseData) {
             console.log("This Response Data");
             console.log(responseData);
             _this.getbox = JSON.stringify(responseData);
@@ -51,7 +51,7 @@ var DummyComponent = /** @class */ (function () {
     DummyComponent.prototype.onUpdate = function (x) {
         console.log("Update User");
         console.log(x.form.value);
-        this.http.put('http://localhost:5000/test/testupdate', x.form.value).subscribe(function (responseData) {
+        this.http.put('http://localhost:5000/user/userupdate', x.form.value).subscribe(function (responseData) {
             console.log(responseData);
         });
     };
@@ -68,7 +68,7 @@ var DummyComponent = /** @class */ (function () {
                 userID: x.form.value.userID
             }
         };
-        this.http["delete"]('http://localhost:5000/test/testdelete', options).subscribe(function (responseData) {
+        this.http["delete"]('http://localhost:5000/user/userdelete', options).subscribe(function (responseData) {
             console.log(responseData);
         });
     };
