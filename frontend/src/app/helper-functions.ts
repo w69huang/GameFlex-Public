@@ -7,7 +7,7 @@ export enum DestinationEnum {
     HAND = "Hand"
 }
 
-export function createCard(card: Card, playspaceComponent: PlayspaceComponent, dragMove: Function, dragEnd: Function, destination: string, x: number, y: number) {
+export function createCard(card: Card, playspaceComponent: any, dragMove: Function, dragEnd: Function, destination: string, x: number, y: number) {
     if (playspaceComponent.phaserScene.textures.exists(card.imagePath)) {
         // If the image already exists in the texture manager's cache, we can create the object now
 
@@ -31,7 +31,7 @@ export function createCard(card: Card, playspaceComponent: PlayspaceComponent, d
     }
 }
 
-export function cardCreationCallback(card: Card, playspaceComponent: PlayspaceComponent, dragMove: Function, dragEnd: Function, destination: string, x: number, y: number) {
+export function cardCreationCallback(card: Card, playspaceComponent: any, dragMove: Function, dragEnd: Function, destination: string, x: number, y: number) {
     card.gameObject = playspaceComponent.phaserScene.add.image(x, y, card.imagePath);
     card.gameObject.setInteractive();
     playspaceComponent.phaserScene.input.setDraggable(card.gameObject);
@@ -46,7 +46,7 @@ export function cardCreationCallback(card: Card, playspaceComponent: PlayspaceCo
     }
 }
 
-export function createDeck(deck: Deck, playspaceComponent: PlayspaceComponent, dragMove: Function, rightClick: Function, x: number, y: number) {
+export function createDeck(deck: Deck, playspaceComponent: any, dragMove: Function, rightClick: Function, x: number, y: number) {
     if (playspaceComponent.phaserScene.textures.exists(deck.imagePath)) {
         // If the image already exists in the texture manager's cache, we can create the object now
 
@@ -66,7 +66,7 @@ export function createDeck(deck: Deck, playspaceComponent: PlayspaceComponent, d
     }
 }
 
-export function deckCreationCallback(deck: Deck, playspaceComponent: PlayspaceComponent, dragMove: Function, rightClick: Function, x: number, y: number) {
+export function deckCreationCallback(deck: Deck, playspaceComponent: any, dragMove: Function, rightClick: Function, x: number, y: number) {
     deck.gameObject = playspaceComponent.phaserScene.add.image(x, y, deck.imagePath);
     deck.gameObject.setInteractive();
     playspaceComponent.phaserScene.input.setDraggable(deck.gameObject);

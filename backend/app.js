@@ -1,7 +1,6 @@
 // ~~~~~~~ Use `nodemon app.js` to start the server ~~~~~~~~~ //
 
 const express = require('express')
-bodyParser = require('body-parser');
 
 // The body parser will simplify the request data for mysql
 const bodyParser = require('body-parser')
@@ -17,8 +16,7 @@ app.use(bodyParser.json()); // Send JSON responses
 
 // Allows use to parse application/json type post data
 mysqlapp.use(bodyParser.json());
-mysqlapp.use(bodyParser.urlencoded({extended:true}));
-
+mysqlapp.use(bodyParser.urlencoded({ extended: true }));
 
 // instantiate our database that was set up and connected in mongoose.js
 const mongoose = require('./database/mongoose')
@@ -180,7 +178,7 @@ const testRoutes = require('./controller/mysql.test.controller');
 
 mysqlapp.use('/test', testRoutes)
 
- // port number to listen on, callback fxn for when it completes
+// port number to listen on, callback fxn for when it completes
 app.listen(3000, () => console.log("Server Connected on port 3000"))
 
 mysqlapp.listen(5000, () => console.log("Mysql Server Connected on port 5000"))
