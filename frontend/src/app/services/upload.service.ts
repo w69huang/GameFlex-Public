@@ -8,7 +8,7 @@ import { finalize } from 'rxjs/operators';
   providedIn: 'root'
 })
 export class UploadService {
-  SERVER_URL: string = "http://localhost:4000/";
+  SERVER_URL: string = "http://localhost:4000/upload";
   constructor(private httpClient: HttpClient) { }
 
   public upload(formData) {

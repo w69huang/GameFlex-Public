@@ -19,7 +19,7 @@ module.exports = (upload) => {
     });
 
     //upload a multiple files
-    router.route('/')
+    router.route('/upload')
         .post(upload.array('file', 60), (req, res, next) => {
             res.status(200).json({
                 success: true,

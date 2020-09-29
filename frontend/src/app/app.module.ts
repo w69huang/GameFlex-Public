@@ -15,6 +15,8 @@ import { MatIconModule } from '@angular/material/icon';
 import { MatCardModule } from '@angular/material/card';
 import { MatButtonModule } from '@angular/material/button';
 import { MatProgressBarModule } from '@angular/material/progress-bar';
+import { FileListComponent } from './file-list/file-list.component';
+import { FileUploaderComponent } from './file-uploader/file-uploader.component';
 
 @NgModule({
   declarations: [
@@ -23,7 +25,9 @@ import { MatProgressBarModule } from '@angular/material/progress-bar';
     NewListComponent,
     NewTaskComponent,
     PlayspaceComponent,
-    DeckEditorComponent
+    DeckEditorComponent,
+    FileListComponent,
+    FileUploaderComponent
   ],
   imports: [
     BrowserModule,
