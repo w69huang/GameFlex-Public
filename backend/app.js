@@ -3,20 +3,31 @@
 const express = require('express')
 bodyParser = require('body-parser');
 
+// The body parser will simplify the request data for mysql
+const bodyParser = require('body-parser')
+
 // The express() library will be used to handle backend routing
 const app = express()
+const mysqlapp = express()
 
 // allows our app to use json data
 app.use(express.json())
 app.use(bodyParser.urlencoded({ extended: false })); // Parses urlencoded bodies
 app.use(bodyParser.json()); // Send JSON responses
 
+// Allows use to parse application/json type post data
+mysqlapp.use(bodyParser.json());
+mysqlapp.use(bodyParser.urlencoded({extended:true}));
+
+
 // instantiate our database that was set up and connected in mongoose.js
 const mongoose = require('./database/mongoose')
+const mysql_connection = require('./database/mysql')
 
 const List = require('./database/models/list')
 const Task = require('./database/models/task')
 const Configuration = require('./database/models/configuration')
+const test = require('./database/models/mysql.test.model')
 
 /*
     CORS: Cross-origin resource sharing
@@ -28,6 +39,13 @@ const Configuration = require('./database/models/configuration')
 
 // app.use allows us to create middleware, which in this case will be checking requests and responses
 app.use((req, res, next) => {
+    res.header("Access-Control-Allow-Origin", '*')
+    res.header("Access-Control-Allow-Methods", "GET, POST, HEAD, OPTIONS, PUT, PATCH, DELETE")
+    res.header("Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Accept")
+    next()
+})
+
+mysqlapp.use((req, res, next) => {
     res.header("Access-Control-Allow-Origin", '*')
     res.header("Access-Control-Allow-Methods", "GET, POST, HEAD, OPTIONS, PUT, PATCH, DELETE")
     res.header("Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Accept")
@@ -134,8 +152,6 @@ app.delete('/lists/:listId/tasks/:taskId', (req, res) => {
         .catch((error) => console.log(error))
 })
 
-
-
 // Configuration Routes //
 
 app.get('/configpost/:configurationId', (req, res) => {
@@ -154,9 +170,17 @@ app.post('/configpost', (req, res) => {
     console.log('Config Post Backend has run!');
 })
 
+// MY SQL:
+mysqlapp.get('/', (req, res) => {
+    res.send("Hello World");
+});
 
+// const testRoutes = require('./routes/mysql.test.routes')
+const testRoutes = require('./controller/mysql.test.controller');
 
-// port number to listen on, callback fxn for when it completes
+mysqlapp.use('/test', testRoutes)
+
+ // port number to listen on, callback fxn for when it completes
 app.listen(3000, () => console.log("Server Connected on port 3000"))
 
-
+mysqlapp.listen(5000, () => console.log("Mysql Server Connected on port 5000"))

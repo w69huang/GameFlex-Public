@@ -108,7 +108,7 @@ class MainScene extends Phaser.Scene {
   create() {
     this.input.mouse.disableContextMenu();
 
-    let deckList: Deck[] = [new Deck(this.configEditorComponent.highestID++, "assets/images/playing-cards/deck.png", [], 400, 250)];
+    let deckList: Deck[] = [];
 
     if (this.configEditorComponent.gameState.myHand.gameObject == null) {
       this.configEditorComponent.gameState.myHand.gameObject = this.add.image(0, this.handBeginY, 'grey-background').setOrigin(0); // SET ORIGIN IS THE KEY TO HAVING IT PLACED IN THE CORRECT POSITION! Why??
