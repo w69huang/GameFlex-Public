@@ -60,7 +60,6 @@ export class GameBrowserComponent implements OnInit {
 
     dialogRef.afterClosed().subscribe(gameSetupData => {
       if (gameSetupData) {
-        console.log(gameSetupData);
         const onlineGame: OnlineGame = new OnlineGame(this.hostService.getHostID(), gameSetupData.name, gameSetupData.maxPlayers, gameSetupData.privateGame, gameSetupData.password != "" ? true : false, gameSetupData.password, 1);
         this.onlineGamesService.create(onlineGame);
       }

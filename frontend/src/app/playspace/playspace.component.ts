@@ -15,6 +15,8 @@ import MainScene from '../models/phaser-scenes/mainScene';
 import * as HelperFunctions from '../helper-functions';
 import * as SharedActions from '../actions/sharedActions';
 import * as DeckActions from '../actions/deckActions';
+import OnlineGame from '../models/onlineGame';
+import { OnlineGamesService } from '../online-games.service';
 
 declare var Peer: any;
 
@@ -43,14 +45,18 @@ export class PlayspaceComponent implements OnInit {
   // State
   public playerID: number = 1;
   public gameState: GameState;
+  public onlineGame: OnlineGame;
 
   // Query Parameters
   public hostID: string;
 
+  // Interval Fxns
+  public updateOnlineGameInterval: any;
+
   // NOTE: In the future, this should be populated by a DB call for a specific game
   public amHost: boolean = true;
   
-  constructor(private route: ActivatedRoute, private hostService: HostService) { 
+  constructor(private route: ActivatedRoute, private hostService: HostService, private onlineGamesService: OnlineGamesService) { 
     this.phaserScene = new MainScene(this, this.sceneWidth, this.sceneHeight, this.handBeginY);
     this.config = {
       type: Phaser.AUTO,
@@ -131,8 +137,21 @@ export class PlayspaceComponent implements OnInit {
             'playerID': this.playerID
           });
         });
+      } else {
+        this.onlineGame = JSON.parse(this.route.snapshot.paramMap.get('onlineGameJSON'));
+        this.updateOnlineGameInterval = setInterval(this.updateOnlineGame.bind(this), 300000); // Tell the backend that this game still exists every 5 mins
       }
     });
+  }
+
+  ngOnDestroy() {
+    clearInterval(this.updateOnlineGameInterval);
+  }
+
+  updateOnlineGame() {
+    if (this.amHost && this.onlineGame) {
+      this.onlineGamesService.confirmActive(this.onlineGame);
+    }
   }
 
   filterOutID(objectListToFilter: any[], object: any) {

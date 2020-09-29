@@ -10,7 +10,7 @@ import { DummyComponent } from './dummy/dummy.component';
 
 
 const routes: Routes = [
-  { path: '', redirectTo: 'playspace', pathMatch: 'full' },
+  { path: '', redirectTo: 'gameBrowser', pathMatch: 'full' },
   { path: 'playspace', component: PlayspaceComponent },
   { path: 'deckEditor', component: DeckEditorComponent },
   { path: 'gameBrowser', component: GameBrowserComponent },
