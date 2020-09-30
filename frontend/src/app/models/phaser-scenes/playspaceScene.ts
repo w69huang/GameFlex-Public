@@ -6,7 +6,7 @@ import * as HelperFunctions from '../../helper-functions';
 import * as DeckActions from '../../actions/deckActions';
 import * as SharedActions from '../../actions/sharedActions';
 
-export default class MainScene extends Phaser.Scene {
+export default class PlayspaceScene extends Phaser.Scene {
     playspaceComponent: PlayspaceComponent;
     width: number;
     height: number;
@@ -56,7 +56,5 @@ export default class MainScene extends Phaser.Scene {
       });
       this.load.image('grey-background', 'assets/images/backgrounds/grey.png');
     }
-  
-    // update() {}
   }
   
