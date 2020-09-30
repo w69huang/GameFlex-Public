@@ -2,27 +2,31 @@ import { PlayspaceComponent } from '../playspace/playspace.component';
 import Card from '../models/card';
 import Deck from '../models/deck';
 
-export function onDragMove(object: any, playspaceComponent: PlayspaceComponent, pointer: Phaser.Input.Pointer, dragX: number, dragY: number) {
+// Drag move callback for moving objects on the phaser canvas
+// Will be used for both the config editor and the playspace
+export function onDragMove(object: any, component: any, pointer: Phaser.Input.Pointer, dragX: number, dragY: number) {
     if (object.type == 'deck' || object.type == 'card') {
         object.x = dragX;
         object.y = dragY;
         object.gameObject.setX(dragX);
         object.gameObject.setY(dragY);
 
-        if (playspaceComponent.conn) {
-            playspaceComponent.conn.send({
+        if (component.conn) {
+          component.conn.send({
                 'action': 'move',
                 'type': object.type,
                 'id': object.id,
                 'x': dragX,
                 'y': dragY,
-                'amHost': playspaceComponent.amHost,
-                'playerID': playspaceComponent.playerID
+                'amHost': component.amHost,
+                'playerID': component.playerID
             });
         }
     }
 }
 
+// Drag end callback for finishing moving objects on the phaser canvas
+// Will only be used in the playspace as right now it only applies to cards
 export function onDragEnd(object: any, playspaceComponent: PlayspaceComponent, pointer: Phaser.Input.Pointer) {
 
     if (object.type == 'card') {
