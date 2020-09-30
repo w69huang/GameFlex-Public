@@ -8,7 +8,7 @@ import DeckMin from '../models/deckMin';
 import Hand from '../models/hand';
 import GameState from '../models/gameState';
 import SentGameState from '../models/sentGameState';
-import MainScene from '../models/phaser-scenes/mainScene';
+import PlayspaceScene from '../models/phaser-scenes/playspaceScene';
 
 import * as HelperFunctions from '../helper-functions';
 import * as SharedActions from '../actions/sharedActions';
@@ -25,7 +25,7 @@ declare var Peer: any;
 })
 export class PlayspaceComponent implements OnInit {
   public phaserGame: Phaser.Game;
-  public phaserScene: MainScene;
+  public phaserScene: PlayspaceScene;
   public config: Phaser.Types.Core.GameConfig;
   public aceOfSpades: Phaser.GameObjects.Image;
   public popupCount: number = 0;
@@ -47,7 +47,7 @@ export class PlayspaceComponent implements OnInit {
   public amHost: boolean = true;
   
   constructor() { 
-    this.phaserScene = new MainScene(this, this.sceneWidth, this.sceneHeight, this.handBeginY);
+    this.phaserScene = new PlayspaceScene(this, this.sceneWidth, this.sceneHeight, this.handBeginY);
     this.config = {
       type: Phaser.AUTO,
       height: this.sceneHeight,
