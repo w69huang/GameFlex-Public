@@ -3,6 +3,7 @@ import { HttpEventType, HttpErrorResponse } from '@angular/common/http';
 import { of } from 'rxjs';  
 import { catchError, map } from 'rxjs/operators';  
 import { UploadService } from  '../services/upload.service';
+import { FileService } from '../services/file.service';
 
 @Component({
   selector: 'app-deck-editor',
@@ -11,11 +12,15 @@ import { UploadService } from  '../services/upload.service';
 })
 export class DeckEditorComponent implements OnInit {
   @ViewChild("fileUpload", {static: false}) fileUpload: ElementRef; files = []
-  constructor(private uploadService: UploadService) { }
+  constructor(private uploadService: UploadService, private fileService: FileService) { }
 
   uploadFile(file) {  
     const formData = new FormData();  
-    formData.append('file', file.data);  
+    formData.append('file', file.data);
+
+    //Using the "new" fileService
+    this.fileService.upload(file.data.name, file.data)
+
     file.inProgress = true;  
     this.uploadService.upload(formData).pipe(  
       map(event => {  
@@ -49,7 +54,7 @@ export class DeckEditorComponent implements OnInit {
     for (let index = 0; index < fileUpload.files.length; index++)  
     {  
     const file = fileUpload.files[index];  
-    this.files.push({ data: file, inProgress: false, progress: 0});  
+    this.files.push({ data: file, inProgress: false, progress: 0});
     }  
       this.uploadFiles();  
     };  

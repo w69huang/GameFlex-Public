@@ -13,6 +13,7 @@ export class FileService {
   public upload(fileName: string, fileContent: FormData): void {
     this.fileList.push(fileName);
     this.fileList$.next(this.fileList);
+    console.log(this.fileList)
   }
 
   public download(fileName: string): void {
