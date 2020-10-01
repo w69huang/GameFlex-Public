@@ -11,6 +11,7 @@ export function onDragMove(object: any, component: any, pointer: Phaser.Input.Po
         object.gameObject.setX(dragX);
         object.gameObject.setY(dragY);
 
+        console.log(`DragX: ${dragX}, DragY: ${dragY}, PointerX: ${pointer.worldX}, PointerY ${pointer.worldY}`);
         if (component.conn) {
           component.conn.send({
                 'action': 'move',
