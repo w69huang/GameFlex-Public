@@ -20,9 +20,7 @@ export default class PlayspaceScene extends Phaser.Scene {
       this.handBeginY = handBeginY;
     }
   
-    create() {
-      this.input.mouse.disableContextMenu();
-  
+    create() {  
       let cardList: Card[] = [new Card(this.playspaceComponent.highestID++, "assets/images/playing-cards/ace_of_spades.png", 250, 250),
                               new Card(this.playspaceComponent.highestID++, "assets/images/playing-cards/ace_of_clubs.png", 550, 250),
                               new Card(this.playspaceComponent.highestID++, "assets/images/playing-cards/ace_of_hearts.png", 250, 350),
