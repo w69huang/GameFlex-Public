@@ -47,6 +47,15 @@ export class PlayspaceComponent implements OnInit {
   public amHost: boolean = true;
   
   constructor() { 
+    
+  }
+
+  ngOnInit(): void {
+    setTimeout(_=> this.initialize(), 1000);
+    // this.initialize();
+  }
+
+  initialize() {
     this.phaserScene = new MainScene(this, this.sceneWidth, this.sceneHeight, this.handBeginY);
     this.config = {
       type: Phaser.AUTO,
@@ -55,9 +64,6 @@ export class PlayspaceComponent implements OnInit {
       scene: [ this.phaserScene ],
       parent: 'gameContainer',
     };
-  }
-
-  ngOnInit(): void {
     // TODO: Based off player ID, need to ensure the other person has a different playerID
     this.gameState = new GameState([], [], [], new Hand(this.playerID, []));
 

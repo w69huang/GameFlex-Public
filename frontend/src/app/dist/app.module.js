@@ -25,6 +25,10 @@ var card_1 = require("@angular/material/card");
 var button_1 = require("@angular/material/button");
 var progress_bar_1 = require("@angular/material/progress-bar");
 var dummy_component_1 = require("./dummy/dummy.component");
+var signup_component_1 = require("./signup/signup.component");
+var login_component_1 = require("./login/login.component");
+var middleware_1 = require("./services/middleware");
+var dialog_1 = require("@angular/material/dialog");
 var AppModule = /** @class */ (function () {
     function AppModule() {
     }
@@ -37,7 +41,13 @@ var AppModule = /** @class */ (function () {
                 new_task_component_1.NewTaskComponent,
                 playspace_component_1.PlayspaceComponent,
                 deck_editor_component_1.DeckEditorComponent,
-                dummy_component_1.DummyComponent
+                dummy_component_1.DummyComponent,
+                signup_component_1.SignupComponent,
+                login_component_1.LoginComponent,
+                login_component_1.DialogForgotPassword
+            ],
+            entryComponents: [
+                login_component_1.DialogForgotPassword
             ],
             imports: [
                 platform_browser_1.BrowserModule,
@@ -49,9 +59,10 @@ var AppModule = /** @class */ (function () {
                 card_1.MatCardModule,
                 button_1.MatButtonModule,
                 progress_bar_1.MatProgressBarModule,
-                forms_1.FormsModule
+                forms_1.FormsModule,
+                dialog_1.MatDialogModule
             ],
-            providers: [],
+            providers: [middleware_1.MiddleWare],
             bootstrap: [app_component_1.AppComponent]
         })
     ], AppModule);

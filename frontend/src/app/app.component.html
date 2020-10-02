@@ -8,8 +8,9 @@
         <a class="headerButtons" mat-button routerLink="/playspace">PlaySpace</a>
         <a class="headerButtons" mat-button routerLink="/deckeditor">Deck Editor</a>
         <span class="spacer"></span>
-        <a class="headerButtons" mat-button routerLink="/signup">Sign up</a>
-        <a class="headerButtons" mat-button routerLink="/login">Login</a>
+        <a *ngIf="!isLoggedIn" class="headerButtons" mat-button routerLink="/signup">Sign up</a>
+        <a *ngIf="!isLoggedIn" class="headerButtons" mat-button routerLink="/login">Login</a>
+        <a *ngIf="isLoggedIn" class="headerButtons" mat-button (click)="signOut()">Logout</a>
     </mat-toolbar-row>
 </mat-toolbar>
 <router-outlet></router-outlet>

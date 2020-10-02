@@ -31,7 +31,7 @@
                 <label for="email">Email:</label>
                 <input required (ngModel)="email" name="email" #email="ngModel" id="email" class="form-control" type="text">
                 <div class="alert alert-danger" *ngIf="!email.valid && email.touched">Email Required!</div>
-                <div class="alert alert-danger" *ngIf="emailExists" >Username Exists!</div>
+                <div class="alert alert-danger" *ngIf="emailExists" >Email Exists!</div>
 
             </div>
         </form>

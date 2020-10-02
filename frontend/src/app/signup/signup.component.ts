@@ -69,13 +69,15 @@ export class SignupComponent implements OnInit {
       ).subscribe(
         data => {
           if(data instanceof Array && data[0] instanceof Array && data[1] instanceof Array) {
-            if (data[0].length >= 1){ 
+          // if(data instanceof Array && data[0] instanceof Array) {
+              if (data[0].length >= 1){ 
               // UserID exists.
               this.userExists = true;
             } else {
               this.userExists = false;
             }
-            if(data[1].length >= 1) {
+            // if(data[1].length >= 1) {
+            if (data[1].length >= 1) {
               this.emailExists = true;
             } else {
               this.emailExists = false;
@@ -84,6 +86,7 @@ export class SignupComponent implements OnInit {
             console.log("Failed to either send data or SQL failed.")
           }
           if (!this.userExists && !this.emailExists) {
+          // if (!this.userExists) {
             this.onRegister(obj);
           }
         });

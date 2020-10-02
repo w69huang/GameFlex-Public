@@ -89,14 +89,55 @@ function checkEmail(req, res) {
             res.send(err);
             console.log(req.body);
         } else {
-            res.json(user);
+            // res.json(user);
+            if (user[0] != undefined) {
+                res.send(user);
+            } else {
+                res.send(user)
+            }
+            // res.json(true);
             console.log("Controller");
             console.log(req.body);
         }
     })
 }
 
+function checkLogin(req, res) {
+    user.getUser(req.body.username, function(err, user) {
+        if(err) {
+            res.send(err);
+            console.log(req.body);
+        } else {
+            // console.log("User OBject");
+            // console.log(user);
+            // console.log("Password")
+            // console.log(user[0].password);
+            if (user[0] != undefined) {
+                if(req.body.password == user[0].password){
+                    console.log("TRUE");
+                    res.send(true);
+                } else {
+                    console.log("False");
+                    res.send(false);
+                }
+            } else {
+                console.log("No user");
+                res.send(false);
+            }
+        }
+    })
+}
 
+function sendEmail(req, res) {
+    user.sendEmail(req.body.email, function(err, user) {
+        if (err) {
+            res.send(err);
+            console.log(req.body);
+        } else {
+            res.send(true);
+        }
+    })
+}
 
 
 
@@ -120,5 +161,9 @@ router.delete('/userdelete', deleteUser);
 router.post('/checkusername', checkUsername);
 
 router.post('/checkemail', checkEmail);
+
+router.post('/checklogin', checkLogin);
+
+router.put('/sendemail', sendEmail);
 
 module.exports = router

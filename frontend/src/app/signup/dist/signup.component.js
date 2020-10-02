@@ -66,6 +66,7 @@ var SignupComponent = /** @class */ (function () {
             //   });
             rxjs_1.forkJoin(this.http.post('http://localhost:5000/user/userget', obj.value), this.http.post('http://localhost:5000/user/checkemail', obj.value)).subscribe(function (data) {
                 if (data instanceof Array && data[0] instanceof Array && data[1] instanceof Array) {
+                    // if(data instanceof Array && data[0] instanceof Array) {
                     if (data[0].length >= 1) {
                         // UserID exists.
                         _this.userExists = true;
@@ -73,6 +74,7 @@ var SignupComponent = /** @class */ (function () {
                     else {
                         _this.userExists = false;
                     }
+                    // if(data[1].length >= 1) {
                     if (data[1].length >= 1) {
                         _this.emailExists = true;
                     }
@@ -84,6 +86,7 @@ var SignupComponent = /** @class */ (function () {
                     console.log("Failed to either send data or SQL failed.");
                 }
                 if (!_this.userExists && !_this.emailExists) {
+                    // if (!this.userExists) {
                     _this.onRegister(obj);
                 }
             });
