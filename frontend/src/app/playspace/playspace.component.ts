@@ -46,14 +46,10 @@ export class PlayspaceComponent implements OnInit {
   public amHost: boolean = true;
   
 
-<<<<<<< HEAD
-  ngOnInit(): void {
-=======
   constructor() { }
 
   ngOnInit() {
     // TODO: Band-aid solution, find a better one at some point
->>>>>>> a3ea6de415b6801f649bbe51dce70823848ce59d
     setTimeout(_=> this.initialize(), 100);
   }
 

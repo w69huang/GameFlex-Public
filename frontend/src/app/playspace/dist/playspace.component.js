@@ -14,7 +14,7 @@ var deck_1 = require("../models/deck");
 var hand_1 = require("../models/hand");
 var gameState_1 = require("../models/gameState");
 var sentGameState_1 = require("../models/sentGameState");
-var mainScene_1 = require("../models/phaser-scenes/mainScene");
+var playspaceScene_1 = require("../models/phaser-scenes/playspaceScene");
 var HelperFunctions = require("../helper-functions");
 var SharedActions = require("../actions/sharedActions");
 var DeckActions = require("../actions/deckActions");
@@ -33,11 +33,12 @@ var PlayspaceComponent = /** @class */ (function () {
     }
     PlayspaceComponent.prototype.ngOnInit = function () {
         var _this = this;
+        // TODO: Band-aid solution, find a better one at some point
         setTimeout(function (_) { return _this.initialize(); }, 100);
     };
     PlayspaceComponent.prototype.initialize = function () {
         var _this = this;
-        this.phaserScene = new mainScene_1["default"](this, this.sceneWidth, this.sceneHeight, this.handBeginY);
+        this.phaserScene = new playspaceScene_1["default"](this, this.sceneWidth, this.sceneHeight, this.handBeginY);
         this.config = {
             type: phaser_1["default"].AUTO,
             height: this.sceneHeight,
