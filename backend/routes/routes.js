@@ -23,7 +23,7 @@ module.exports = (upload) => {
         .post(upload.array('file', 60), (req, res, next) => {
             res.status(200).json({
                 success: true,
-                message: '${req.files.length} files uploaded succesfully',
+                message: req.files.length + ' file(s) uploaded succesfully',
             });
         });
 

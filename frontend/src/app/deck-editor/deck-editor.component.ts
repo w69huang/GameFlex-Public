@@ -19,9 +19,11 @@ export class DeckEditorComponent implements OnInit {
     formData.append('file', file.data);
 
     //Using the "new" fileService
-    this.fileService.upload(file.data.name, file.data)
+    this.fileService.upload(file.data.name, formData)
+    
 
-    file.inProgress = true;  
+    file.inProgress = true;
+    console.log("uploading now")  
     this.uploadService.upload(formData).pipe(  
       map(event => {  
         switch (event.type) {  
@@ -42,11 +44,13 @@ export class DeckEditorComponent implements OnInit {
       });  
   }
 
-  private uploadFiles() {  
+  private uploadFiles() { 
+    console.log(this.files); 
     this.fileUpload.nativeElement.value = '';  
     this.files.forEach(file => {  
       this.uploadFile(file);  
-    });  
+    });
+    this.files = []; 
 }
 
   onClick() {  
