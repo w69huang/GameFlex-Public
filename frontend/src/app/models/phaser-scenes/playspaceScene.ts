@@ -6,7 +6,7 @@ import * as HelperFunctions from '../../helper-functions';
 import * as DeckActions from '../../actions/deckActions';
 import * as SharedActions from '../../actions/sharedActions';
 
-export default class MainScene extends Phaser.Scene {
+export default class PlayspaceScene extends Phaser.Scene {
     playspaceComponent: PlayspaceComponent;
     width: number;
     height: number;
@@ -20,9 +20,7 @@ export default class MainScene extends Phaser.Scene {
       this.handBeginY = handBeginY;
     }
   
-    create() {
-      this.input.mouse.disableContextMenu();
-  
+    create() {  
       let cardList: Card[] = [new Card(this.playspaceComponent.highestID++, "assets/images/playing-cards/ace_of_spades.png", 250, 250),
                               new Card(this.playspaceComponent.highestID++, "assets/images/playing-cards/ace_of_clubs.png", 550, 250),
                               new Card(this.playspaceComponent.highestID++, "assets/images/playing-cards/ace_of_hearts.png", 250, 350),
@@ -56,7 +54,5 @@ export default class MainScene extends Phaser.Scene {
       });
       this.load.image('grey-background', 'assets/images/backgrounds/grey.png');
     }
-  
-    // update() {}
   }
   

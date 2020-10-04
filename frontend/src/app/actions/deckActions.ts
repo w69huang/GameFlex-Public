@@ -12,11 +12,11 @@ enum DestinationEnum {
     HAND = "Hand"
 }
 
-function popupClose(popupScene: PopupScene, playspaceComponent: PlayspaceComponent) {
-    playspaceComponent.phaserScene.scene.remove(popupScene.key);
+function popupClose(popupScene: PopupScene, component: any) {
+    component.phaserScene.scene.remove(popupScene.key);
 }
 
-export function deckRightClick(deck: Deck, playspaceComponent: PlayspaceComponent, pointer: Phaser.Input.Pointer) {
+export function deckRightClick(deck: Deck, component: any, pointer: Phaser.Input.Pointer) {
     if (pointer.rightButtonDown()) {
         let optionWidth = 200;
         let optionHeight = 75;
@@ -28,11 +28,11 @@ export function deckRightClick(deck: Deck, playspaceComponent: PlayspaceComponen
         let width = 250;
         let height = optionHeight*optionObjects.length + (optionObjects.length - 1)*optionSeparation;
 
-        let handle = "popup" + playspaceComponent.popupCount++;
+        let handle = "popup" + component.popupCount++;
         
-        let popupScene = new PopupScene(handle, pointer.x, pointer.y, playspaceComponent, deck, width, height, optionObjects, optionSeparation);
+        let popupScene = new PopupScene(handle, pointer.x, pointer.y, component, deck, width, height, optionObjects, optionSeparation);
 
-        playspaceComponent.phaserScene.scene.add(handle, popupScene, true);
+        component.phaserScene.scene.add(handle, popupScene, true);
     }
 }
 

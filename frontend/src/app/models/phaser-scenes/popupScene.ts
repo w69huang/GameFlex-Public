@@ -1,14 +1,14 @@
-import { PlayspaceComponent } from '../../playspace/playspace.component';
+import { Component } from '@angular/core';
 import Deck from '../deck';
 import OptionObject from '../optionObject';
 
-function popupClose(popupScene: PopupScene, playspaceComponent: PlayspaceComponent) {
-    playspaceComponent.phaserScene.scene.remove(popupScene.key);
+function popupClose(popupScene: PopupScene, component: any) {
+    component.phaserScene.scene.remove(popupScene.key);
 }
 
 export default class PopupScene extends Phaser.Scene {
     key: string;
-    playspaceComponent: PlayspaceComponent;
+    component: Component;
     deck: Deck;
     x: number;
     y: number;
@@ -17,12 +17,12 @@ export default class PopupScene extends Phaser.Scene {
     optionSeparation: number;
     optionObjects: OptionObject[];
 
-    constructor (handle, x, y, playspaceComponent, deck, width, height, optionObjects: OptionObject[], optionSeparation: number) {
+    constructor (handle, x, y, component, deck, width, height, optionObjects: OptionObject[], optionSeparation: number) {
         super(handle);
         this.key = handle;
         this.x = x;
         this.y = y;
-        this.playspaceComponent = playspaceComponent;
+        this.component = component;
         this.deck = deck;
         this.width = width;
         this.height = height;
@@ -38,7 +38,7 @@ export default class PopupScene extends Phaser.Scene {
 
         var closeButton = this.add.image(225, 0, 'close').setOrigin(0);
         closeButton.setInteractive();
-        closeButton.on('pointerdown', popupClose.bind(this, this, this.playspaceComponent));
+        closeButton.on('pointerdown', popupClose.bind(this, this, this.component));
         closeButton.displayWidth = 25;
         closeButton.displayHeight = 25;
 
@@ -46,7 +46,7 @@ export default class PopupScene extends Phaser.Scene {
         this.optionObjects.forEach((object: OptionObject) => {
           var button = this.add.image(0, verticalPosition, object.optionKey).setOrigin(0);
           button.setInteractive();
-          button.on('pointerdown', object.optionFunction.bind(this, this, this.deck, this.playspaceComponent));
+          button.on('pointerdown', object.optionFunction.bind(this, this, this.deck, this.component));
           button.displayWidth = object.optionWidth;
           button.displayHeight = object.optionHeight;
 
