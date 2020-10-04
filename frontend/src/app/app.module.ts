@@ -21,6 +21,8 @@ import { SignupComponent } from './signup/signup.component';
 import { LoginComponent, DialogForgotPassword } from './login/login.component';
 import { MiddleWare } from './services/middleware';
 import { MatDialog, MatDialogModule } from '@angular/material/dialog';
+import { ChangepasswordComponent } from './changepassword/changepassword.component';
+import { UsersService } from './services/users.service';
 
 @NgModule({
   declarations: [
@@ -33,7 +35,8 @@ import { MatDialog, MatDialogModule } from '@angular/material/dialog';
     DummyComponent,
     SignupComponent,
     LoginComponent,
-    DialogForgotPassword
+    DialogForgotPassword,
+    ChangepasswordComponent
   ],
   entryComponents: [
     DialogForgotPassword
@@ -51,7 +54,7 @@ import { MatDialog, MatDialogModule } from '@angular/material/dialog';
     FormsModule,
     MatDialogModule
   ],
-  providers: [MiddleWare],
+  providers: [MiddleWare, UsersService],
   bootstrap: [AppComponent]
 })
 export class AppModule { }

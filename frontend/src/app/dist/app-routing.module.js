@@ -17,6 +17,7 @@ var deck_editor_component_1 = require("./deck-editor/deck-editor.component");
 var dummy_component_1 = require("./dummy/dummy.component");
 var signup_component_1 = require("./signup/signup.component");
 var login_component_1 = require("./login/login.component");
+var changepassword_component_1 = require("./changepassword/changepassword.component");
 var routes = [
     { path: '', redirectTo: 'playspace', pathMatch: 'full' },
     { path: 'playspace', component: playspace_component_1.PlayspaceComponent },
@@ -24,6 +25,7 @@ var routes = [
     { path: 'dummy', component: dummy_component_1.DummyComponent },
     { path: 'signup', component: signup_component_1.SignupComponent },
     { path: 'login', component: login_component_1.LoginComponent },
+    { path: 'changepassword', component: changepassword_component_1.ChangepasswordComponent },
     { path: 'lists', component: task_view_component_1.TaskViewComponent },
     { path: 'lists/:listId', component: task_view_component_1.TaskViewComponent },
     { path: 'new-list', component: new_list_component_1.NewListComponent },

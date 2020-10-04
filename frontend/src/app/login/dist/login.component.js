@@ -9,12 +9,13 @@ exports.__esModule = true;
 exports.DialogForgotPassword = exports.LoginComponent = void 0;
 var core_1 = require("@angular/core");
 var LoginComponent = /** @class */ (function () {
-    function LoginComponent(dialog, http, router, middleware, app) {
+    function LoginComponent(dialog, http, router, middleware, app, usersService) {
         this.dialog = dialog;
         this.http = http;
         this.router = router;
         this.middleware = middleware;
         this.app = app;
+        this.usersService = usersService;
         this.failedLogin = false;
         this.blockLogin = false;
         this.username = "";
@@ -29,24 +30,21 @@ var LoginComponent = /** @class */ (function () {
         }
     };
     LoginComponent.prototype.onSubmit = function (obj) {
-        var _this = this;
-        console.log(obj);
         // NOTE: This code is to prevent login access if user fails to login 5 times.
         // if (parseInt(localStorage.getItem('failedLogin')) >= 5) {
         //   console.log("Banned From Login");
         // }
+        var _this = this;
         if (obj.value.username != '' && obj.value.password != '') {
-            this.http.post('http://localhost:5000/user/checklogin', obj.value)
+            this.usersService.checkLogin(obj)
                 .subscribe(function (data) {
-                console.log("Help");
-                console.log(data);
                 if (data == true) {
                     // TO DO:
                     // 1. Reroute the user to the homepage. (For now let it be the playspace.) (Done)
                     // 2. Store the password in a global variable or a session type object. (Done thru middleware)
                     // 3. Create an indicator of them being logged in. (Done. Logout button appears and signup and loging are removed)
                     _this.middleware.setLoggedIn(true, obj.value.username, obj.value.password);
-                    console.log(_this.middleware.isLoggedIn());
+                    console.log("Login Status: " + _this.middleware.isLoggedIn());
                     _this.app.isLoggedIn = true;
                     _this.router.navigate(['/playspace']);
                 }
@@ -56,6 +54,7 @@ var LoginComponent = /** @class */ (function () {
                     // 2. Alert message saying their login info is wrong (dont specify which one) (Done)
                     // 3. Keep track of the number of login attempts. Lock them out after say 5 failed attempts (If time allows).
                     _this.middleware.setLoggedIn(false, '', '');
+                    //This is for the lock out. 
                     // this.middleware.incFailedlogin();
                     _this.failedLogin = true;
                 }
@@ -81,13 +80,11 @@ var LoginComponent = /** @class */ (function () {
     return LoginComponent;
 }());
 exports.LoginComponent = LoginComponent;
-// export interface DialogData {
-//   email: string;
-// }
 var DialogForgotPassword = /** @class */ (function () {
-    function DialogForgotPassword(dialogRef, http) {
+    function DialogForgotPassword(dialogRef, http, usersService) {
         this.dialogRef = dialogRef;
         this.http = http;
+        this.usersService = usersService;
         this.emailExists = true;
     }
     DialogForgotPassword.prototype.onCancel = function () {
@@ -95,20 +92,17 @@ var DialogForgotPassword = /** @class */ (function () {
     };
     DialogForgotPassword.prototype.onSubmit = function (email) {
         var _this = this;
-        console.log(email);
         // Do email stuff. Send this stuff and then send the person an email or something.
-        this.http.post('http://localhost:5000/user/checkemail', email.value)
+        this.usersService.checkEmail(email)
             .subscribe(function (responseData) {
-            console.log(responseData);
             if (responseData instanceof Array) {
                 if (responseData.length >= 1) {
                     _this.dialogRef.close();
                     _this.emailExists = true;
-                    _this.http.put('http://localhost:5000/user/sendEmail', email.value)
+                    _this.usersService.sendEmail(email)
                         .subscribe(function (responseData) {
-                        console.log(responseData);
                         if (responseData == true) {
-                            console.log("SENT SUCCESSFuLLY AND CHANGED!");
+                            console.log("Email sent and password changed!");
                         }
                         else {
                             console.log("Email failed....");

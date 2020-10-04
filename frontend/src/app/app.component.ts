@@ -20,7 +20,6 @@ export class AppComponent {
     localStorage.setItem('username', '');
     localStorage.setItem('password', '');
     this.isLoggedIn = false;
-    // window.location.reload();
     this.router.navigate(['/login']);
   }
 }

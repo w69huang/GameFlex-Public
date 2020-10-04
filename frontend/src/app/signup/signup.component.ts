@@ -2,6 +2,7 @@ import { Component, OnInit } from '@angular/core';
 import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { Observable, forkJoin } from 'rxjs';
 import { Router } from '@angular/router';
+import { UsersService } from '../services/users.service';
 @Component({
   selector: 'app-signup',
   templateUrl: './signup.component.html',
@@ -9,7 +10,10 @@ import { Router } from '@angular/router';
 })
 export class SignupComponent implements OnInit {
 
-  constructor( private http: HttpClient, private router: Router) { }
+  constructor( 
+    private http: HttpClient, 
+    private router: Router,
+    private usersService: UsersService) { }
 
   ngOnInit(): void {
   }
@@ -25,58 +29,25 @@ export class SignupComponent implements OnInit {
 
   onSubmit(obj) {
     // Does SQL checks to confirm if a username exists or an email address is in use;
-    // console.log(obj);
     if (obj.value.password != obj.value.confirmPassword) {
       this.passwordMatch = false;
+      return null;
     } else {
       this.passwordMatch= true;
     }
-    console.log(this.passwordMatch)
-    console.log(obj.value.username);
     if (obj.value.username != '' && obj.value.email != '') {
-      // this.http.post('http://localhost:5000/user/userget', obj.value)
-      //   .subscribe((responseData) => {
-      //     console.log(responseData)
-      //     if(responseData instanceof Array) {
-      //       if (responseData.length >= 1){ 
-      //         // UserID exists.
-      //         this.userExists = true;
-      //       } else {
-      //         this.userExists = false;
-      //       }
-      //       console.log("Successfully sent SQL");
-      //     } else {
-      //       console.log("Failed to either send data or SQL failed.")
-      //     }
-      //   });
-      // this.http.post('http://localhost:5000/user/checkemail', obj.value)
-      //   .subscribe( (responseData) => {
-      //     console.log(responseData);
-      //     if(responseData instanceof Array) {
-            // if(responseData.length >= 1) {
-            //   this.emailExists = true;
-            // } else {
-            //   this.emailExists = false;
-            // }
-      //     } else {
-      //       console.log("SQL failed somewhere")
-      //     }
-      //   });
 
       forkJoin(
-        this.http.post('http://localhost:5000/user/userget', obj.value),
-        this.http.post('http://localhost:5000/user/checkemail', obj.value)
+        this.usersService.getUser(obj),
+        this.usersService.checkEmail(obj)
       ).subscribe(
         data => {
           if(data instanceof Array && data[0] instanceof Array && data[1] instanceof Array) {
-          // if(data instanceof Array && data[0] instanceof Array) {
               if (data[0].length >= 1){ 
-              // UserID exists.
               this.userExists = true;
             } else {
               this.userExists = false;
             }
-            // if(data[1].length >= 1) {
             if (data[1].length >= 1) {
               this.emailExists = true;
             } else {
@@ -86,7 +57,6 @@ export class SignupComponent implements OnInit {
             console.log("Failed to either send data or SQL failed.")
           }
           if (!this.userExists && !this.emailExists) {
-          // if (!this.userExists) {
             this.onRegister(obj);
           }
         });
@@ -95,12 +65,9 @@ export class SignupComponent implements OnInit {
 
   onRegister(obj) {
     // Confirms the SQL check and creates a new user into the sql table
-    console.log(obj);
     obj.value['userID'] = this.hash(obj.value.username);
-    // console.log(obj.userID);
-    this.http.post('http://localhost:5000/user/usercreate', obj.value)
+    this.usersService.createUser(obj)
       .subscribe( responseData => {
-        console.log("Created");
         this.router.navigate(['/login'])
       })
   }
@@ -113,10 +80,9 @@ export class SignupComponent implements OnInit {
       hash = ((hash<< 5) - hash) + char;
       hash = hash & hash;
     }
-
+    if (hash < 0) {
+      hash = hash*-1;
+    }
     return hash;
   }
-
-
-
 }

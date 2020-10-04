@@ -19,7 +19,6 @@ var AppComponent = /** @class */ (function () {
         localStorage.setItem('username', '');
         localStorage.setItem('password', '');
         this.isLoggedIn = false;
-        // window.location.reload();
         this.router.navigate(['/login']);
     };
     AppComponent = __decorate([

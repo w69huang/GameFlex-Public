@@ -29,6 +29,8 @@ var signup_component_1 = require("./signup/signup.component");
 var login_component_1 = require("./login/login.component");
 var middleware_1 = require("./services/middleware");
 var dialog_1 = require("@angular/material/dialog");
+var changepassword_component_1 = require("./changepassword/changepassword.component");
+var users_service_1 = require("./services/users.service");
 var AppModule = /** @class */ (function () {
     function AppModule() {
     }
@@ -44,7 +46,8 @@ var AppModule = /** @class */ (function () {
                 dummy_component_1.DummyComponent,
                 signup_component_1.SignupComponent,
                 login_component_1.LoginComponent,
-                login_component_1.DialogForgotPassword
+                login_component_1.DialogForgotPassword,
+                changepassword_component_1.ChangepasswordComponent
             ],
             entryComponents: [
                 login_component_1.DialogForgotPassword
@@ -62,7 +65,7 @@ var AppModule = /** @class */ (function () {
                 forms_1.FormsModule,
                 dialog_1.MatDialogModule
             ],
-            providers: [middleware_1.MiddleWare],
+            providers: [middleware_1.MiddleWare, users_service_1.UsersService],
             bootstrap: [app_component_1.AppComponent]
         })
     ], AppModule);

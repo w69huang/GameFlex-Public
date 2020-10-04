@@ -33,8 +33,7 @@ var PlayspaceComponent = /** @class */ (function () {
     }
     PlayspaceComponent.prototype.ngOnInit = function () {
         var _this = this;
-        setTimeout(function (_) { return _this.initialize(); }, 1000);
-        // this.initialize();
+        setTimeout(function (_) { return _this.initialize(); }, 100);
     };
     PlayspaceComponent.prototype.initialize = function () {
         var _this = this;

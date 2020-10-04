@@ -192,9 +192,9 @@ app["delete"]('/lists/:listId/tasks/:taskId', function (req, res) {
 
 mysqlapp.get('/', function (req, res) {
   res.send("Hello World");
-}); // const userRoutes = require('./routes/mysql.user.routes')
+});
 
-var userRoutes = require('./controller/mysql.user.controller');
+var userRoutes = require('./controller/mysql.user.controllers');
 
 mysqlapp.use('/user', userRoutes); // port number to listen on, callback fxn for when it completes
 

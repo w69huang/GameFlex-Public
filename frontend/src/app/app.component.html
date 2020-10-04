@@ -10,6 +10,7 @@
         <span class="spacer"></span>
         <a *ngIf="!isLoggedIn" class="headerButtons" mat-button routerLink="/signup">Sign up</a>
         <a *ngIf="!isLoggedIn" class="headerButtons" mat-button routerLink="/login">Login</a>
+        <a *ngIf="isLoggedIn" class="headerButtons" mat-button routerLink="/changepassword">Change Password</a>
         <a *ngIf="isLoggedIn" class="headerButtons" mat-button (click)="signOut()">Logout</a>
     </mat-toolbar-row>
 </mat-toolbar>

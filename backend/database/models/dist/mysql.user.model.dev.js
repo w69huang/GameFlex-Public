@@ -24,15 +24,6 @@ function makeid(length) {
 }
 
 user.create = function (newUser, result) {
-  // mysql.query('INSERT INTO UserMySQL (UserID, Username, Password, EmailAddress) VALUES (1, "test2", "test2", "test2");', function (err, res) {
-  //     if (err) {
-  //         console.log("Error: ", err);
-  //         result(err, null);
-  //     }
-  //     else {
-  //         console.log(res)
-  //     }
-  // });
   mysql_connection.query("INSERT INTO UserMySQL set ?", newUser, function (err, res) {
     if (err) {
       console.log("Error: ", err);
@@ -96,7 +87,6 @@ user.checkUsername = function (username, result) {
       console.log("Error", err);
       result(err, null);
     } else {
-      console.log("Model");
       console.log(res);
       result(null, res);
     }
@@ -109,7 +99,6 @@ user.checkEmail = function (email, result) {
       console.log("Error", err);
       result(err, null);
     } else {
-      console.log("Model");
       console.log(res);
       result(null, res);
     }

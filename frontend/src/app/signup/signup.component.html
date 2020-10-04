@@ -16,8 +16,6 @@
                 <input required (ngModel)="password" name="password" #password="ngModel" id="password" class="form-control" type="password">
                 <div class="alert alert-danger" *ngIf="!password.valid && password.touched">Password Required!</div>
                 <div class="alert alert-danger" *ngIf="!passwordMatch" >Passwords Don't Match!</div>
-                
-
             </div>
             <br>
             <div>
@@ -32,14 +30,10 @@
                 <input required (ngModel)="email" name="email" #email="ngModel" id="email" class="form-control" type="text">
                 <div class="alert alert-danger" *ngIf="!email.valid && email.touched">Email Required!</div>
                 <div class="alert alert-danger" *ngIf="emailExists" >Email Exists!</div>
-
             </div>
-        </form>
-      <!-- CONTENT HERE -->
-         
+        </form>         
     </mat-card-content>
     <mat-card-actions>
-      <!-- REGISTER BUTTON -->
         <button (click)="onSubmit(signupForm)" type="button submit" class="btn btn-primary" >Register</button>
     </mat-card-actions>
  </mat-card>

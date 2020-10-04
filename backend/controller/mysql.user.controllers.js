@@ -19,7 +19,7 @@ function create (req, res) {
 
 function findAll (req, res) {
     user.getAllUsers( function(err, user) {
-        console.log("Get all Controller");
+        console.log("Get all Users");
         if (err) {
             res.send(err);
         } else {
@@ -29,6 +29,7 @@ function findAll (req, res) {
 };
 
 function findByID (req, res) {
+    console.log("Find user by Username")
     console.log(req.body);
     user.getUser(req.body.username, function(err, user) {
         if (err) {
@@ -47,8 +48,13 @@ function update (req, res) {
     } else {
         user.update(new_user, function(err, user) {
             if (err) {
+                console.log("Update");
+                console.log(err)
                 res.send(err);
+
             } else {
+                console.log("Update");
+                console.log(user);
                 res.json({error:false, message: "Successfully Updated"});
             };
         })
@@ -56,15 +62,14 @@ function update (req, res) {
 };
 
 function deleteUser (req, res) {
-    // console.log(req)
     user.delete(req.body.userID, function(err, user) {
         if (err) {
             res.send(err);
+            console.log('Delete User')
             console.log(req.body);
         } else{
-
-            // res.json({error:false, message: 'Deleted'});
             res.json({error: false, message: req.body})
+            console.log("Delete User")
             console.log(req.body);
         }
     });
@@ -74,10 +79,11 @@ function checkUsername (req, res) {
     user.checkUsername(req.body.username, function(err, user) {
         if (err) {
             res.send(err);
+            console.log("Check Username");
             console.log(req.body);
         } else {
             res.json(user);
-            console.log("Controller");
+            console.log("Check Username");
             console.log(req.body);
         }
     })
@@ -87,16 +93,15 @@ function checkEmail(req, res) {
     user.checkEmail(req.body.email, function(err, user){
         if(err) {
             res.send(err);
+            console.log("Check Email")
             console.log(req.body);
         } else {
-            // res.json(user);
             if (user[0] != undefined) {
                 res.send(user);
             } else {
                 res.send(user)
             }
-            // res.json(true);
-            console.log("Controller");
+            console.log("Check Email");
             console.log(req.body);
         }
     })
@@ -106,22 +111,19 @@ function checkLogin(req, res) {
     user.getUser(req.body.username, function(err, user) {
         if(err) {
             res.send(err);
+            console.log("Check Login");
             console.log(req.body);
         } else {
-            // console.log("User OBject");
-            // console.log(user);
-            // console.log("Password")
-            // console.log(user[0].password);
             if (user[0] != undefined) {
                 if(req.body.password == user[0].password){
-                    console.log("TRUE");
+                    console.log("Check login: TRUE");
                     res.send(true);
                 } else {
-                    console.log("False");
+                    console.log("Check Login: False");
                     res.send(false);
                 }
             } else {
-                console.log("No user");
+                console.log("Check Login: No user");
                 res.send(false);
             }
         }
@@ -132,14 +134,14 @@ function sendEmail(req, res) {
     user.sendEmail(req.body.email, function(err, user) {
         if (err) {
             res.send(err);
+            console.log("Send Email")
             console.log(req.body);
         } else {
+            console.log("Send Email")
             res.send(true);
         }
     })
 }
-
-
 
 // Router Code:
 
@@ -148,15 +150,15 @@ const express = require('express');
 const router = express.Router();
 
 
-router.post('/usercreate', create);
+router.post('/create', create);
 
-router.post('/userget', findByID);
+router.post('/get', findByID);
 
-router.get('/usergetall', findAll);
+router.get('/getall', findAll);
 
-router.put('/userupdate', update);
+router.put('/update', update);
 
-router.delete('/userdelete', deleteUser);
+router.delete('/delete', deleteUser);
 
 router.post('/checkusername', checkUsername);
 

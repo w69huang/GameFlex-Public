@@ -10,9 +10,10 @@ exports.SignupComponent = void 0;
 var core_1 = require("@angular/core");
 var rxjs_1 = require("rxjs");
 var SignupComponent = /** @class */ (function () {
-    function SignupComponent(http, router) {
+    function SignupComponent(http, router, usersService) {
         this.http = http;
         this.router = router;
+        this.usersService = usersService;
         this.username = "";
         this.password = "";
         this.confirmPassword = "";
@@ -26,55 +27,22 @@ var SignupComponent = /** @class */ (function () {
     SignupComponent.prototype.onSubmit = function (obj) {
         var _this = this;
         // Does SQL checks to confirm if a username exists or an email address is in use;
-        // console.log(obj);
         if (obj.value.password != obj.value.confirmPassword) {
             this.passwordMatch = false;
+            return null;
         }
         else {
             this.passwordMatch = true;
         }
-        console.log(this.passwordMatch);
-        console.log(obj.value.username);
         if (obj.value.username != '' && obj.value.email != '') {
-            // this.http.post('http://localhost:5000/user/userget', obj.value)
-            //   .subscribe((responseData) => {
-            //     console.log(responseData)
-            //     if(responseData instanceof Array) {
-            //       if (responseData.length >= 1){ 
-            //         // UserID exists.
-            //         this.userExists = true;
-            //       } else {
-            //         this.userExists = false;
-            //       }
-            //       console.log("Successfully sent SQL");
-            //     } else {
-            //       console.log("Failed to either send data or SQL failed.")
-            //     }
-            //   });
-            // this.http.post('http://localhost:5000/user/checkemail', obj.value)
-            //   .subscribe( (responseData) => {
-            //     console.log(responseData);
-            //     if(responseData instanceof Array) {
-            // if(responseData.length >= 1) {
-            //   this.emailExists = true;
-            // } else {
-            //   this.emailExists = false;
-            // }
-            //     } else {
-            //       console.log("SQL failed somewhere")
-            //     }
-            //   });
-            rxjs_1.forkJoin(this.http.post('http://localhost:5000/user/userget', obj.value), this.http.post('http://localhost:5000/user/checkemail', obj.value)).subscribe(function (data) {
+            rxjs_1.forkJoin(this.usersService.getUser(obj), this.usersService.checkEmail(obj)).subscribe(function (data) {
                 if (data instanceof Array && data[0] instanceof Array && data[1] instanceof Array) {
-                    // if(data instanceof Array && data[0] instanceof Array) {
                     if (data[0].length >= 1) {
-                        // UserID exists.
                         _this.userExists = true;
                     }
                     else {
                         _this.userExists = false;
                     }
-                    // if(data[1].length >= 1) {
                     if (data[1].length >= 1) {
                         _this.emailExists = true;
                     }
@@ -86,7 +54,6 @@ var SignupComponent = /** @class */ (function () {
                     console.log("Failed to either send data or SQL failed.");
                 }
                 if (!_this.userExists && !_this.emailExists) {
-                    // if (!this.userExists) {
                     _this.onRegister(obj);
                 }
             });
@@ -96,12 +63,9 @@ var SignupComponent = /** @class */ (function () {
     SignupComponent.prototype.onRegister = function (obj) {
         var _this = this;
         // Confirms the SQL check and creates a new user into the sql table
-        console.log(obj);
         obj.value['userID'] = this.hash(obj.value.username);
-        // console.log(obj.userID);
-        this.http.post('http://localhost:5000/user/usercreate', obj.value)
+        this.usersService.createUser(obj)
             .subscribe(function (responseData) {
-            console.log("Created");
             _this.router.navigate(['/login']);
         });
     };
@@ -112,6 +76,9 @@ var SignupComponent = /** @class */ (function () {
             char = string.charCodeAt(i);
             hash = ((hash << 5) - hash) + char;
             hash = hash & hash;
+        }
+        if (hash < 0) {
+            hash = hash * -1;
         }
         return hash;
     };

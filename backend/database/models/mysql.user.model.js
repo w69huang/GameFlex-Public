@@ -20,15 +20,6 @@ function makeid(length) {
 }
 
 user.create = function (newUser, result) {
-    // mysql.query('INSERT INTO UserMySQL (UserID, Username, Password, EmailAddress) VALUES (1, "test2", "test2", "test2");', function (err, res) {
-    //     if (err) {
-    //         console.log("Error: ", err);
-    //         result(err, null);
-    //     }
-    //     else {
-    //         console.log(res)
-    //     }
-    // });
     mysql_connection.query("INSERT INTO UserMySQL set ?", newUser, function (err, res) {
         if (err) {
             console.log("Error: ", err);
@@ -101,7 +92,6 @@ user.getUser = function(username, result) {
           console.log("Error", err);
           result(err, null);
         } else {
-          console.log("Model")
           console.log(res);
           result(null, res);
         }
@@ -116,7 +106,6 @@ user.getUser = function(username, result) {
           console.log("Error", err);
           result(err, null);
         } else {
-          console.log("Model")
           console.log(res);
           result(null, res);
         }
@@ -126,7 +115,7 @@ user.getUser = function(username, result) {
 
   user.sendEmail = function(email, result) {
     // To do: Be able to send an email with a link possibly and create a new page for the change password functionality.
-    
+
     var transporter = nodemailer.createTransport({
       service: 'gmail',
       auth: {

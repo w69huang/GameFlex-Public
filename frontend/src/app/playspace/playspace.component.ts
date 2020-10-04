@@ -42,7 +42,6 @@ export class PlayspaceComponent implements OnInit {
   public playerID: number = 1;
   public gameState: GameState;
   
-
   // NOTE: In the future, this should be populated by a DB call for a specific game
   public amHost: boolean = true;
   
@@ -51,8 +50,7 @@ export class PlayspaceComponent implements OnInit {
   }
 
   ngOnInit(): void {
-    setTimeout(_=> this.initialize(), 1000);
-    // this.initialize();
+    setTimeout(_=> this.initialize(), 100);
   }
 
   initialize() {

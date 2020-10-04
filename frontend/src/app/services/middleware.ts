@@ -1,7 +1,5 @@
 import { Injectable } from '@angular/core';
 
-
-
 @Injectable()
 export class MiddleWare {
     private loggedInStatus = JSON.parse(localStorage.getItem('loggedIn') || 'false');
