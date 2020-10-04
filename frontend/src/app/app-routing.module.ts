@@ -11,9 +11,11 @@ import { FileListComponent } from './file-list/file-list.component';
 const routes: Routes = [
   { path: '', redirectTo: 'playspace', pathMatch: 'full' },
   { path: 'playspace', component: PlayspaceComponent},
-  { path: 'deckeditor', component: DeckEditorComponent, children: [
-    { path: 'filelist', component: FileListComponent }
-  ]},
+  { path: 'deckeditor', component: DeckEditorComponent, 
+  children: [
+    { path: '', component: FileListComponent, outlet: 'secondary' }
+    ]
+  },
   { path: 'lists', component: TaskViewComponent },
   { path: 'lists/:listId', component: TaskViewComponent },
   { path: 'new-list', component: NewListComponent },
