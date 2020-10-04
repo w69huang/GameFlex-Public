@@ -108,39 +108,41 @@ export class PlayspaceComponent implements OnInit {
 
     this.route.queryParams.subscribe(params => {
       let mainHostID = params['host'];
+      let onlineGameID = params['onlineGameID'];
 
-      if (mainHostID != this.hostID) {
-        this.amHost = false;
-        this.playerID = 2;
-        this.otherPeerId = mainHostID;
-        var conn = this.peer.connect(this.otherPeerId);
-        this.conn = conn;
-        conn.on('open', () => {
-          // Receive messages
-          conn.on('data', (data) => {
-            this.handleData(data);
+      this.onlineGame = this.onlineGamesService.get(onlineGameID).subscribe((onlineGame: OnlineGame) => {
+        if (mainHostID != this.hostID) {
+          this.amHost = false;
+          this.playerID = 2;
+          this.otherPeerId = mainHostID;
+          var conn = this.peer.connect(this.otherPeerId);
+          this.conn = conn;
+          conn.on('open', () => {
+            // Receive messages
+            conn.on('data', (data) => {
+              this.handleData(data);
+            });
+            conn.on('close', () => {
+              console.log("Peer-to-Peer Error: Other party disconnected.");
+              this.conn = null;
+              this.otherPeerId = null;
+            });
+            conn.on('error', (err) => {
+              console.log("Unspecified Peer-to-Peer Error:");
+              console.log(err);
+              this.conn = null;
+              this.otherPeerId = null;
+            });
+            conn.send({
+              'action': 'sendState',
+              'amHost': this.amHost,
+              'playerID': this.playerID
+            });
           });
-          conn.on('close', () => {
-            console.log("Peer-to-Peer Error: Other party disconnected.");
-            this.conn = null;
-            this.otherPeerId = null;
-          });
-          conn.on('error', (err) => {
-            console.log("Unspecified Peer-to-Peer Error:");
-            console.log(err);
-            this.conn = null;
-            this.otherPeerId = null;
-          });
-          conn.send({
-            'action': 'sendState',
-            'amHost': this.amHost,
-            'playerID': this.playerID
-          });
-        });
-      } else {
-        this.onlineGame = JSON.parse(this.route.snapshot.paramMap.get('onlineGameJSON'));
-        this.updateOnlineGameInterval = setInterval(this.updateOnlineGame.bind(this), 300000); // Tell the backend that this game still exists every 5 mins
-      }
+        } else {
+          this.updateOnlineGameInterval = setInterval(this.updateOnlineGame.bind(this), 300000); // Tell the backend that this game still exists every 5 mins
+        }
+      });     
     });
   }
 

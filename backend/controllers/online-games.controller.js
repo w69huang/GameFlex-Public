@@ -2,12 +2,28 @@ const express = require('express');
 const router = express.Router();
 const mysql_connection = require('../database/mysql');
 
-router.get('/get', getAll);
+router.get('/get', get);
+router.get('/getAll', getAll);
 router.post('/post', create);
 router.delete('/delete', deleteAll);
 router.patch('/patch', update);
 
 setInterval(deleteOfflineGames, 60000);
+
+function get(request, result) {
+    var onlineGameID = request.query['id'];
+    console.log(`onlineGameID: ${onlineGameID}`);
+    mysql_connection.query("SELECT * FROM OnlineGameMySQL WHERE id=" + onlineGameID, function(err, res) {
+        if (err) {
+            console.log("Error in get for online games: ", err);
+            result.send(err);
+        } else {
+            console.log("Successfully retrieved online game.");
+            console.log(res);
+            result.send(res);
+        }
+    });
+}
 
 function getAll(request, result) {
     mysql_connection.query("SELECT * FROM OnlineGameMySQL", function(err, res) {
