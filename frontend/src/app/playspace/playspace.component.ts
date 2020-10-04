@@ -8,7 +8,7 @@ import DeckMin from '../models/deckMin';
 import Hand from '../models/hand';
 import GameState from '../models/gameState';
 import SentGameState from '../models/sentGameState';
-import MainScene from '../models/phaser-scenes/mainScene';
+import PlayspaceScene from '../models/phaser-scenes/playspaceScene';
 
 import * as HelperFunctions from '../helper-functions';
 import * as SharedActions from '../actions/sharedActions';
@@ -25,7 +25,7 @@ declare var Peer: any;
 })
 export class PlayspaceComponent implements OnInit {
   public phaserGame: Phaser.Game;
-  public phaserScene: MainScene;
+  public phaserScene: PlayspaceScene;
   public config: Phaser.Types.Core.GameConfig;
   public aceOfSpades: Phaser.GameObjects.Image;
   public popupCount: number = 0;
@@ -45,16 +45,20 @@ export class PlayspaceComponent implements OnInit {
   // NOTE: In the future, this should be populated by a DB call for a specific game
   public amHost: boolean = true;
   
-  constructor() { 
-    
-  }
 
+<<<<<<< HEAD
   ngOnInit(): void {
+=======
+  constructor() { }
+
+  ngOnInit() {
+    // TODO: Band-aid solution, find a better one at some point
+>>>>>>> a3ea6de415b6801f649bbe51dce70823848ce59d
     setTimeout(_=> this.initialize(), 100);
   }
 
-  initialize() {
-    this.phaserScene = new MainScene(this, this.sceneWidth, this.sceneHeight, this.handBeginY);
+  initialize(): void {
+    this.phaserScene = new PlayspaceScene(this, this.sceneWidth, this.sceneHeight, this.handBeginY);
     this.config = {
       type: Phaser.AUTO,
       height: this.sceneHeight,
