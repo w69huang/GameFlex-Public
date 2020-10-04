@@ -2,6 +2,7 @@ import { Component, OnInit } from '@angular/core';
 import { DataConnection } from 'peerjs';
 import { ActivatedRoute } from '@angular/router';
 import { HostService } from '../host.service';
+import Peer from 'peerjs';
 import Phaser from 'phaser';
 import Card from '../models/card';
 import CardMin from '../models/cardMin';
@@ -18,7 +19,7 @@ import * as DeckActions from '../actions/deckActions';
 import OnlineGame from '../models/onlineGame';
 import { OnlineGamesService } from '../online-games.service';
 
-declare var Peer: any;
+// declare var Peer: any;
 
 // TODO: Consider using a hashmap of keys to card objects (an associative array/object)
 
@@ -56,7 +57,14 @@ export class PlayspaceComponent implements OnInit {
   // NOTE: In the future, this should be populated by a DB call for a specific game
   public amHost: boolean = true;
   
-  constructor(private route: ActivatedRoute, private hostService: HostService, private onlineGamesService: OnlineGamesService) { 
+  constructor(private route: ActivatedRoute, private hostService: HostService, private onlineGamesService: OnlineGamesService) { }
+
+  ngOnInit() {
+    // TODO: Band-aid solution, find a better one at some point
+    setTimeout(_=> this.initialize(), 100);
+  }
+
+  initialize(): void {
     this.phaserScene = new PlayspaceScene(this, this.sceneWidth, this.sceneHeight, this.handBeginY);
     this.config = {
       type: Phaser.AUTO,
@@ -67,9 +75,7 @@ export class PlayspaceComponent implements OnInit {
     };
 
     this.hostID = this.hostService.getHostID();
-  }
 
-  ngOnInit(): void {
     // TODO: Based off player ID, need to ensure the other person has a different playerID
     this.gameState = new GameState([], [], [], new Hand(this.playerID, []));
 
@@ -118,6 +124,7 @@ export class PlayspaceComponent implements OnInit {
           var conn = this.peer.connect(this.otherPeerId);
           this.conn = conn;
           conn.on('open', () => {
+            console.log(`Connection to ${mainHostID} opened successfully.`);
             // Receive messages
             conn.on('data', (data) => {
               this.handleData(data);
@@ -148,6 +155,10 @@ export class PlayspaceComponent implements OnInit {
 
   ngOnDestroy() {
     clearInterval(this.updateOnlineGameInterval);
+    if (this.conn) {
+      this.conn.close();
+    }
+    this.peer.destroy();
   }
 
   updateOnlineGame() {
