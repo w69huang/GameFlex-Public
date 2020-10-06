@@ -19,12 +19,12 @@ export class DeckEditorComponent implements OnInit {
     formData.append('file', file.data);
 
     //Using the "new" fileService
-    this.fileService.upload(file.data.name, formData)
+    //this.fileService.upload(file.data.name, formData)
     
 
     file.inProgress = true;
     console.log("uploading now")  
-    this.uploadService.upload(formData).pipe(  
+    this.fileService.upload(file.data, formData).pipe(  
       map(event => {  
         switch (event.type) {  
           case HttpEventType.UploadProgress:  

@@ -70,7 +70,7 @@ app.use(function(req, res, next) {
   next(createError(404));
 });
 
-const port = process.env.PORT || 4000;
+const port = process.env.PORT || 3000;
 const server = app.listen(port, () => {
   console.log('Connected to port ' + port)
 })

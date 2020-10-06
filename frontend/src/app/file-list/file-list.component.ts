@@ -8,9 +8,16 @@ import { Observable } from 'rxjs';
   styleUrls: ['./file-list.component.scss']
 })
 export class FileListComponent implements OnInit {
-public fileList$: Observable<string[]> = this.fileService.list();
+public fileList$: string[] = [];
 
- constructor(private fileService: FileService) { }
+ constructor(private fileService: FileService) { 
+   this.fileService.list().subscribe((data) => {
+    for (var i = 0; i < data.files.length; i++) {
+      var fileName = data.files[i];
+      this.fileList$.push(fileName.filename);
+    }
+   });
+  }
 
  public download(fileName: string):  void {
    this.fileService.download(fileName);

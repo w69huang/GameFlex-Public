@@ -1,5 +1,6 @@
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
+import { HttpEventType, HttpErrorResponse } from '@angular/common/http';
 
 @Injectable({
   providedIn: 'root'
@@ -15,9 +16,9 @@ export class WebService {
     return this.http.get(`${this.ROOT_URL}/${uri}`);
   }
 
-  post (uri: string, payload: Object) {
+  post (uri: string, payload: Object, optionalArgs: Object = null) {
     // 2nd param is the body of the request
-    return this.http.post(`${this.ROOT_URL}/${uri}`, payload);
+    return this.http.post(`${this.ROOT_URL}/${uri}`, payload, optionalArgs);
   }
 
   patch (uri: string, payload: Object) {

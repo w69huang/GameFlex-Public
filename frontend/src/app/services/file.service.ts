@@ -1,19 +1,27 @@
 import { Injectable } from '@angular/core';
+import { HttpClient, HttpEvent, HttpErrorResponse, HttpEventType } from '@angular/common/http';
+import { map } from 'rxjs/operators';
 import { BehaviorSubject, Subject, Observable } from 'rxjs';
+import { finalize } from 'rxjs/operators';
+import { WebService } from '../web.service';
 
 @Injectable({
   providedIn: 'root'
 })
 export class FileService {
+  SERVER_URL: string = "http://localhost:4000/"; 
   private fileList: string[] = new Array<string>();
   private fileList$: Subject<string[]> = new Subject<string[]>();
 
-  constructor() { }
+  constructor(private httpClient: HttpClient, private webService: WebService) { }
 
-  public upload(fileName: string, fileContent: FormData): void {
+  public upload(fileName: string, fileContent: FormData) {
     this.fileList.push(fileName);
     this.fileList$.next(this.fileList);
-    console.log(this.fileList)
+    return this.webService.post('upload', fileContent, {
+      reportProgress: true,
+      observe: 'events'
+    });
   }
 
   public download(fileName: string): void {
@@ -25,8 +33,9 @@ export class FileService {
     this.fileList$.next(this.fileList);
   }
 
-  public list(): Observable<string[]> {
-    return this.fileList$;
+  public list(): any {
+    return this.webService.get('files');
+    //return this.fileList$;
   }
 
   private addFileToList(filename: string): void {
