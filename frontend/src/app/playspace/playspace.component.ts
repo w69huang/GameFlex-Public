@@ -19,9 +19,15 @@ import * as DeckActions from '../actions/deckActions';
 import OnlineGame from '../models/onlineGame';
 import { OnlineGamesService } from '../online-games.service';
 
-// declare var Peer: any;
+class PlayerData {
+  playerID: number;
+  peerID: string;
 
-// TODO: Consider using a hashmap of keys to card objects (an associative array/object)
+  constructor(playerID: number, peerID: string) {
+    this.playerID = playerID;
+    this.peerID = peerID;
+  }
+}
 
 @Component({
   selector: 'app-playspace',
@@ -38,13 +44,13 @@ export class PlayspaceComponent implements OnInit {
   public sceneHeight: number = 1000;
   public handBeginY: number = 600;
   public peer: any;
-  public peerId: string;
-  public otherPeerId: string;
-  public conn: DataConnection;
+  public myPeerID: string;
+  public connections: DataConnection[] = [];
   public highestID: number = 1;
 
   // State
   public playerID: number = 1;
+  public playerDataObjects: PlayerData[] = [];
   public gameState: GameState;
   public onlineGame: OnlineGame;
 
@@ -57,7 +63,9 @@ export class PlayspaceComponent implements OnInit {
   // NOTE: In the future, this should be populated by a DB call for a specific game
   public amHost: boolean = true;
   
-  constructor(private route: ActivatedRoute, private hostService: HostService, private onlineGamesService: OnlineGamesService) { }
+  constructor(private route: ActivatedRoute, private hostService: HostService, private onlineGamesService: OnlineGamesService) {
+    this.myPeerID = hostService.getHostID();
+   }
 
   ngOnInit() {
     // TODO: Band-aid solution, find a better one at some point
@@ -74,17 +82,16 @@ export class PlayspaceComponent implements OnInit {
       parent: 'gameContainer',
     };
 
-    this.hostID = this.hostService.getHostID();
-
     // TODO: Based off player ID, need to ensure the other person has a different playerID
     this.gameState = new GameState([], [], [], new Hand(this.playerID, []));
+    this.playerDataObjects.push(new PlayerData(this.playerID, this.myPeerID));
 
     this.phaserGame = new Phaser.Game(this.config);
 
     // NOTE: Launch a local peer server:
     // 1. npm install -g peer
     // 2. peerjs --port 9000 --key peerjs --path /peerserver
-    this.peer = new Peer(this.hostID, { // You can pass in a specific ID as the first argument if you want to hardcode the peer ID
+    this.peer = new Peer(this.myPeerID, { // You can pass in a specific ID as the first argument if you want to hardcode the peer ID
       host: 'localhost',
       // host: '35.215.71.108', // This is reserved for the external IP of the mongo DB instance. Replace this IP with the new IP generated when starting up the 
       port: 9000,
@@ -93,22 +100,42 @@ export class PlayspaceComponent implements OnInit {
 
     this.peer.on('connection', (conn) => { 
       console.log(`Received connection request from peer with id ${conn.peer}.`);
-      this.conn = conn;
-      this.otherPeerId = conn.peer;
+      this.onlineGame.numPlayers++;
+      this.connections.push(conn);
 
-      this.conn.on('data', (data) => {
+      conn.on('data', (data) => {
         this.handleData(data);
       });
-      this.conn.on('close', () => {
+      conn.on('close', () => {
         console.log("Peer-to-Peer Error: Other party disconnected.");
-        this.conn = null;
-        this.otherPeerId = null;
+        this.connections = this.filterOutID(this.connections, conn);
+
+        let playerData: PlayerData = null;
+        this.playerDataObjects.forEach((playerDataObject: PlayerData) => {
+          if (playerDataObject.peerID === conn.peer) {
+            playerData = playerDataObject;
+          }
+        });
+
+        if (playerData) {
+          this.playerDataObjects = this.filterOutID(this.playerDataObjects, playerData);
+        }
       });
-      this.conn.on('error', (err) => {
+      conn.on('error', (err) => {
         console.log("Unspecified Peer-to-Peer Error:");
         console.log(err);
-        this.conn = null;
-        this.otherPeerId = null;
+        this.connections = this.filterOutID(this.connections, conn);
+        
+        let playerData: PlayerData = null;
+        this.playerDataObjects.forEach((playerDataObject: PlayerData) => {
+          if (playerDataObject.peerID === conn.peer) {
+            playerData = playerDataObject;
+          }
+        });
+
+        if (playerData) {
+          this.playerDataObjects = this.filterOutID(this.playerDataObjects, playerData);
+        }
       });
     });
 
@@ -119,10 +146,8 @@ export class PlayspaceComponent implements OnInit {
       this.onlineGame = this.onlineGamesService.get(onlineGameID).subscribe((onlineGame: OnlineGame) => {
         if (mainHostID != this.hostID) {
           this.amHost = false;
-          this.playerID = 2;
-          this.otherPeerId = mainHostID;
-          var conn = this.peer.connect(this.otherPeerId);
-          this.conn = conn;
+          var conn = this.peer.connect(mainHostID);
+          this.connections.push(conn);
           conn.on('open', () => {
             console.log(`Connection to ${mainHostID} opened successfully.`);
             // Receive messages
@@ -131,19 +156,18 @@ export class PlayspaceComponent implements OnInit {
             });
             conn.on('close', () => {
               console.log("Peer-to-Peer Error: Other party disconnected.");
-              this.conn = null;
-              this.otherPeerId = null;
+              this.connections = this.filterOutID(this.connections, conn);
             });
             conn.on('error', (err) => {
               console.log("Unspecified Peer-to-Peer Error:");
               console.log(err);
-              this.conn = null;
-              this.otherPeerId = null;
+              this.connections = this.filterOutID(this.connections, conn);
             });
             conn.send({
               'action': 'sendState',
               'amHost': this.amHost,
-              'playerID': this.playerID
+              'playerID': null,
+              'peerID': this.myPeerID
             });
           });
         } else {
@@ -155,8 +179,10 @@ export class PlayspaceComponent implements OnInit {
 
   ngOnDestroy() {
     clearInterval(this.updateOnlineGameInterval);
-    if (this.conn) {
-      this.conn.close();
+    if (this.connections.length > 0) {
+      this.connections.forEach((connection: DataConnection) => {
+        connection.close();
+      });
     }
     this.peer.destroy();
   }
@@ -184,20 +210,43 @@ export class PlayspaceComponent implements OnInit {
 
       // Received by the host after being sent by the player upon connection to the host, in which the player asks for the game state
       case 'sendState':
-        const sentGameState: SentGameState = new SentGameState(this.gameState, data['playerID']);
+        let playerID = data['playerID'];
+        if (!playerID) {
+          // They are new, generate a new ID for them
+          let playerIDArray: number[] = [];
+
+          this.playerDataObjects.forEach((playerData) => {
+            playerIDArray.push(playerData.playerID);
+          });
+
+          let i: number = 1;
+          while (playerIDArray.includes(i)) {
+            i++; 
+          }
+          playerID = i; // Assign the player the first playerID that is not taken already
+        }
+        const sentGameState: SentGameState = new SentGameState(this.gameState, playerID);
 
         console.log("Sending state.");
-        this.conn.send({
-          'action': 'replicateState',
-          'state': sentGameState,
-          'amHost': this.amHost,
-          'playerID': this.playerID,
+        this.connections.forEach((connection: DataConnection) => {
+          // Only send updated state to the person who asked
+          if (connection.peer === data['peerID']) {
+            connection.send({
+              'action': 'replicateState',
+              'state': sentGameState,
+              'amHost': this.amHost,
+              'playerID': this.playerID,
+              'yourPlayerID': playerID,
+              'peerID': this.myPeerID
+            });
+          }
         });
         break;
 
       case 'replicateState':
         console.log("Received state.");
         const receivedGameState: SentGameState = data['state'];
+        this.playerID = data['yourPlayerID'];
 
         this.cleanUpGameState();
 
@@ -250,6 +299,23 @@ export class PlayspaceComponent implements OnInit {
             if (card.gameObject) { 
               card.gameObject.setX(data['x']);
               card.gameObject.setY(data['y']);
+
+              if (this.amHost) {
+                this.connections.forEach((connection: DataConnection) => {
+                  if (connection.peer != data['peerID']) {
+                    connection.send({
+                      'action': 'move',
+                      'type': card.type,
+                      'id': card.id,
+                      'x': data['x'],
+                      'y': data['y'],
+                      'amHost': this.amHost,
+                      'playerID': this.playerID,
+                      'peerID': this.myPeerID
+                    });
+                  }
+                });
+              }
             }
           }
         } else if (data['type'] === 'deck') {
@@ -265,6 +331,23 @@ export class PlayspaceComponent implements OnInit {
             deck.y = data['y'];
             deck.gameObject.setX(data['x']);
             deck.gameObject.setY(data['y']);
+
+            if (this.amHost) {
+              this.connections.forEach((connection: DataConnection) => {
+                if (connection.peer != data['peerID']) {
+                  connection.send({
+                    'action': 'move',
+                    'type': deck.type,
+                    'id': deck.id,
+                    'x': data['x'],
+                    'y': data['y'],
+                    'amHost': this.amHost,
+                    'playerID': this.playerID,
+                    'peerID': this.myPeerID
+                  });
+                }
+              });
+            }
           }
         }
         break;
@@ -362,16 +445,19 @@ export class PlayspaceComponent implements OnInit {
 
             deck.cards = this.filterOutID(deck.cards, card);
 
-            this.conn.send({
-              'action': 'sendTopCard',
-              'type': 'card',
-              'cardID': card.id,
-              'imagePath': card.imagePath,
-              'deckID': deck.id,
-              'x': deck.gameObject.x,
-              'y': deck.gameObject.y,
-              'amHost': this.amHost,
-              'playerID': this.playerID
+            this.connections.forEach((connection: DataConnection) => { 
+              connection.send({
+                'action': 'sendTopCard',
+                'type': 'card',
+                'cardID': card.id,
+                'imagePath': card.imagePath,
+                'deckID': deck.id,
+                'x': deck.gameObject.x,
+                'y': deck.gameObject.y,
+                'amHost': this.amHost,
+                'playerID': this.playerID,
+                'peerID': this.myPeerID
+              });
             });
           }
         }
@@ -418,7 +504,21 @@ export class PlayspaceComponent implements OnInit {
             card.gameObject = null;
 
             if (this.amHost) {
-              // If I am the host, add it to the appropriate player's hand in the game state
+              // If I am the host, first we will tell any other players that the action occured
+              this.connections.forEach((connection: DataConnection) => {
+                if (connection.peer != data['peerID']) {
+                  connection.send({
+                    'action': 'insertIntoHand',
+                    'type': card.type,
+                    'cardID': card.id,
+                    'amHost': this.amHost,
+                    'playerID': this.playerID,
+                    'peerID': this.myPeerID
+                  });
+                }
+              });
+
+              // Then, add it to the appropriate player's hand in the game state
 
               card.inHand = true;
               let hand: Hand = null;
@@ -455,6 +555,23 @@ export class PlayspaceComponent implements OnInit {
                     card.inHand = false;
                     this.gameState.hands[i].cards = this.filterOutID(this.gameState.hands[i].cards, card);
                     HelperFunctions.createCard(card, this,  SharedActions.onDragMove, SharedActions.onDragEnd, HelperFunctions.DestinationEnum.TABLE, data['x'], data['y'])
+
+                    // Tell other possible peers that this card was removed from a hand
+                    this.connections.forEach((connection: DataConnection) => {
+                      if (connection.peer != data['peerID']) {
+                        connection.send({
+                          'action': 'removeFromHand',
+                          'type': card.type,
+                          'cardID': card.id,
+                          'imagePath': card.imagePath,
+                          'x': card.gameObject.x,
+                          'y': card.gameObject.y,
+                          'amHost': this.amHost,
+                          'playerID': this.playerID,
+                          'peerID': this.myPeerID
+                        });
+                      }
+                    });
                     break;
                   }
                 }

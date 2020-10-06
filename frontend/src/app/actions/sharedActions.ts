@@ -1,4 +1,5 @@
 import { PlayspaceComponent } from '../playspace/playspace.component';
+import { DataConnection } from 'peerjs';
 import Card from '../models/card';
 import Deck from '../models/deck';
 
@@ -11,16 +12,19 @@ export function onDragMove(object: any, component: any, pointer: Phaser.Input.Po
         object.gameObject.setX(dragX);
         object.gameObject.setY(dragY);
         
-        if (component.conn) {
-          component.conn.send({
-                'action': 'move',
-                'type': object.type,
-                'id': object.id,
-                'x': dragX,
-                'y': dragY,
-                'amHost': component.amHost,
-                'playerID': component.playerID
+        if (component.connections) {
+          component.connections.forEach((connection: DataConnection) => {
+            connection.send({
+              'action': 'move',
+              'type': object.type,
+              'id': object.id,
+              'x': dragX,
+              'y': dragY,
+              'amHost': component.amHost,
+              'playerID': component.playerID,
+              'peerID': component.myPeerID
             });
+          });
         }
     }
 }
@@ -69,13 +73,16 @@ export function onDragEnd(object: any, playspaceComponent: PlayspaceComponent, p
             card.inHand = true;
             hand.cards.push(card);
 
-            if (playspaceComponent.conn) {
-              playspaceComponent.conn.send({
-                'action': 'insertIntoHand',
-                'type': object.type,
-                'cardID': card.id,
-                'amHost': playspaceComponent.amHost,
-                'playerID': playspaceComponent.playerID
+            if (playspaceComponent.connections) {
+              playspaceComponent.connections.forEach((connection: DataConnection) => {
+                connection.send({
+                  'action': 'insertIntoHand',
+                  'type': object.type,
+                  'cardID': card.id,
+                  'amHost': playspaceComponent.amHost,
+                  'playerID': playspaceComponent.playerID,
+                  'peerID': playspaceComponent.myPeerID
+                });
               });
             }
   
@@ -95,18 +102,21 @@ export function onDragEnd(object: any, playspaceComponent: PlayspaceComponent, p
                 deck.cards.push(card);
               }
 
-              if (playspaceComponent.conn) {
-                playspaceComponent.conn.send({
-                  'action': 'insertIntoDeck',
-                  'type': object.type,
-                  'cardID': object.id,
-                  'deckID': deck.id,
-                  'imagePath': object.imagePath,
-                  'x': object.gameObject.x,
-                  'y': object.gameObject.y,
-                  'foundInHand': foundInHand,
-                  'amHost': playspaceComponent.amHost,
-                  'playerID': playspaceComponent.playerID
+              if (playspaceComponent.connections) {
+                playspaceComponent.connections.forEach((connection: DataConnection) => {
+                  connection.send({
+                    'action': 'insertIntoDeck',
+                    'type': object.type,
+                    'cardID': object.id,
+                    'deckID': deck.id,
+                    'imagePath': object.imagePath,
+                    'x': object.gameObject.x,
+                    'y': object.gameObject.y,
+                    'foundInHand': foundInHand,
+                    'amHost': playspaceComponent.amHost,
+                    'playerID': playspaceComponent.playerID,
+                    'peerID': playspaceComponent.myPeerID
+                  });
                 });
               }
 
@@ -127,16 +137,19 @@ export function onDragEnd(object: any, playspaceComponent: PlayspaceComponent, p
             card.inHand = false;
             playspaceComponent.gameState.cards.push(card);
 
-            if (playspaceComponent.conn) {
-              playspaceComponent.conn.send({
-                'action': 'removeFromHand',
-                'type': object.type,
-                'cardID': object.id,
-                'imagePath': object.imagePath,
-                'x': object.gameObject.x,
-                'y': object.gameObject.y,
-                'amHost': playspaceComponent.amHost,
-                'playerID': playspaceComponent.playerID
+            if (playspaceComponent.connections) {
+              playspaceComponent.connections.forEach((connection: DataConnection) => {
+                connection.send({
+                  'action': 'removeFromHand',
+                  'type': object.type,
+                  'cardID': object.id,
+                  'imagePath': object.imagePath,
+                  'x': object.gameObject.x,
+                  'y': object.gameObject.y,
+                  'amHost': playspaceComponent.amHost,
+                  'playerID': playspaceComponent.playerID,
+                  'peerID': playspaceComponent.myPeerID
+                });
               });
             }
 
