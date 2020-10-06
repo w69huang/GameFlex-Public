@@ -155,9 +155,12 @@ app.delete('/lists/:listId/tasks/:taskId', (req, res) => {
 app.get('/configpost/:configurationId', (req, res) => {
     // note: `_id` is the auto-generated id for the task
     Configuration.find({ _id: req.params.configurationId })
-        .then((configuration) => res.send(configuration))
+        .then((configuration) => {
+            res.send(configuration)
+            console.log('the config is: ', configuration, ' end test') //TODO remove console log
+        })
         .catch((error) => console.log(error))
-    console.log('Config Get Backend has run!',);
+    console.log('Config Get Backend has run!', req.params.configurationId);
 })
 
 app.post('/configpost', (req, res) => {

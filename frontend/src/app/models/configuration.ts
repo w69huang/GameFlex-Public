@@ -4,6 +4,7 @@ import Counter from './counter';
 
 export default class Configuration {
     id: number;
+    _id: string;
     userId: string;
     numPlayers: integer;
     handsVisibleOnInsert: boolean;
