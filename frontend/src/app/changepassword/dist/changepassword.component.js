@@ -9,12 +9,46 @@ exports.__esModule = true;
 exports.ChangepasswordComponent = void 0;
 var core_1 = require("@angular/core");
 var ChangepasswordComponent = /** @class */ (function () {
-    function ChangepasswordComponent() {
+    function ChangepasswordComponent(usersService, router) {
+        this.usersService = usersService;
+        this.router = router;
+        this.passwordCorrect = null;
+        this.passwordMatch = null;
     }
     ChangepasswordComponent.prototype.ngOnInit = function () {
     };
     ChangepasswordComponent.prototype.onSubmit = function (form) {
+        var _this = this;
         console.log(form);
+        // To do:
+        // 1. Check password
+        // 2. check new passwords match
+        // 3. Submit new password
+        // 4. Send success message. Don't reroute.
+        if (localStorage.getItem("password") == form.value.previousPassword) {
+            if (form.value.newPassword == form.value.confirmPassword) {
+                form.value["username"] = localStorage.getItem("username");
+                this.usersService.changePassword(form)
+                    .subscribe(function (responseData) {
+                    if (responseData == true) {
+                        alert("Password Changed!");
+                        _this.router.navigate(['/']);
+                    }
+                    else {
+                        window.alert("Error");
+                    }
+                });
+                this.passwordMatch = true;
+            }
+            else {
+                this.passwordMatch = false;
+            }
+            this.passwordCorrect = true;
+        }
+        else {
+            console.log("Password Incorrect.");
+            this.passwordCorrect = false;
+        }
     };
     ChangepasswordComponent = __decorate([
         core_1.Component({

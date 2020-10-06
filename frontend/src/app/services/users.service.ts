@@ -26,4 +26,7 @@ export class UsersService {
         return this.http.post('http://localhost:5000/user/checklogin', object.value)
     }
 
+    changePassword(object) {
+        return this.http.post('http://localhost:5000/user/changepassword', object.value);
+    }
 }

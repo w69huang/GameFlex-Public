@@ -28,6 +28,9 @@ var UsersService = /** @class */ (function () {
     UsersService.prototype.checkLogin = function (object) {
         return this.http.post('http://localhost:5000/user/checklogin', object.value);
     };
+    UsersService.prototype.changePassword = function (object) {
+        return this.http.post('http://localhost:5000/user/changepassword', object.value);
+    };
     UsersService = __decorate([
         core_1.Injectable()
     ], UsersService);

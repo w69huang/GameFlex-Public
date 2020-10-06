@@ -171,6 +171,19 @@ function sendEmail(req, res) {
       res.send(true);
     }
   });
+}
+
+function changePassword(req, res) {
+  user.changePassword(req.body.newPassword, req.body.username, function (err, user) {
+    if (err) {
+      res.send(err);
+      console.log("Change Password");
+      console.log(req.body);
+    } else {
+      console.log("Change Password");
+      res.send(true);
+    }
+  });
 } // Router Code:
 
 
@@ -186,4 +199,5 @@ router.post('/checkusername', checkUsername);
 router.post('/checkemail', checkEmail);
 router.post('/checklogin', checkLogin);
 router.put('/sendemail', sendEmail);
+router.post('/changepassword', changePassword);
 module.exports = router;

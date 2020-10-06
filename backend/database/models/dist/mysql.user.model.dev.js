@@ -140,4 +140,15 @@ user.sendEmail = function (email, result) {
   });
 };
 
+user.changePassword = function (password, username, result) {
+  mysql_connection.query("UPDATE UserMySQL SET password=? WHERE username=?", [password, username], function (err, res) {
+    if (err) {
+      console.log("Error: ", err);
+      result(err, null);
+    } else {
+      result(null, res);
+    }
+  });
+};
+
 module.exports = user;
