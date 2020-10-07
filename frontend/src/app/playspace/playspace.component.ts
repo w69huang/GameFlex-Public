@@ -54,9 +54,6 @@ export class PlayspaceComponent implements OnInit {
   public gameState: GameState;
   public onlineGame: OnlineGame;
 
-  // Query Parameters
-  public hostID: string;
-
   // Interval Fxns
   public updateOnlineGameInterval: any;
 
@@ -65,28 +62,8 @@ export class PlayspaceComponent implements OnInit {
   
   constructor(private route: ActivatedRoute, private hostService: HostService, private onlineGamesService: OnlineGamesService) {
     this.myPeerID = hostService.getHostID();
-   }
-
-  ngOnInit() {
-    // TODO: Band-aid solution, find a better one at some point
-    setTimeout(_=> this.initialize(), 100);
-  }
-
-  initialize(): void {
-    this.phaserScene = new PlayspaceScene(this, this.sceneWidth, this.sceneHeight, this.handBeginY);
-    this.config = {
-      type: Phaser.AUTO,
-      height: this.sceneHeight,
-      width: this.sceneWidth,
-      scene: [ this.phaserScene ],
-      parent: 'gameContainer',
-    };
-
-    // TODO: Based off player ID, need to ensure the other person has a different playerID
     this.gameState = new GameState([], [], [], new Hand(this.playerID, []));
     this.playerDataObjects.push(new PlayerData(this.playerID, this.myPeerID));
-
-    this.phaserGame = new Phaser.Game(this.config);
 
     // NOTE: Launch a local peer server:
     // 1. npm install -g peer
@@ -144,7 +121,7 @@ export class PlayspaceComponent implements OnInit {
       let onlineGameID = params['onlineGameID'];
 
       this.onlineGame = this.onlineGamesService.get(onlineGameID).subscribe((onlineGame: OnlineGame) => {
-        if (mainHostID != this.hostID) {
+        if (mainHostID != this.myPeerID) {
           this.amHost = false;
           var conn = this.peer.connect(mainHostID);
           this.connections.push(conn);
@@ -163,18 +140,30 @@ export class PlayspaceComponent implements OnInit {
               console.log(err);
               this.connections = this.filterOutID(this.connections, conn);
             });
-            conn.send({
-              'action': 'sendState',
-              'amHost': this.amHost,
-              'playerID': null,
-              'peerID': this.myPeerID
-            });
           });
         } else {
           this.updateOnlineGameInterval = setInterval(this.updateOnlineGame.bind(this), 300000); // Tell the backend that this game still exists every 5 mins
         }
       });     
     });
+   }
+
+  ngOnInit() {
+    // TODO: Band-aid solution, find a better one at some point
+    setTimeout(_=> this.initialize(), 100);
+  }
+
+  initialize(): void {
+    this.phaserScene = new PlayspaceScene(this, this.sceneWidth, this.sceneHeight, this.handBeginY);
+    this.config = {
+      type: Phaser.AUTO,
+      height: this.sceneHeight,
+      width: this.sceneWidth,
+      scene: [ this.phaserScene ],
+      parent: 'gameContainer',
+    };
+
+    this.phaserGame = new Phaser.Game(this.config);
   }
 
   ngOnDestroy() {
@@ -185,6 +174,7 @@ export class PlayspaceComponent implements OnInit {
       });
     }
     this.peer.destroy();
+    this.phaserGame.destroy(true);
   }
 
   updateOnlineGame() {
@@ -636,6 +626,7 @@ export class PlayspaceComponent implements OnInit {
         break;
 
       default:
+        console.log('received action');
         break;
     }
   }
