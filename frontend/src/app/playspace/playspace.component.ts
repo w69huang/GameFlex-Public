@@ -19,6 +19,10 @@ import * as DeckActions from '../actions/deckActions';
 import OnlineGame from '../models/onlineGame';
 import { OnlineGamesService } from '../online-games.service';
 
+// TODO: 
+// - All stuff works with multiple peers UNTIL you disconnect one, at which point it's moves are not reflected to the extra peers that aren't the host
+// - Fix the fact that the DB deletes online games if they are > 10 minutes old regardless of how long its been since they have updated
+
 class PlayerData {
   playerID: number;
   peerID: string;
@@ -342,79 +346,6 @@ export class PlayspaceComponent implements OnInit {
         }
         break;
 
-      // Received by the host when a player inserts a card into the deck or by the player when the host inserts a card into the deck
-      case 'insertIntoDeck':
-        if (data['type'] === 'card' && this.amHost) {
-          let card: Card = null;
-          let deck: Deck = null;
-          let handIndex: number = null;
-          let foundInHand = data['foundInHand'];
-
-          if (!foundInHand) {
-            for (let i = 0; i < this.gameState.cards.length; i++) {
-              if (this.gameState.cards[i].id === data['cardID']) {
-                card = this.gameState.cards[i];
-                break;
-              }
-            }
-          } else {
-            for (let i = 0; i < this.gameState.hands.length; i++) {
-              if (this.gameState.hands[i].playerID === data['playerID']) {
-                let hand: Hand = this.gameState.hands[i];
-                handIndex = i;
-
-                for (let j = 0; j < hand.cards.length; j++) {
-                  if (hand.cards[j].id === data['cardID']) {
-                    card = hand.cards[j];
-                    break;
-                  }
-                }
-                break;
-              }
-            }
-          }
-
-          for (let i = 0; i < this.gameState.decks.length; i++) {
-            if (this.gameState.decks[i].id === data['deckID']) {
-              deck = this.gameState.decks[i];
-              break;
-            }
-          }
-
-          if (card && deck) {
-            deck.cards.push(card);
-
-            if (card.gameObject) {
-              card.gameObject.destroy();
-              card.gameObject = null;
-            }
-
-            if (!foundInHand) {
-              this.gameState.cards = this.filterOutID(this.gameState.cards, card);
-            } else {
-              card.inHand = false;
-              this.gameState.hands[handIndex].cards = this.filterOutID(this.gameState.hands[handIndex].cards, card);
-            }
-          }
-        } else if (data['type'] === 'card' && !this.amHost) {
-          let card: Card = null;
-
-          for (let i = 0; i < this.gameState.cards.length; i++) {
-            if (this.gameState.cards[i].id === data['cardID']) {
-              card = this.gameState.cards[i];
-              break;
-            }
-          }
-
-          if (card) {
-            // If I am not the host and someone inserts a card into the deck, completely remove all reference to it
-
-            card.gameObject.destroy();
-            this.gameState.cards = this.filterOutID(this.gameState.cards, card);
-          }
-        }
-        break;
-
       // The host receives this action, which was sent by a non-host requesting the top card of the deck
       case 'retrieveTopCard':
         if (data['type'] === 'card' && this.amHost) {
@@ -471,6 +402,102 @@ export class PlayspaceComponent implements OnInit {
             card.inDeck = false;
 
             HelperFunctions.createCard(card, this, SharedActions.onDragMove, SharedActions.onDragEnd, HelperFunctions.DestinationEnum.TABLE, deck.gameObject.x, deck.gameObject.y);
+          }
+        }
+        break;
+
+      // Received by the host when a player inserts a card into the deck or by the player when the host inserts a card into the deck
+      case 'insertIntoDeck':
+        if (data['type'] === 'card' && this.amHost) {
+          let card: Card = null;
+          let deck: Deck = null;
+          let handIndex: number = null;
+          let foundInHand = data['foundInHand'];
+
+          if (!foundInHand) {
+            for (let i = 0; i < this.gameState.cards.length; i++) {
+              if (this.gameState.cards[i].id === data['cardID']) {
+                card = this.gameState.cards[i];
+                break;
+              }
+            }
+          } else {
+            for (let i = 0; i < this.gameState.hands.length; i++) {
+              if (this.gameState.hands[i].playerID === data['playerID']) {
+                let hand: Hand = this.gameState.hands[i];
+                handIndex = i;
+
+                for (let j = 0; j < hand.cards.length; j++) {
+                  if (hand.cards[j].id === data['cardID']) {
+                    card = hand.cards[j];
+                    break;
+                  }
+                }
+                break;
+              }
+            }
+          }
+
+          for (let i = 0; i < this.gameState.decks.length; i++) {
+            if (this.gameState.decks[i].id === data['deckID']) {
+              deck = this.gameState.decks[i];
+              break;
+            }
+          }
+
+          if (card && deck) {
+            if (this.amHost && !foundInHand) {
+              // If I am the host, tell everyone else that this card was inserted
+              // Assuming they can actually see the card all ready -- if it was in the person's hand, no point in telling them
+
+              this.connections.forEach((connection: DataConnection) => {
+                if (connection.peer != data['peerID']) {
+                  connection.send({
+                    'action': 'insertIntoDeck',
+                    'type': card.type,
+                    'cardID': card.id,
+                    'deckID': deck.id,
+                    'imagePath': card.imagePath,
+                    'x': card.gameObject.x,
+                    'y': card.gameObject.y,
+                    'foundInHand': foundInHand,
+                    'amHost': this.amHost,
+                    'playerID': this.playerID,
+                    'peerID': this.myPeerID
+                  });
+                }
+              });
+            }
+
+            deck.cards.push(card);
+
+            if (card.gameObject) {
+              card.gameObject.destroy();
+              card.gameObject = null;
+            }
+
+            if (!foundInHand) {
+              this.gameState.cards = this.filterOutID(this.gameState.cards, card);
+            } else {
+              card.inHand = false;
+              this.gameState.hands[handIndex].cards = this.filterOutID(this.gameState.hands[handIndex].cards, card);
+            }
+          }
+        } else if (data['type'] === 'card' && !this.amHost) {
+          let card: Card = null;
+
+          for (let i = 0; i < this.gameState.cards.length; i++) {
+            if (this.gameState.cards[i].id === data['cardID']) {
+              card = this.gameState.cards[i];
+              break;
+            }
+          }
+
+          if (card) {
+            // If I am not the host and someone inserts a card into the deck, completely remove all reference to it
+
+            card.gameObject.destroy();
+            this.gameState.cards = this.filterOutID(this.gameState.cards, card);
           }
         }
         break;

@@ -33,7 +33,7 @@ export function onDragMove(object: any, component: any, pointer: Phaser.Input.Po
 // Will only be used in the playspace as right now it only applies to cards
 export function onDragEnd(object: any, playspaceComponent: PlayspaceComponent, pointer: Phaser.Input.Pointer) {
 
-    if (object.type == 'card') {
+    if (object.type === 'card') {
       // Step 1: Find Card
 
       let card: Card = null;
