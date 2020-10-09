@@ -7,17 +7,20 @@ import PopupScene from '../models/phaser-scenes/popupScene';
 import * as HelperFunctions from '../helper-functions';
 import * as SharedActions from '../actions/sharedActions';
 
+
 enum DestinationEnum {
     TABLE = "Table",
     HAND = "Hand"
 }
 
-function popupClose(popupScene: PopupScene, component: any) {
+function popupClose(popupScene: PopupScene, deck: Deck, component: any) {
     component.phaserScene.scene.remove(popupScene.key);
+    deck.rightClick = false;
 }
 
 export function deckRightClick(deck: Deck, component: any, pointer: Phaser.Input.Pointer) {
-    if (pointer.rightButtonDown()) {
+    if (pointer.rightButtonDown() && deck.rightClick == false) {
+
         let optionWidth = 200;
         let optionHeight = 75;
         let optionObjects = [];
@@ -33,6 +36,7 @@ export function deckRightClick(deck: Deck, component: any, pointer: Phaser.Input
         let popupScene = new PopupScene(handle, pointer.x, pointer.y, component, deck, width, height, optionObjects, optionSeparation);
 
         component.phaserScene.scene.add(handle, popupScene, true);
+        deck.rightClick = true;
     }
 }
 
@@ -72,7 +76,7 @@ export function retrieveTopCard(popupScene: PopupScene, deck: Deck, playspaceCom
         });
     }
 
-    popupClose(popupScene, playspaceComponent);
+    popupClose(popupScene, deck, playspaceComponent);
 }
 
 export function shuffleDeck(popupScene: PopupScene, deck: Deck, playspaceComponent: PlayspaceComponent, pointer: Phaser.Input.Pointer) {
@@ -104,7 +108,7 @@ export function shuffleDeck(popupScene: PopupScene, deck: Deck, playspaceCompone
         //}
     }
 
-    popupClose(popupScene, playspaceComponent);
+    popupClose(popupScene, deck, playspaceComponent);
 }
 
 export function importDeck(popupScene: PopupScene, deck: Deck, playspaceComponent: PlayspaceComponent, pointer: Phaser.Input.Pointer) {
@@ -127,5 +131,5 @@ export function importDeck(popupScene: PopupScene, deck: Deck, playspaceComponen
         });
     }
 
-   popupClose(popupScene, playspaceComponent);
+   popupClose(popupScene, deck, playspaceComponent);
 }

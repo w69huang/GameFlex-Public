@@ -51,6 +51,7 @@ export class PlayspaceComponent implements OnInit {
   ngOnInit() {
     // TODO: Band-aid solution, find a better one at some point
     setTimeout(_=> this.initialize(), 100);
+    
   }
 
   initialize(): void {
