@@ -25,6 +25,8 @@ const mysql_connection = require('./database/mysql')
 const List = require('./database/models/list')
 const Task = require('./database/models/task')
 const Configuration = require('./database/models/configuration')
+const Deck = require('./database/models/deck')
+const Counter = require('./database/models/counter')
 const test = require('./database/models/mysql.test.model')
 
 /*
@@ -154,7 +156,7 @@ app.delete('/lists/:listId/tasks/:taskId', (req, res) => {
 
 app.get('/configpost/:configurationId', (req, res) => {
     // note: `_id` is the auto-generated id for the task
-    Configuration.find({ _id: req.params.configurationId })
+    Configuration.findOne({ _id: req.params.configurationId })
         .then((configuration) => {
             res.send(configuration)
             console.log('the config is: ', configuration, ' end test') //TODO remove console log
@@ -164,9 +166,14 @@ app.get('/configpost/:configurationId', (req, res) => {
 })
 
 app.post('/configpost', (req, res) => {
-    (new Configuration({ userId: req.body.userId, numPlayers: req.body.numPlayers, handsVisibleOnInsert: req.body.handsVisibleOnInsert, decks: [], counters: [] }))
+    console.log('The req.body line: ', req.body);
+    console.log('The new config line: ', new Configuration({ 'userId': req.body.configuration.userId, 'numPlayers': req.body.configuration.numPlayers, handsVisibleOnInsert: req.body.configuration.handsVisibleOnInsert, 'decks': req.body.configuration.decks, 'counters': [] }));
+    (new Configuration({ 'userId': req.body.configuration.userId, 'numPlayers': req.body.configuration.numPlayers, 'handsVisibleOnInsert': req.body.configuration.handsVisibleOnInsert, 'decks': req.body.configuration.decks, 'counters': [] }))
         .save()
-        .then((configuration) => res.send(configuration))
+        .then((configuration) => {
+            res.send(configuration);
+            console.log('The then line: ', configuration);
+        })
         .catch((error) => console.log(error))
     console.log('Config Post Backend has run!');
 })

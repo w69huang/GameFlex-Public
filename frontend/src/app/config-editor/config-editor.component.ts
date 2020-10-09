@@ -25,6 +25,7 @@ import OptionObject from '../models/optionObject';
 import * as HelperFunctions from '../helper-functions';
 import * as SharedActions from '../actions/sharedActions';
 import * as DeckActions from '../actions/deckActions';
+import { NewTaskComponent } from '../pages/new-task/new-task.component';
 
 
 @Component({
@@ -90,17 +91,18 @@ export class ConfigEditorComponent implements OnInit {
     console.log(this.gameState.decks);
     // Convert Decks to Deck model
     let decks = [];
-    this.gameState.decks.forEach(deck => decks.push(deck)) //TODO: This does nothing rn. Is the reason it's not saving because of the backend model not matching up maybe?
+    this.gameState.decks?.forEach(deck => decks.push(new DeckMin(deck))) //TODO: This does nothing rn. Is the reason it's not saving because of the backend model not matching up maybe?
 
     // Convert Counters to Counter model
     // TODO To be implemented 
+    console.log(decks);
 
-
-    this.configuration = new Configuration(1, "BIG TURD", 3, true, this.gameState.decks, []);
+    this.configuration = new Configuration(1, "BIG TURD", 3, true, decks, []);
     this.configurationService.createConfiguration(this.configuration)
       .subscribe((configuration: Configuration) => {
         this.configuration = configuration;
         this.configurationId = configuration._id;
+        console.log(configuration);
       })
 
   }
@@ -110,13 +112,15 @@ export class ConfigEditorComponent implements OnInit {
       .subscribe(() => this.router.navigate(['../'], { relativeTo: this.route }))
   }
 
-  getConfig() {
-    let id = '5f7bda86775cdc12ff497335'; //TODO this properly
+  getConfig(id) {
+    id = '5f7fb1d8952da02656b07af3'; //TODO this properly
     // auto save before get (maybe)
     // saveConfig()
 
     // delete all current decks adn counters
-    this.gameState.decks.forEach(deck => deck.gameObject.destroy())
+
+    this.gameState.decks?.forEach(deck => deck.gameObject.destroy());
+
     this.gameState.decks = [];
 
     this.configurationService.getConfiguration(id)
@@ -137,7 +141,13 @@ export class ConfigEditorComponent implements OnInit {
   }
 
   renderConfiguration(configuration: Configuration) {
-    this.gameState.decks = configuration.decks;
+    console.log(configuration);
+    configuration.decks.forEach(deck => {
+      //deck.id = null;
+      deck.type = "deck"; //TODO This is probably not needed later
+      deck.imagePath = "assets/images/playing-cards/deck.png";
+      HelperFunctions.createDeck(deck, this, SharedActions.onDragMove, DeckActions.deckRightClick, deck.x, deck.y)
+    });
     //this.gameState.counters = configuration.counters;
 
   }

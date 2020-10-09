@@ -3,30 +3,22 @@ import Counter from './counter';
 
 
 export default class Configuration {
-    id: number;
     _id: string;
     userId: string;
-    numPlayers: integer;
+    numPlayers: number;
     handsVisibleOnInsert: boolean;
     decks: Deck[];
-    // counters: Counter[];
+    counters: Counter[];
 
 
-    constructor(id: number, userId: string, numPlayers: integer, handsVisibleOnInsert: boolean, decks: Deck[], counters: Counter[]) {
-        this.id = id;
+    constructor(id: number, userId: string, numPlayers: number, handsVisibleOnInsert: boolean, decks: Deck[], counters: Counter[]) {
         this.userId = userId;
         this.numPlayers = numPlayers;
         this.handsVisibleOnInsert = handsVisibleOnInsert;
 
-        if (decks) {
-            this.decks = decks;
-        } else {
-            this.decks = [];
-        }
-        if (counters) {
-            this.decks = decks;
-        } else {
-            this.decks = [];
-        }
+
+        this.decks = decks ? decks: [];
+        this.counters = counters ? counters : [];
+
     }
 }

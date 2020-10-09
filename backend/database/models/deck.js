@@ -12,7 +12,7 @@ const DeckSchema = new mongoose.Schema({
     rotation: Number,
     onInsertVisible: Boolean,
     numberOfVisibleCards: Number,
-    cards: [Card]
+    //cards: [Card]
 })
 
 const Deck = mongoose.model('Deck', DeckSchema)

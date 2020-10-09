@@ -9,12 +9,17 @@ const ConfigurationSchema = new mongoose.Schema({
     userId: {
         type: String
     },
-    numPlayers: Number,
+    numPlayers: {
+        type: Number,
+        default: 0
+    },
     handsVisibleOnInsert: {
         type: Boolean,
         default: false
     },
-    decks: [Deck],
+    decks: {
+        type: [Deck]
+    },
     counters: [Counter]
 })
 
