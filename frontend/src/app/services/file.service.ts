@@ -29,6 +29,8 @@ export class FileService {
   }
 
   public remove(fileName): void {
+    this.webService.post('file/del/'+fileName, fileName);
+    console.log(fileName);
     this.fileList.splice(this.fileList.findIndex(name => name === fileName), 1);
     this.fileList$.next(this.fileList);
   }

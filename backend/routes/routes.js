@@ -20,7 +20,9 @@ module.exports = (upload) => {
 
     //TODO: Single file upload functionality(?)
 
-    //upload a multiple files
+    /*
+        Post: Upload multiple files
+    */
     router.route('/upload')
         .post(upload.array('file', 60), (req, res, next) => {
             res.status(200).json({
@@ -29,7 +31,9 @@ module.exports = (upload) => {
             });
         });
 
-        //TODO: add functionality for fetching and deleting images
+    /*
+        GET: Fetches all the files in the uploads collection
+    */
     router.route('/files').get((req, res, next) => {
         gfs.find().toArray((err, files) => {
             if (!files || files.length === 0) {
@@ -44,7 +48,6 @@ module.exports = (upload) => {
                 if (file.contentType === 'image/jpeg'
                     || file.contentType === 'image/png'
                     || file.contentType === 'image/svg+xml') {
-                        //TODO: enable the rendering of files to the browser
                         file.isImage = true;
                     } else {
                         file.isImage = false;
@@ -58,6 +61,9 @@ module.exports = (upload) => {
         });
     });
 
+    /* 
+        GET: Fetches a particular file by filename
+    */
     router.route('/file/:filename').get((req, res, next) => {
         gfs.find({filename: req.params.filename }).toArray((err, files) => {
             if (!files[0] || files.length === 0) {
@@ -72,6 +78,51 @@ module.exports = (upload) => {
             });
         });
     });
+
+    /* 
+        GET: Fetches a particular image and render on browser
+    */
+   router.route('/image/:filename')
+   .get((req, res, next) => {
+       gfs.find({ filename: req.params.filename }).toArray((err, files) => {
+           if (!files[0] || files.length === 0) {
+               return res.status(200).json({
+                   success: false,
+                   message: 'No files available',
+               });
+           }
+
+           if (files[0].contentType === 'image/jpeg' 
+                || files[0].contentType === 'image/png' 
+                || files[0].contentType === 'image/svg+xml') {
+               // render image to browser
+               gfs.openDownloadStreamByName(req.params.filename).pipe(res);
+           } else {
+               res.status(404).json({
+                   err: 'Not an image',
+               });
+           }
+       });
+   });
+
+   /*
+        DELETE: delete a file by filename
+    */
+   router.route('/file/del/:id').post((req, res, next) => {
+       console.log('test!!!!')
+       console.log(req.params.id);
+       gfs.delete(new mongoose.Types.ObjectId(req.params.id),
+       (err, data) => {
+           if (err) {
+               return res.status(404).json({err: err});
+           }
+
+           res.status(200).json({
+               success: true,
+               message: 'File with ID '+req.params.id+' is deleted',
+           });
+       });
+   });
 
     return router;
 };

@@ -10,6 +10,7 @@ import { Observable } from 'rxjs';
 export class FileListComponent implements OnInit {
 public fileList$: string[] = [];
 
+
  constructor(private fileService: FileService) { 
    this.fileService.list().subscribe((data) => {
     for (var i = 0; i < data.files.length; i++) {
