@@ -36,12 +36,6 @@ export default class PopupScene extends Phaser.Scene {
         this.height = height;
         this.optionObjects = optionObjects;
         this.optionSeparation = optionSeparation;
-      
-        console.log("LOOK AT MEEEE");
-        console.log(this.component.sceneWidth);
-        console.log(this.component.sceneHeight);
-        console.log(width);
-        console.log(height);
     }
     create () {
         // if (this.x + this.width > this.component.screenwidth)
