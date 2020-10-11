@@ -19,17 +19,15 @@ import * as DeckActions from '../actions/deckActions';
 import OnlineGame from '../models/onlineGame';
 import { OnlineGamesService } from '../online-games.service';
 
-// TODO: 
-// - All stuff works with multiple peers UNTIL you disconnect one, at which point it's moves are not reflected to the extra peers that aren't the host
-// - Fix the fact that the DB deletes online games if they are > 10 minutes old regardless of how long its been since they have updated
-
 class PlayerData {
-  playerID: number;
+  id: number; // Player ID
   peerID: string;
+  username: string;
 
-  constructor(playerID: number, peerID: string) {
-    this.playerID = playerID;
+  constructor(id: number, peerID: string, username?: string) {
+    this.id = id;
     this.peerID = peerID;
+    this.username = username;
   }
 }
 
@@ -89,7 +87,7 @@ export class PlayspaceComponent implements OnInit {
       });
       conn.on('close', () => {
         console.log("Peer-to-Peer Error: Other party disconnected.");
-        this.connections = this.filterOutID(this.connections, conn);
+        this.connections = this.filterOutPeer(this.connections, conn);
 
         let playerData: PlayerData = null;
         this.playerDataObjects.forEach((playerDataObject: PlayerData) => {
@@ -105,7 +103,7 @@ export class PlayspaceComponent implements OnInit {
       conn.on('error', (err) => {
         console.log("Unspecified Peer-to-Peer Error:");
         console.log(err);
-        this.connections = this.filterOutID(this.connections, conn);
+        this.connections = this.filterOutPeer(this.connections, conn);
         
         let playerData: PlayerData = null;
         this.playerDataObjects.forEach((playerDataObject: PlayerData) => {
@@ -124,7 +122,8 @@ export class PlayspaceComponent implements OnInit {
       let mainHostID = params['host'];
       let onlineGameID = params['onlineGameID'];
 
-      this.onlineGame = this.onlineGamesService.get(onlineGameID).subscribe((onlineGame: OnlineGame) => {
+      this.onlineGamesService.get(onlineGameID).subscribe((onlineGame: OnlineGame) => {
+        this.onlineGame = onlineGame;
         if (mainHostID != this.myPeerID) {
           this.amHost = false;
           var conn = this.peer.connect(mainHostID);
@@ -137,12 +136,12 @@ export class PlayspaceComponent implements OnInit {
             });
             conn.on('close', () => {
               console.log("Peer-to-Peer Error: Other party disconnected.");
-              this.connections = this.filterOutID(this.connections, conn);
+              this.connections = this.filterOutPeer(this.connections, conn);
             });
             conn.on('error', (err) => {
               console.log("Unspecified Peer-to-Peer Error:");
               console.log(err);
-              this.connections = this.filterOutID(this.connections, conn);
+              this.connections = this.filterOutPeer(this.connections, conn);
             });
           });
         } else {
@@ -193,6 +192,12 @@ export class PlayspaceComponent implements OnInit {
     });
   }
 
+  filterOutPeer(objectListToFilter: any[], object: any) {
+    return objectListToFilter.filter( (refObject: any) => {
+      return object.peer !== refObject.peer;
+    });
+  }
+
   handleData(data: string) {
     if (this.amHost && data['amHost']) {
       // Error! Both parties claim to the be the host! Abort!
@@ -210,7 +215,7 @@ export class PlayspaceComponent implements OnInit {
           let playerIDArray: number[] = [];
 
           this.playerDataObjects.forEach((playerData) => {
-            playerIDArray.push(playerData.playerID);
+            playerIDArray.push(playerData.id);
           });
 
           let i: number = 1;
@@ -220,6 +225,8 @@ export class PlayspaceComponent implements OnInit {
           playerID = i; // Assign the player the first playerID that is not taken already
         }
         const sentGameState: SentGameState = new SentGameState(this.gameState, playerID);
+
+        this.playerDataObjects.push(new PlayerData(playerID, data['peerID']));
 
         console.log("Sending state.");
         this.connections.forEach((connection: DataConnection) => {

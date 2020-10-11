@@ -68,9 +68,8 @@ function deleteAll(request, result) {
 }
 
 function update(request, result) {
-    var onlineGame = request.body;  
+    var onlineGame = request.body[0];  
     onlineGame.lastUpdated = Date.now();
-
     mysql_connection.query("UPDATE OnlineGameMySQL SET ? WHERE id=" + onlineGame.id, onlineGame, function (err, res) {
         if (err) {
             console.log("Error in update of online games: ", err);
@@ -84,8 +83,8 @@ function update(request, result) {
 }
 
 function deleteOfflineGames() {
-    var expiryTime = Date.now() - 600000; // 10 Minute expiry time
-    mysql_connection.query("DELETE FROM OnlineGameMySQL WHERE lastUpdated<" + expiryTime.toString(), function(err, res) {
+    // 10 minute (600000 ms) expiry time
+    mysql_connection.query("DELETE FROM OnlineGameMySQL WHERE lastUpdated<" + (Date.now() - 600000), function(err, res) {
         if (err) {
             console.log("Error in deleteOfflineGames for online games: ", err);
         } else {

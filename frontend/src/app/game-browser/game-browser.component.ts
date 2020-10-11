@@ -16,6 +16,7 @@ import OnlineGame from '../models/onlineGame';
 export class GameBrowserComponent implements OnInit {
   
   onlineGames: OnlineGame[];
+  getAllGamesInterval: any;
 
   constructor(private hostService: HostService,
               private onlineGamesService: OnlineGamesService, 
@@ -25,6 +26,11 @@ export class GameBrowserComponent implements OnInit {
 
   ngOnInit(): void { 
     this.getAllGames();
+    this.getAllGamesInterval = setInterval(this.getAllGames.bind(this), 60000);
+  }
+
+  ngOnDestroy(): void {
+    clearInterval(this.getAllGamesInterval);
   }
 
   joinGame(onlineGame: OnlineGame): void {
