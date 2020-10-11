@@ -26,6 +26,7 @@ export class SignupComponent implements OnInit {
   userExists = false;
   emailExists = false;
   passwordMatch = true;
+  passwordMissing = false;
 
   onSubmit(obj) {
     // Does SQL checks to confirm if a username exists or an email address is in use;
@@ -34,6 +35,12 @@ export class SignupComponent implements OnInit {
       return null;
     } else {
       this.passwordMatch= true;
+    }
+    if (obj.value.password == "" && obj.value.confirmPassword == "") {
+      this.passwordMissing = true;
+      return null;
+    } else {
+      this.passwordMissing = false;
     }
     if (obj.value.username != '' && obj.value.email != '') {
 
@@ -80,9 +87,6 @@ export class SignupComponent implements OnInit {
       hash = ((hash<< 5) - hash) + char;
       hash = hash & hash;
     }
-    if (hash < 0) {
-      hash = hash*-1;
-    }
-    return hash;
+    return Math.abs(hash);
   }
 }
