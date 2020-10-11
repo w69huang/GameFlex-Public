@@ -21,6 +21,12 @@ export default class PopupScene extends Phaser.Scene {
 
     constructor (handle, x, y, component, deck, width, height, optionObjects: OptionObject[], optionSeparation: number) {
         super(handle);
+        if (x+width > component.sceneWidth) {
+          x = component.sceneWidth - width;
+        }
+        if (y+height > component.sceneWidth){
+          y = component.sceneHeight - height;
+        }
         this.key = handle;
         this.x = x;
         this.y = y;
@@ -30,8 +36,15 @@ export default class PopupScene extends Phaser.Scene {
         this.height = height;
         this.optionObjects = optionObjects;
         this.optionSeparation = optionSeparation;
+      
+        console.log("LOOK AT MEEEE");
+        console.log(this.component.sceneWidth);
+        console.log(this.component.sceneHeight);
+        console.log(width);
+        console.log(height);
     }
     create () {
+        // if (this.x + this.width > this.component.screenwidth)
         this.cameras.main.setViewport(this.x, this.y, this.width, this.height);
 
         var popup = this.add.image(0, 0, 'grey-background').setOrigin(0);
