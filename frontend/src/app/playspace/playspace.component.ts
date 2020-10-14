@@ -45,10 +45,16 @@ export class PlayspaceComponent implements OnInit {
   public sceneWidth: number = 1000;
   public sceneHeight: number = 1000;
   public handBeginY: number = 600;
+  public highestID: number = 1;
+  
+  // Peer
   public peer: any;
   public myPeerID: string;
+  public mainHostID: string;
   public connections: DataConnection[] = [];
-  public highestID: number = 1;
+  public firstConnectionAttempt: boolean = false;
+  public connOpenedSuccessfully: boolean = false;
+  public openConnectionAttempts: number = 0;
 
   // State
   public playerID: number = 1;
@@ -58,6 +64,8 @@ export class PlayspaceComponent implements OnInit {
 
   // Interval Fxns
   public updateOnlineGameInterval: any;
+  public checkIfCanOpenConnectionInterval: any;
+  public openConnectionInterval: any;
 
   // NOTE: In the future, this should be populated by a DB call for a specific game
   public amHost: boolean = true;
@@ -80,6 +88,8 @@ export class PlayspaceComponent implements OnInit {
     this.peer.on('connection', (conn) => { 
       console.log(`Received connection request from peer with id ${conn.peer}.`);
       this.onlineGame.numPlayers++;
+      // Check if there are duplicate connections, if so filter out
+      this.connections = this.closeAndFilterDuplicateConnections(conn);
       this.connections.push(conn);
 
       conn.on('data', (data) => {
@@ -119,32 +129,17 @@ export class PlayspaceComponent implements OnInit {
     });
 
     this.route.queryParams.subscribe(params => {
-      let mainHostID = params['host'];
+      this.mainHostID = params['host'];
       let onlineGameID = params['onlineGameID'];
 
       this.onlineGamesService.get(onlineGameID).subscribe((onlineGame: OnlineGame) => {
         this.onlineGame = onlineGame;
-        if (mainHostID != this.myPeerID) {
+        if (this.mainHostID != this.myPeerID) {
           this.amHost = false;
-          var conn = this.peer.connect(mainHostID);
-          this.connections.push(conn);
-          conn.on('open', () => {
-            console.log(`Connection to ${mainHostID} opened successfully.`);
-            // Receive messages
-            conn.on('data', (data) => {
-              this.handleData(data);
-            });
-            conn.on('close', () => {
-              console.log("Peer-to-Peer Error: Other party disconnected.");
-              this.connections = this.filterOutPeer(this.connections, conn);
-            });
-            conn.on('error', (err) => {
-              console.log("Unspecified Peer-to-Peer Error:");
-              console.log(err);
-              this.connections = this.filterOutPeer(this.connections, conn);
-            });
-          });
+          this.openConnection();
         } else {
+          document.getElementById('loading').style.display = "none";
+          document.getElementById('loadingText').style.display = "none";
           this.updateOnlineGameInterval = setInterval(this.updateOnlineGame.bind(this), 300000); // Tell the backend that this game still exists every 5 mins
         }
       });     
@@ -154,6 +149,24 @@ export class PlayspaceComponent implements OnInit {
   ngOnInit() {
     // TODO: Band-aid solution, find a better one at some point
     setTimeout(_=> this.initialize(), 100);
+    this.checkIfCanOpenConnectionInterval = setInterval(this.checkIfCanOpenConnection.bind(this), 2000);
+  }
+  
+  ngOnDestroy() {
+    clearInterval(this.updateOnlineGameInterval);
+    if (this.checkIfCanOpenConnectionInterval) {
+      clearInterval(this.checkIfCanOpenConnectionInterval);
+    }
+    if (this.openConnectionInterval) {
+      clearInterval(this.openConnectionInterval);
+    }
+    if (this.connections.length > 0) {
+      this.connections.forEach((connection: DataConnection) => {
+        connection.close();
+      });
+    }
+    this.peer.destroy();
+    this.phaserGame.destroy(true);
   }
 
   initialize(): void {
@@ -169,17 +182,6 @@ export class PlayspaceComponent implements OnInit {
     this.phaserGame = new Phaser.Game(this.config);
   }
 
-  ngOnDestroy() {
-    clearInterval(this.updateOnlineGameInterval);
-    if (this.connections.length > 0) {
-      this.connections.forEach((connection: DataConnection) => {
-        connection.close();
-      });
-    }
-    this.peer.destroy();
-    this.phaserGame.destroy(true);
-  }
-
   updateOnlineGame() {
     if (this.amHost && this.onlineGame) {
       this.onlineGamesService.confirmActive(this.onlineGame);
@@ -192,10 +194,74 @@ export class PlayspaceComponent implements OnInit {
     });
   }
 
-  filterOutPeer(objectListToFilter: any[], object: any) {
-    return objectListToFilter.filter( (refObject: any) => {
-      return object.peer !== refObject.peer;
+  filterOutPeer(connectionListToFilter: DataConnection[], connection: DataConnection) {
+    return connectionListToFilter.filter( (refConnection: DataConnection) => {
+      return connection.peer !== refConnection.peer;
     });
+  }
+
+  closeAndFilterDuplicateConnections(conn: DataConnection): DataConnection[] {
+    let newConnectionList: DataConnection[] = [];
+    this.connections?.forEach((connection: DataConnection) => {
+      if (connection.peer === conn.peer) {
+        connection.close();
+      } else {
+        newConnectionList.push(connection);
+      }
+    });
+    return newConnectionList;
+  }
+
+  checkIfCanOpenConnection() {
+    // If the first connection attempt has occurred but the connection was not opened successfully
+    if (this.firstConnectionAttempt && !this.connOpenedSuccessfully) {
+      this.openConnectionInterval = setInterval(this.openConnection.bind(this), 5000);
+      clearInterval(this.checkIfCanOpenConnectionInterval);
+    } else if (this.connOpenedSuccessfully) {
+      clearInterval(this.checkIfCanOpenConnectionInterval);
+    }
+  }
+
+  openConnection() {
+    if (!this.connOpenedSuccessfully) {
+      var conn = this.peer.connect(this.mainHostID);
+      this.openConnectionAttempts++;
+      this.firstConnectionAttempt = true;
+      conn?.on('open', () => {
+        console.log(`Connection to ${this.mainHostID} opened successfully.`);
+        this.connections.push(conn);
+        this.connOpenedSuccessfully = true;
+        // Receive messages
+        conn.on('data', (data) => {
+          this.handleData(data);
+        });
+        conn.on('close', () => {
+          console.log("Peer-to-Peer Error: Other party disconnected.");
+          this.connections = this.filterOutPeer(this.connections, conn);
+        });
+        conn.on('error', (err) => {
+          console.log("Unspecified Peer-to-Peer Error:");
+          console.log(err);
+          this.connections = this.filterOutPeer(this.connections, conn);
+        });
+        if (this.openConnectionAttempts > 1) {
+          conn.send({
+            'action': 'sendState',
+            'amHost': this.amHost,
+            'playerID': null,
+            'peerID': this.myPeerID
+          });
+        }
+      });
+
+      if (this.openConnectionAttempts >= 5) {
+        clearInterval(this.openConnectionInterval);
+      }
+    } else {
+      if (this.openConnectionInterval) {
+        clearInterval(this.openConnectionInterval);
+      }
+    }
   }
 
   handleData(data: string) {
@@ -265,6 +331,9 @@ export class PlayspaceComponent implements OnInit {
           let card: Card = new Card(cardMin.id, cardMin.imagePath, cardMin.x, cardMin.y, true);
           HelperFunctions.createCard(card, this, SharedActions.onDragMove, SharedActions.onDragEnd, HelperFunctions.DestinationEnum.HAND, card.x, card.y);
         });
+
+        document.getElementById('loading').style.display = "none";
+        document.getElementById('loadingText').style.display = "none";
         break;
 
       case 'move':
