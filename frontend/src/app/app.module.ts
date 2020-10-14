@@ -17,6 +17,12 @@ import { MatCardModule } from '@angular/material/card';
 import { MatButtonModule } from '@angular/material/button';
 import { MatProgressBarModule } from '@angular/material/progress-bar';
 import { DummyComponent } from './dummy/dummy.component';
+import { SignupComponent } from './signup/signup.component';
+import { LoginComponent, DialogForgotPassword } from './login/login.component';
+import { MiddleWare } from './services/middleware';
+import { MatDialog, MatDialogModule } from '@angular/material/dialog';
+import { ChangepasswordComponent } from './changepassword/changepassword.component';
+import { UsersService } from './services/users.service';
 
 @NgModule({
   declarations: [
@@ -26,7 +32,14 @@ import { DummyComponent } from './dummy/dummy.component';
     NewTaskComponent,
     PlayspaceComponent,
     DeckEditorComponent,
-    DummyComponent
+    DummyComponent,
+    SignupComponent,
+    LoginComponent,
+    DialogForgotPassword,
+    ChangepasswordComponent
+  ],
+  entryComponents: [
+    DialogForgotPassword
   ],
   imports: [
     BrowserModule,
@@ -38,9 +51,10 @@ import { DummyComponent } from './dummy/dummy.component';
     MatCardModule,
     MatButtonModule,
     MatProgressBarModule,
-    FormsModule
+    FormsModule,
+    MatDialogModule
   ],
-  providers: [],
+  providers: [MiddleWare, UsersService],
   bootstrap: [AppComponent]
 })
 export class AppModule { }

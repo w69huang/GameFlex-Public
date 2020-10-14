@@ -42,10 +42,10 @@ export class PlayspaceComponent implements OnInit {
   public playerID: number = 1;
   public gameState: GameState;
   
-
   // NOTE: In the future, this should be populated by a DB call for a specific game
   public amHost: boolean = true;
   
+
   constructor() { }
 
   ngOnInit() {
@@ -63,7 +63,6 @@ export class PlayspaceComponent implements OnInit {
       scene: [ this.phaserScene ],
       parent: 'gameContainer',
     };
-
     // TODO: Based off player ID, need to ensure the other person has a different playerID
     this.gameState = new GameState([], [], [], new Hand(this.playerID, []));
 
