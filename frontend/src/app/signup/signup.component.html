@@ -1,0 +1,40 @@
+<mat-toolbar>
+    <span>Registration</span>
+ </mat-toolbar>
+ <mat-card class="my-card">
+    <mat-card-content>
+        <div class="alert alert-danger" *ngIf="passwordMissing">Please Enter a Password.</div>
+        <form #signupForm="ngForm">
+            <div>
+                <label for="username">Username:</label>
+                <input required (ngModel)="username" name="username" #username="ngModel" id="username" class="form-control" type="text">
+                <div class="alert alert-danger" *ngIf="!username.valid && username.touched">Username Required!</div>
+                <div class="alert alert-danger" *ngIf="userExists" >Username Exists!</div>
+            </div>
+            <br>
+            <div>
+                <label for="password">Password:</label>
+                <input required (ngModel)="password" name="password" #password="ngModel" id="password" class="form-control" type="password">
+                <div class="alert alert-danger" *ngIf="!password.valid && password.touched">Password Required!</div>
+                <div class="alert alert-danger" *ngIf="!passwordMatch" >Passwords Don't Match!</div>
+            </div>
+            <br>
+            <div>
+                <label for="confirmPassword">Confirm Password:</label>
+                <input required (ngModel)="confirmPassword" name="confirmPassword" #confirmedPassword="ngModel" id="confirmPassword" class="form-control" type="password">
+                <div class="alert alert-danger" *ngIf="!confirmedPassword.valid && confirmedPassword.touched">Confirm Password!</div>
+                <div class="alert alert-danger" *ngIf="!passwordMatch" >Passwords Don't Match!!</div>
+            </div>
+            <br>
+            <div>
+                <label for="email">Email:</label>
+                <input required (ngModel)="email" name="email" #email="ngModel" id="email" class="form-control" type="text">
+                <div class="alert alert-danger" *ngIf="!email.valid && email.touched">Email Required!</div>
+                <div class="alert alert-danger" *ngIf="emailExists" >Email Exists!</div>
+            </div>
+        </form>         
+    </mat-card-content>
+    <mat-card-actions>
+        <button (click)="onSubmit(signupForm)" type="button submit" class="btn btn-primary" >Register</button>
+    </mat-card-actions>
+ </mat-card>

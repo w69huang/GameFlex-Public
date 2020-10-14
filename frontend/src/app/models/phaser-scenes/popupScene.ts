@@ -2,8 +2,10 @@ import { Component } from '@angular/core';
 import Deck from '../deck';
 import OptionObject from '../optionObject';
 
-function popupClose(popupScene: PopupScene, component: any) {
+function popupClose(popupScene: PopupScene, deck: Deck, component: any) {
+
     component.phaserScene.scene.remove(popupScene.key);
+    deck.rightClick = false;
 }
 
 export default class PopupScene extends Phaser.Scene {
@@ -19,6 +21,12 @@ export default class PopupScene extends Phaser.Scene {
 
     constructor (handle, x, y, component, deck, width, height, optionObjects: OptionObject[], optionSeparation: number) {
         super(handle);
+        if (x+width > component.sceneWidth) {
+          x = component.sceneWidth - width;
+        }
+        if (y+height > component.sceneWidth){
+          y = component.sceneHeight - height;
+        }
         this.key = handle;
         this.x = x;
         this.y = y;
@@ -30,6 +38,7 @@ export default class PopupScene extends Phaser.Scene {
         this.optionSeparation = optionSeparation;
     }
     create () {
+        // if (this.x + this.width > this.component.screenwidth)
         this.cameras.main.setViewport(this.x, this.y, this.width, this.height);
 
         var popup = this.add.image(0, 0, 'grey-background').setOrigin(0);
@@ -38,7 +47,7 @@ export default class PopupScene extends Phaser.Scene {
 
         var closeButton = this.add.image(225, 0, 'close').setOrigin(0);
         closeButton.setInteractive();
-        closeButton.on('pointerdown', popupClose.bind(this, this, this.component));
+        closeButton.on('pointerdown', popupClose.bind(this, this, this.deck, this.component));
         closeButton.displayWidth = 25;
         closeButton.displayHeight = 25;
 

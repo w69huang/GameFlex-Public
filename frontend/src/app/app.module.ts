@@ -17,11 +17,16 @@ import { MatIconModule } from '@angular/material/icon';
 import { MatCardModule } from '@angular/material/card';
 import { MatButtonModule } from '@angular/material/button';
 import { MatProgressBarModule } from '@angular/material/progress-bar';
-import { MatDialogModule } from '@angular/material/dialog';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { GameBrowserPopupComponent } from './popups/game-browser-password-popup/game-browser-password-popup.component';
 import { DummyComponent } from './dummy/dummy.component';
 import { GameSetupPopupComponent } from './popups/game-setup-popup/game-setup-popup.component';
+import { SignupComponent } from './signup/signup.component';
+import { LoginComponent, DialogForgotPassword } from './login/login.component';
+import { MiddleWare } from './services/middleware';
+import { MatDialog, MatDialogModule } from '@angular/material/dialog';
+import { ChangepasswordComponent } from './changepassword/changepassword.component';
+import { UsersService } from './services/users.service';
 
 @NgModule({
   declarations: [
@@ -34,7 +39,11 @@ import { GameSetupPopupComponent } from './popups/game-setup-popup/game-setup-po
     GameBrowserComponent,
     GameBrowserPopupComponent,
     GameSetupPopupComponent,
-    DummyComponent
+    DummyComponent,
+    SignupComponent,
+    LoginComponent,
+    DialogForgotPassword,
+    ChangepasswordComponent
   ],
   imports: [
     BrowserModule,
@@ -52,9 +61,13 @@ import { GameSetupPopupComponent } from './popups/game-setup-popup/game-setup-po
   ],
   entryComponents: [
     GameBrowserPopupComponent,
-    GameSetupPopupComponent
+    GameSetupPopupComponent,
+    DialogForgotPassword
   ],
-  providers: [],
+  providers: [
+    MiddleWare, 
+    UsersService
+  ],
   bootstrap: [AppComponent]
 })
 export class AppModule { }

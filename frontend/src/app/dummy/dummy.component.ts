@@ -26,17 +26,17 @@ export class DummyComponent{
     console.log("heree");
     console.log(postData);
     this.http.post(
-      'http://localhost:5000/test/testcreate', 
+      'http://localhost:5000/user/create', 
       postData).subscribe(
         responseData => {
           console.log(responseData);
       });
   }
 
-  onGetUser( username) {
+  onGetUser(username) {
     console.log("Get User", username.value);
     this.http.get(
-      'http://localhost:5000/test/testget', 
+      'http://localhost:5000/user/get', 
       username).subscribe(
         responseData => {
           console.log(responseData);
@@ -46,7 +46,7 @@ export class DummyComponent{
   onGetAll() {
     console.log("Get All");
     this.http.get(
-      'http://localhost:5000/test/testgetall',
+      'http://localhost:5000/user/getall',
     ).subscribe(
       responseData => {
         console.log("This Response Data");
@@ -60,7 +60,7 @@ export class DummyComponent{
     console.log("Update User");
     console.log(x.form.value)
     this.http.put(
-      'http://localhost:5000/test/testupdate',
+      'http://localhost:5000/user/update',
       x.form.value
     ).subscribe(
       responseData => {
@@ -84,7 +84,7 @@ export class DummyComponent{
       },
     };
     this.http.delete(
-      'http://localhost:5000/test/testdelete', options).subscribe(
+      'http://localhost:5000/user/delete', options).subscribe(
         responseData => {
           console.log(responseData);
         }

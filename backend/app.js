@@ -8,14 +8,14 @@ const bodyParser = require('body-parser')
 // The express() library will be used to handle backend routing
 const app = express()
 const mysqlapp = express()
-
+const cors = require('cors')
 // allows our app to use json data
 app.use(express.json())
 
 // Allows use to parse application/json type post data
 mysqlapp.use(bodyParser.json());
 mysqlapp.use(bodyParser.urlencoded({extended:true}));
-
+// mysqlapp.use(cors());
 
 // instantiate our database that was set up and connected in mongoose.js
 const mongoose = require('./database/mongoose')
@@ -23,12 +23,13 @@ const mysql_connection = require('./database/mysql')
 
 const List = require('./database/models/list')
 const Task = require('./database/models/task')
-const test = require('./database/models/mysql.test.model')
+const user = require('./database/models/mysql.user.model')
 
 /*
     CORS: Cross-origin resource sharing
-    localhost:3000 - back-end api
+    localhost:3000 - back-end api (mongo)
     localhost:4200 - front-end
+    localhost:5000 - back-end api (mysql)
 
     For our back-end, CORS will take any request that comes from ports other than 3000 and reject it
 */
@@ -154,9 +155,8 @@ mysqlapp.get('/', (req, res) => {
 });
 
 const onlineGamesRoutes = require('./controllers/online-games.controller');
-const testRoutes = require('./controllers/mysql.test.controller');
-
-mysqlapp.use('/test', testRoutes)
+const userRoutes = require('./controller/mysql.user.controllers');
+mysqlapp.use('/user', userRoutes)
 mysqlapp.use('/online-games', onlineGamesRoutes);
 
 // port number to listen on, callback fxn for when it completes
