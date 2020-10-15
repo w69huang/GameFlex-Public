@@ -154,7 +154,7 @@ app.delete('/lists/:listId/tasks/:taskId', (req, res) => {
 
 // Configuration Routes //
 
-app.get('/configpost/:configurationId', (req, res) => {
+app.get('/configeditor/:configurationId', (req, res) => {
     // note: `_id` is the auto-generated id for the task
     Configuration.findOne({ _id: req.params.configurationId })
         .then((configuration) => {
@@ -165,10 +165,11 @@ app.get('/configpost/:configurationId', (req, res) => {
     console.log('Config Get Backend has run!', req.params.configurationId);
 })
 
-app.post('/configpost', (req, res) => {
+app.post('/configeditor', (req, res) => {
     console.log('The req.body line: ', req.body);
-    console.log('The new config line: ', new Configuration({ 'userId': req.body.configuration.userId, 'numPlayers': req.body.configuration.numPlayers, handsVisibleOnInsert: req.body.configuration.handsVisibleOnInsert, 'decks': req.body.configuration.decks, 'counters': [] }));
-    (new Configuration({ 'userId': req.body.configuration.userId, 'numPlayers': req.body.configuration.numPlayers, 'handsVisibleOnInsert': req.body.configuration.handsVisibleOnInsert, 'decks': req.body.configuration.decks, 'counters': [] }))
+    newConfig = new Configuration({ 'userId': req.body.configuration.userId, 'numPlayers': req.body.configuration.numPlayers, handsVisibleOnInsert: req.body.configuration.handsVisibleOnInsert, 'decks': req.body.configuration.decks, 'counters': [] });
+    console.log('The new config line: ', newConfig);
+    (newConfig)
         .save()
         .then((configuration) => {
             res.send(configuration);
@@ -176,6 +177,20 @@ app.post('/configpost', (req, res) => {
         })
         .catch((error) => console.log(error))
     console.log('Config Post Backend has run!');
+})
+
+app.patch('/configeditor/:configurationId', (req, res) => {
+    Configuration.findOneAndUpdate({ _id: req.params.configurationId }, { $set: req.body.configuration })
+        .then((configuration) => res.send(configuration))
+        .catch((error) => console.log(error))
+    console.log('Config Patch/Update Backend has run!');
+})
+
+app.delete('/configeditor/:configurationId', (req, res) => {
+    Configuration.findByIdAndDelete({ _id: req.params.configurationId })
+        .then((configuration) => res.send(configuration))
+        .catch((error) => console.log(error))
+    console.log('Config Delete Backend has run!');
 })
 
 // MY SQL:

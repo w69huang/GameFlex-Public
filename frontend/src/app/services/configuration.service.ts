@@ -10,29 +10,23 @@ export class ConfigurationService {
   constructor(private webService: WebService) { }
 
   getConfiguration(configurationId) {
-    return this.webService.get(`configpost/${configurationId}`);
+    return this.webService.get(`configeditor/${configurationId}`);
   }
 
   createConfiguration(configuration: Configuration) {
-    console.log('Front end createConfig!');
-    return this.webService.post(`configpost`, { configuration });
+    return this.webService.post(`configeditor`, { configuration });
   }
 
-  // getTasks (listId: string) {
-  //   return this.webService.get(`lists/${listId}/tasks`);
-  // }
+  updateConfiguration(configuration: Configuration) {
+    console.log('Front end updateConfig!');
+    return this.webService.patch(`configeditor/${configuration._id}`, { configuration });
+  }
 
-  // createTask(listId: string, title: string) {
-  //   return this.webService.post(`lists/${listId}/tasks`, { title });
-  // }
+  deleteConfiguration(configurationId) {
+    console.log('Front end deleteConfig!!');
+    return this.webService.delete(`configeditor/${configurationId}`);
+  }
 
-  // deleteList (listId: string) {
-  //   return this.webService.delete(`lists/${listId}`);
-  // }
-
-  // deleteTask(listId: string, taskId: string) {
-  //   return this.webService.delete(`lists/${listId}/tasks/${taskId}`);
-  // }
 
   // setCompleted (listId: string, task: Task) {
   //   // Recall: On the backend, in app.js, the patch method for tasks updates only the properties that are passed in the body

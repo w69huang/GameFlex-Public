@@ -88,33 +88,44 @@ export class ConfigEditorComponent implements OnInit {
   saveConfig() {
     // if(configurationId){ this.configurationService.updateConfiguration(........)} else {}
 
-    console.log(this.gameState.decks);
     // Convert Decks to Deck model
     let decks = [];
     this.gameState.decks?.forEach(deck => decks.push(new DeckMin(deck))) //TODO: This does nothing rn. Is the reason it's not saving because of the backend model not matching up maybe?
 
     // Convert Counters to Counter model
     // TODO To be implemented 
-    console.log(decks);
 
-    this.configuration = new Configuration(1, "BIG TURD", 3, true, decks, []);
+    this.configuration = new Configuration(1, "_RiskLife_", 3, true, decks, []);
     this.configurationService.createConfiguration(this.configuration)
       .subscribe((configuration: Configuration) => {
         this.configuration = configuration;
         this.configurationId = configuration._id;
-        console.log(configuration);
       })
 
   }
 
-  addConfig(configurationId: number) {
-    this.configurationService.createConfiguration(this.configuration)
-      .subscribe(() => this.router.navigate(['../'], { relativeTo: this.route }))
+  updateConfig() {
+    this.configuration.decks = [];
+    this.gameState.decks?.forEach(deck => this.configuration.decks.push(deck));
+    this.configurationService.updateConfiguration(this.configuration)
+      .subscribe((configuration: Configuration) => {
+        this.configuration = configuration;
+        this.configurationId = configuration._id;
+        console.log("Updated to... ", configuration);
+      })
   }
 
-  getConfig(id) {
-    id = '5f7fb1d8952da02656b07af3'; //TODO this properly
-    // auto save before get (maybe)
+  deleteConfig(configurationId: string = this?.configuration._id) {
+    this.configurationService.deleteConfiguration(configurationId)
+      .subscribe(() => {
+        console.log('Deletion has returned.');
+        this.configurationId = null;
+        this.configuration = {};
+      })
+  }
+
+  getConfig(configurationId: string) {
+    // TODO: auto save before get (maybe)
     // saveConfig()
 
     // delete all current decks adn counters
@@ -123,7 +134,7 @@ export class ConfigEditorComponent implements OnInit {
 
     this.gameState.decks = [];
 
-    this.configurationService.getConfiguration(id)
+    this.configurationService.getConfiguration(configurationId)
       .subscribe((configuration: Configuration) => {
         this.configuration = configuration;
         this.configurationId = configuration._id; //TODO Figure out how to do this properly we should be able to just reference if it exists
