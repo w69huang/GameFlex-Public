@@ -18,10 +18,14 @@ export class WebService {
 
   post (uri: string, payload: Object, optionalArgs: Object = null) {
     // 2nd param is the body of the request
-    return this.http.post(`${this.ROOT_URL}/${uri}`, payload, {
-      reportProgress: true,
-      observe: 'events'
-    });
+    console.log(`${this.ROOT_URL}/${uri}`)
+    console.log(payload)
+    return this.http.post(`${this.ROOT_URL}/${uri}`, payload 
+    // {
+    //   reportProgress: true,
+    //   observe: 'events'
+    // }
+    );
   }
 
   patch (uri: string, payload: Object) {

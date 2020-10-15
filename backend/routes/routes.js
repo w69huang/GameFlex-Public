@@ -65,6 +65,7 @@ module.exports = (upload) => {
         GET: Fetches a particular file by filename
     */
     router.route('/file/:filename').get((req, res, next) => {
+        console.log(req.params.filename)
         gfs.find({filename: req.params.filename }).toArray((err, files) => {
             if (!files[0] || files.length === 0) {
                 return res.status(200).json({
@@ -108,10 +109,10 @@ module.exports = (upload) => {
    /*
         DELETE: delete a file by filename
     */
-   router.route('/file/del/:id').post((req, res, next) => {
+   router.route('/file/del').post((req, res, next) => {
        console.log('test!!!!')
-       console.log(req.params.id);
-       gfs.delete(new mongoose.Types.ObjectId(req.params.id),
+       console.log(req.body.id);
+       gfs.delete(new mongoose.Types.ObjectId(req.body.id),
        (err, data) => {
            if (err) {
                return res.status(404).json({err: err});
@@ -119,7 +120,7 @@ module.exports = (upload) => {
 
            res.status(200).json({
                success: true,
-               message: 'File with ID '+req.params.id+' is deleted',
+               message: 'File with ID '+req.body.id+' is deleted',
            });
        });
    });

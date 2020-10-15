@@ -15,12 +15,14 @@ public fileList$: string[] = [];
    this.fileService.list().subscribe((data) => {
     for (var i = 0; i < data.files.length; i++) {
       var fileName = data.files[i];
-      this.fileList$.push(fileName.filename);
+      // this.fileList$.push(fileName.filename);
+      this.fileList$.push(fileName._id);
     }
    });
   }
 
  public download(fileName: string):  void {
+   fileName = "Screenshot_20180823-170541_Google.jpg";
    this.fileService.download(fileName);
  }
 

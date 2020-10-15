@@ -25,12 +25,15 @@ export class FileService {
   }
 
   public download(fileName: string): void {
-
+    console.log(`file/${fileName}`)
+    this.webService.get(`file/${fileName}`).subscribe(res => {
+      window.open(window.URL.createObjectURL(res));
+    });
   }
 
   public remove(fileName): void {
-    this.webService.post('file/del/'+fileName, fileName);
-    console.log(fileName);
+    this.webService.post('file/del', {"id": fileName}).subscribe();
+    //console.log('file/del/'+fileName);
     this.fileList.splice(this.fileList.findIndex(name => name === fileName), 1);
     this.fileList$.next(this.fileList);
   }
