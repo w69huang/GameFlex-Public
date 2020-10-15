@@ -149,15 +149,14 @@ app.delete('/lists/:listId/tasks/:taskId', (req, res) => {
         .catch((error) => console.log(error))
 })
 
-// MY SQL:
-mysqlapp.get('/', (req, res) => {
-    res.send("Hello World");
-});
+// Setting up routes that live in different controllers
 
 const onlineGamesRoutes = require('./controllers/online-games.controller');
 const userRoutes = require('./controllers/mysql.user.controllers');
+const savedGameStateRoutes = require('./controllers/saved-game-state.controller');
 mysqlapp.use('/user', userRoutes)
 mysqlapp.use('/online-games', onlineGamesRoutes);
+app.use('/saved-game-state', savedGameStateRoutes);
 
 // port number to listen on, callback fxn for when it completes
 app.listen(3000, () => console.log("Server Connected on port 3000"));

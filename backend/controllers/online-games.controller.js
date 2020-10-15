@@ -19,7 +19,6 @@ function get(request, result) {
             result.send(err);
         } else {
             console.log("Successfully retrieved online game.");
-            console.log(res);
             result.send(res);
         }
     });
@@ -32,7 +31,6 @@ function getAll(request, result) {
             result.send(err);
         } else {
             console.log("Successfully retrieved all online games.");
-            console.log(res);
             result.send(res);
         }
     });
@@ -48,7 +46,6 @@ function create(request, result) {
             result.send(err);
         } else {
             console.log("Successfully inserted a new online game.");
-            console.log(res);
             result.send(res);
         }
     });
@@ -61,7 +58,6 @@ function deleteAll(request, result) {
             result.send(err);
         } else {
             console.log("Successfully deleted all online games.");
-            console.log(res);
             result.send(res);
         }
     });
@@ -76,7 +72,6 @@ function update(request, result) {
             result.send(err);
         } else {
             console.log("Successfully updated online game.");
-            console.log(res);
             result.send(res);
         }
     });
@@ -89,7 +84,6 @@ function deleteOfflineGames() {
             console.log("Error in deleteOfflineGames for online games: ", err);
         } else {
             console.log("Successfully deleted inactive online games.");
-            console.log(res);
         }
     });
 }

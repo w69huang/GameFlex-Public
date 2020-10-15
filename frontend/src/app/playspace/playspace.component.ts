@@ -2,6 +2,8 @@ import { Component, OnInit } from '@angular/core';
 import { DataConnection } from 'peerjs';
 import { ActivatedRoute } from '@angular/router';
 import { HostService } from '../host.service';
+import { OnlineGamesService } from '../online-games.service';
+import { SavedGameStateService } from '../saved-game-state.service';
 import Peer from 'peerjs';
 import Phaser from 'phaser';
 import Card from '../models/card';
@@ -10,26 +12,15 @@ import Deck from '../models/deck';
 import DeckMin from '../models/deckMin';
 import Hand from '../models/hand';
 import GameState from '../models/gameState';
+import PlayerData from '../models/playerData';
+import SavedGameState from '../models/savedGameState';
 import SentGameState from '../models/sentGameState';
+import OnlineGame from '../models/onlineGame';
 import PlayspaceScene from '../models/phaser-scenes/playspaceScene';
 
 import * as HelperFunctions from '../helper-functions';
 import * as SharedActions from '../actions/sharedActions';
 import * as DeckActions from '../actions/deckActions';
-import OnlineGame from '../models/onlineGame';
-import { OnlineGamesService } from '../online-games.service';
-
-class PlayerData {
-  id: number; // Player ID
-  peerID: string;
-  username: string;
-
-  constructor(id: number, peerID: string, username?: string) {
-    this.id = id;
-    this.peerID = peerID;
-    this.username = username;
-  }
-}
 
 @Component({
   selector: 'app-playspace',
@@ -70,7 +61,7 @@ export class PlayspaceComponent implements OnInit {
   // NOTE: In the future, this should be populated by a DB call for a specific game
   public amHost: boolean = true;
   
-  constructor(private route: ActivatedRoute, private hostService: HostService, private onlineGamesService: OnlineGamesService) {
+  constructor(private route: ActivatedRoute, private hostService: HostService, private onlineGamesService: OnlineGamesService,  private savedGameStateService: SavedGameStateService) {
     this.myPeerID = hostService.getHostID();
     this.gameState = new GameState([], [], [], new Hand(this.playerID, []));
     this.playerDataObjects.push(new PlayerData(this.playerID, this.myPeerID));
@@ -180,6 +171,18 @@ export class PlayspaceComponent implements OnInit {
     };
 
     this.phaserGame = new Phaser.Game(this.config);
+  }
+
+  getAllSavedGameStates() {
+    this.savedGameStateService.getAll().subscribe(
+      (savedGameStates: SavedGameState[]) => {
+        console.log(savedGameStates);
+      }
+    );
+  }
+
+  saveGameState() {
+    this.savedGameStateService.create(new SavedGameState("test" + Math.round(Math.random()*10000).toString(), this.gameState, this.playerDataObjects));
   }
 
   updateOnlineGame() {
