@@ -25,7 +25,9 @@ function create(request, result) {
 }
 
 function deleteAll(request, result) {
-    
+    SavedGameState.deleteMany()
+        .then(() => console.log("Deleted all saved games."))
+        .catch((error) => console.log(error));
 }
 
 function update(request, result) {

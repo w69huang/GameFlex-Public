@@ -8,6 +8,7 @@ router.post('/post', create);
 router.delete('/delete', deleteAll);
 router.patch('/patch', update);
 
+deleteOfflineGames(); // Do a delete upon initialization to clear out old games
 setInterval(deleteOfflineGames, 60000);
 
 function get(request, result) {

@@ -14,10 +14,10 @@ export class SavedGameStateService {
   }
 
   create(savedGameState: SavedGameState): void {
-    this.webService.post('saved-game-state/post', savedGameState, true).subscribe(
-      (data) => {
-        console.log(data);
-      }
-    );
+    this.webService.post('saved-game-state/post', savedGameState, true).subscribe();
+  }
+
+  deleteAll(): any {
+    return this.webService.delete('saved-game-state/delete', true);
   }
 }

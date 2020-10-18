@@ -1,9 +1,12 @@
 import { Component, OnInit } from '@angular/core';
 import { DataConnection } from 'peerjs';
 import { ActivatedRoute } from '@angular/router';
+import { MatDialog } from '@angular/material/dialog';
+
 import { HostService } from '../host.service';
 import { OnlineGamesService } from '../online-games.service';
 import { SavedGameStateService } from '../saved-game-state.service';
+import { SaveGameStatePopupComponent } from '../popups/save-game-state-popup/save-game-state-popup.component';
 import Peer from 'peerjs';
 import Phaser from 'phaser';
 import Card from '../models/card';
@@ -21,6 +24,7 @@ import PlayspaceScene from '../models/phaser-scenes/playspaceScene';
 import * as HelperFunctions from '../helper-functions';
 import * as SharedActions from '../actions/sharedActions';
 import * as DeckActions from '../actions/deckActions';
+import { RetrieveGameStatePopupComponent } from '../popups/retrieve-game-state-popup/retrieve-game-state-popup.component';
 
 @Component({
   selector: 'app-playspace',
@@ -61,7 +65,13 @@ export class PlayspaceComponent implements OnInit {
   // NOTE: In the future, this should be populated by a DB call for a specific game
   public amHost: boolean = true;
   
-  constructor(private route: ActivatedRoute, private hostService: HostService, private onlineGamesService: OnlineGamesService,  private savedGameStateService: SavedGameStateService) {
+  constructor(
+    private route: ActivatedRoute, 
+    private hostService: HostService, 
+    private onlineGamesService: OnlineGamesService, 
+    private savedGameStateService: SavedGameStateService,
+    private dialog: MatDialog
+   ) {
     this.myPeerID = hostService.getHostID();
     this.gameState = new GameState([], [], [], new Hand(this.playerID, []));
     this.playerDataObjects.push(new PlayerData(this.playerID, this.myPeerID));
@@ -118,26 +128,31 @@ export class PlayspaceComponent implements OnInit {
         }
       });
     });
+   }
 
+  ngOnInit() {
     this.route.queryParams.subscribe(params => {
       this.mainHostID = params['host'];
       let onlineGameID = params['onlineGameID'];
 
-      this.onlineGamesService.get(onlineGameID).subscribe((onlineGame: OnlineGame) => {
-        this.onlineGame = onlineGame;
-        if (this.mainHostID != this.myPeerID) {
-          this.amHost = false;
-          this.openConnection();
-        } else {
-          document.getElementById('loading').style.display = "none";
-          document.getElementById('loadingText').style.display = "none";
-          this.updateOnlineGameInterval = setInterval(this.updateOnlineGame.bind(this), 300000); // Tell the backend that this game still exists every 5 mins
-        }
-      });     
+      if (onlineGameID) {
+        this.onlineGamesService.get(onlineGameID).subscribe((onlineGame: OnlineGame) => {
+          this.onlineGame = onlineGame;
+          if (this.mainHostID != this.myPeerID) {
+            this.amHost = false;
+            this.openConnection();
+          } else {
+            document.getElementById('loading').style.display = "none";
+            document.getElementById('loadingText').style.display = "none";
+            this.updateOnlineGameInterval = setInterval(this.updateOnlineGame.bind(this), 300000); // Tell the backend that this game still exists every 5 mins
+          }
+        }); 
+      } else {
+        document.getElementById('loading').style.display = "none";
+        document.getElementById('loadingText').style.display = "none";
+      }
     });
-   }
 
-  ngOnInit() {
     // TODO: Band-aid solution, find a better one at some point
     setTimeout(_=> this.initialize(), 100);
     this.checkIfCanOpenConnectionInterval = setInterval(this.checkIfCanOpenConnection.bind(this), 2000);
@@ -174,15 +189,32 @@ export class PlayspaceComponent implements OnInit {
   }
 
   getAllSavedGameStates() {
-    this.savedGameStateService.getAll().subscribe(
-      (savedGameStates: SavedGameState[]) => {
-        console.log(savedGameStates);
-      }
-    );
+    let dialogRef = this.dialog.open(RetrieveGameStatePopupComponent, {
+      height: '225',
+      width: '300px',
+    });
+
+    dialogRef.afterClosed().subscribe(formData => {
+
+    });
   }
 
   saveGameState() {
-    this.savedGameStateService.create(new SavedGameState("test" + Math.round(Math.random()*10000).toString(), this.gameState, this.playerDataObjects));
+    let dialogRef = this.dialog.open(SaveGameStatePopupComponent, {
+      height: '225px',
+      width: '300px',
+    });
+
+    dialogRef.afterClosed().subscribe(formData => {
+      if (formData.name) {
+        console.log(`Saving game with name ${formData.name} to DB.`);
+        this.savedGameStateService.create(new SavedGameState(formData.name, this.gameState, this.playerDataObjects));
+      }
+    });
+  }
+
+  deleteAllSaves() {
+    this.savedGameStateService.deleteAll().subscribe();
   }
 
   updateOnlineGame() {
