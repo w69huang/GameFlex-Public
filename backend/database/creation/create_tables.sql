@@ -30,7 +30,7 @@ CREATE TABLE `OnlineGameMySQL` (
     `maxPlayers` int NOT NULL,
     `passwordProtected` BOOLEAN NOT NULL,
     `privateGame` BOOLEAN NOT NULL,
-    `encryptedPassword` char(50) DEFAULT NULL,
+    `encryptedPassword` char(100) DEFAULT NULL,
     `configurationID` int NOT NULL,
 
     PRIMARY KEY (`onlineGameCode`)
