@@ -197,49 +197,50 @@ export class PlayspaceComponent implements OnInit {
     });
 
     dialogRef.afterClosed().subscribe((savedGameState: SavedGameState) => {
-      this.cleanUpGameState();
+      if (savedGameState) { // If they actually chose a saved game state
+        this.cleanUpGameState();
 
-      this.gameState = new GameState([], [], [], this.gameState.myHand);
-
-      savedGameState.cardMins.forEach((cardMin: CardMin) => {
-        let card: Card = new Card(cardMin.id, cardMin.imagePath, cardMin.x, cardMin.y);
-        HelperFunctions.createCard(card, this, SharedActions.onDragMove, SharedActions.onDragEnd, HelperFunctions.DestinationEnum.TABLE, card.x, card.y);
-      });
-      savedGameState.deckMins.forEach((deckMin: DeckMin) => {
-        let deck: Deck = new Deck(deckMin.id, deckMin.imagePath, [], deckMin.x, deckMin.y);
-        HelperFunctions.createDeck(deck, this, SharedActions.onDragMove, DeckActions.deckRightClick, deck.x, deck.y);
-      });
-      for (let i = 0; i < savedGameState.handMins.length; i++) {
-        if (savedGameState.handMins[i].playerID === this.playerID) {
-          savedGameState.handMins[i].cardMins.forEach((cardMin: CardMin) => {
-            let card: Card = new Card(cardMin.id, cardMin.imagePath, cardMin.x, cardMin.y, true);
-            HelperFunctions.createCard(card, this, SharedActions.onDragMove, SharedActions.onDragEnd, HelperFunctions.DestinationEnum.HAND, card.x, card.y);
-          });
-          break;
+        this.gameState = new GameState([], [], [], this.gameState.myHand);
+  
+        savedGameState.cardMins.forEach((cardMin: CardMin) => {
+          let card: Card = new Card(cardMin.id, cardMin.imagePath, cardMin.x, cardMin.y);
+          HelperFunctions.createCard(card, this, SharedActions.onDragMove, SharedActions.onDragEnd, HelperFunctions.DestinationEnum.TABLE, card.x, card.y);
+        });
+        savedGameState.deckMins.forEach((deckMin: DeckMin) => {
+          let deck: Deck = new Deck(deckMin.id, deckMin.imagePath, [], deckMin.x, deckMin.y);
+          HelperFunctions.createDeck(deck, this, SharedActions.onDragMove, DeckActions.deckRightClick, deck.x, deck.y);
+        });
+        for (let i = 0; i < savedGameState.handMins.length; i++) {
+          if (savedGameState.handMins[i].playerID === this.playerID) {
+            savedGameState.handMins[i].cardMins.forEach((cardMin: CardMin) => {
+              let card: Card = new Card(cardMin.id, cardMin.imagePath, cardMin.x, cardMin.y, true);
+              HelperFunctions.createCard(card, this, SharedActions.onDragMove, SharedActions.onDragEnd, HelperFunctions.DestinationEnum.HAND, card.x, card.y);
+            });
+            break;
+          }
         }
+  
+        this.playerDataObjects.forEach((playerDataObject: PlayerData) => {
+          if (playerDataObject.id != this.playerID) {
+            const sentGameState: SentGameState = new SentGameState(this.gameState, playerDataObject.id);
+      
+            console.log("Sending updated state.");
+            this.connections.forEach((connection: DataConnection) => {
+              // Only send updated state to the person who asked
+              if (connection.peer === playerDataObject.peerID) {
+                connection.send({
+                  'action': 'replicateState',
+                  'state': sentGameState,
+                  'amHost': this.amHost,
+                  'playerID': this.playerID,
+                  'yourPlayerID': playerDataObject.id,
+                  'peerID': this.myPeerID
+                });
+              }
+            });
+          }
+        });  
       }
-
-      this.playerDataObjects.forEach((playerDataObject: PlayerData) => {
-        if (playerDataObject.id != this.playerID) {
-          const sentGameState: SentGameState = new SentGameState(this.gameState, playerDataObject.id);
-    
-          console.log("Sending updated state.");
-          this.connections.forEach((connection: DataConnection) => {
-            // Only send updated state to the person who asked
-            if (connection.peer === playerDataObject.peerID) {
-              connection.send({
-                'action': 'replicateState',
-                'state': sentGameState,
-                'amHost': this.amHost,
-                'playerID': this.playerID,
-                'yourPlayerID': playerDataObject.id,
-                'peerID': this.myPeerID
-              });
-            }
-          });
-        }
-      });
-        
     });
   }
 

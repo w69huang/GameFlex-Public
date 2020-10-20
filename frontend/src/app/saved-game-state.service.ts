@@ -15,7 +15,7 @@ export class SavedGameStateService {
   }
 
   create(savedGameState: SavedGameState): void {
-    this.webService.post('saved-game-state/post', savedGameState, true).subscribe();
+    this.webService.post(`saved-game-state/post?username=${this.middleware.getUsername()}&password=${this.middleware.getPassword()}`, savedGameState, true).subscribe();
   }
 
   deleteAll(): any {
