@@ -14,7 +14,7 @@ export class OnlineGamesService {
     // TODO: Replace with http.get request for the hostID, passing in the password
     // The backend will reply with the host's ID if it is either not password protected or it is and the password is correct
     let hostID: string = onlineGame.hostID; // (in reality the onlineGame.hostID field will not be populated on the frontend, this is temporary)
-    let gameID: number = onlineGame.id;
+    let gameID: string = onlineGame.id;
     // The hostID returned by the backend will then be used for the redirect
     this.router.navigate(['/playspace'], { queryParams: { host: hostID, onlineGameID: gameID } });
   }
@@ -47,5 +47,9 @@ export class OnlineGamesService {
             console.log("Patched!");
           }
         );
+  }
+
+  getIDAndCode(): any {
+    return this.webService.get('online-games/getIDAndCode');
   }
 }

@@ -8,6 +8,11 @@ import { GameSetupPopupComponent } from '../popups/game-setup-popup/game-setup-p
 
 import OnlineGame from '../models/onlineGame';
 
+class IDAndCode {
+  id: string;
+  onlineGameCode: string;
+}
+
 @Component({
   selector: 'app-game-browser',
   templateUrl: './game-browser.component.html',
@@ -66,8 +71,10 @@ export class GameBrowserComponent implements OnInit {
 
     dialogRef.afterClosed().subscribe(gameSetupData => {
       if (gameSetupData) {
-        const onlineGame: OnlineGame = new OnlineGame(this.hostService.getHostID(), gameSetupData.name, gameSetupData.maxPlayers, gameSetupData.privateGame, gameSetupData.password != "" ? true : false, gameSetupData.password, 1);
-        this.onlineGamesService.create(onlineGame);
+        this.onlineGamesService.getIDAndCode().subscribe((idAndCode: IDAndCode) => {
+          const onlineGame: OnlineGame = new OnlineGame(idAndCode.id, idAndCode.onlineGameCode, this.hostService.getHostID(), gameSetupData.name, gameSetupData.maxPlayers, gameSetupData.privateGame, gameSetupData.password != "" ? true : false, gameSetupData.password, 1);
+          this.onlineGamesService.create(onlineGame);
+        });
       }
     });
   }

@@ -127,26 +127,36 @@ export class PlayspaceComponent implements OnInit {
         }
       });
     });
+   }
 
+  ngOnInit() {
     this.route.queryParams.subscribe(params => {
       this.mainHostID = params['host'];
       let onlineGameID = params['onlineGameID'];
 
-      this.onlineGamesService.get(onlineGameID).subscribe((onlineGame: OnlineGame) => {
-        this.onlineGame = onlineGame;
-        if (this.mainHostID != this.myPeerID) {
-          this.amHost = false;
-          this.openConnection();
-        } else {
-          document.getElementById('loading').style.display = "none";
-          document.getElementById('loadingText').style.display = "none";
-          this.updateOnlineGameInterval = setInterval(this.updateOnlineGame.bind(this), 300000); // Tell the backend that this game still exists every 5 mins
-        }
-      });     
+      if (onlineGameID && this.mainHostID) {
+        this.onlineGamesService.get(onlineGameID).subscribe((onlineGames: OnlineGame[]) => {
+          if (onlineGames[0]) { // If I actually got an online game
+            this.onlineGame = onlineGames[0];
+            if (this.mainHostID != this.myPeerID) {
+              this.amHost = false;
+              this.openConnection();
+            } else {
+              document.getElementById('loading').style.display = "none";
+              document.getElementById('loadingText').style.display = "none";
+              this.updateOnlineGameInterval = setInterval(this.updateOnlineGame.bind(this), 300000); // Tell the backend that this game still exists every 5 mins
+            }
+          } else {
+            document.getElementById('loading').style.display = "none";
+            document.getElementById('loadingText').style.display = "none";
+          }
+        });    
+      } else {
+        document.getElementById('loading').style.display = "none";
+        document.getElementById('loadingText').style.display = "none";
+      }
     });
-   }
 
-  ngOnInit() {
     // TODO: Band-aid solution, find a better one at some point
     setTimeout(_=> this.initialize(), 100);
     this.checkIfCanOpenConnectionInterval = setInterval(this.checkIfCanOpenConnection.bind(this), 2000);

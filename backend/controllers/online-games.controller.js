@@ -4,6 +4,7 @@ const mysql_connection = require('../database/mysql');
 
 router.get('/get', get);
 router.get('/getAll', getAll);
+router.get('/getIDAndCode', getIDAndCode);
 router.post('/post', create);
 router.delete('/delete', deleteAll);
 router.patch('/patch', update);
@@ -38,6 +39,55 @@ function getAll(request, result) {
     });
 }
 
+function generateRandomString (length) {
+    var result = '';
+    var characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
+    var charactersLength = characters.length;
+    for ( var i = 0; i < length; i++ ) {
+       result += characters.charAt(Math.floor(Math.random() * charactersLength));
+    }
+    return result;
+}
+
+function getIDAndCode(request, result) {
+    console.log("In getIDAndCode!");
+    mysql_connection.query("SELECT * FROM OnlineGameMySQL", function(err, res) {
+        if (err) {
+            console.log("Error in getIDAndCode for online games: ", err);
+            result.send(err);
+        } else {
+            let object = {
+                id: 0,
+                onlineGameCode: ""
+            };
+            if (res.length < 1) {
+                object.id = "1";
+            } else {
+                object.id = (parseInt(res[res.length - 1].id) + 1).toString();
+            }
+
+            let finished = false;
+            while (!finished) {
+                let codeMatch = true;
+                let code = generateRandomString(6);
+                for (let i = 0; i < res.length; i++) {
+                    if (res[i].onlineGameCode === code) {
+                        codeMatch = false;
+                        break;
+                    }
+                }
+                if (codeMatch) {
+                    finished = true;
+                    object.onlineGameCode = code;
+                }
+            }
+            console.log("Successfully generated new ID and code");
+            console.log(object);
+            result.send(object);
+        }
+    });
+}
+
 function create(request, result) {
     var onlineGame = request.body;    
     // TODO: ADD VALIDATION!
@@ -68,7 +118,8 @@ function deleteAll(request, result) {
 }
 
 function update(request, result) {
-    var onlineGame = request.body[0];  
+    var onlineGame = request.body;  
+    console.log(onlineGame);
     onlineGame.lastUpdated = Date.now();
     mysql_connection.query("UPDATE OnlineGameMySQL SET ? WHERE id=" + onlineGame.id, onlineGame, function (err, res) {
         if (err) {
