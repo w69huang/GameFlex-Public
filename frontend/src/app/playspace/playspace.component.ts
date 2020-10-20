@@ -6,7 +6,9 @@ import { MatDialog } from '@angular/material/dialog';
 import { HostService } from '../host.service';
 import { OnlineGamesService } from '../online-games.service';
 import { SavedGameStateService } from '../saved-game-state.service';
+import { MiddleWare } from '../services/middleware';
 import { SaveGameStatePopupComponent } from '../popups/save-game-state-popup/save-game-state-popup.component';
+import { RetrieveGameStatePopupComponent } from '../popups/retrieve-game-state-popup/retrieve-game-state-popup.component';
 import Peer from 'peerjs';
 import Phaser from 'phaser';
 import Card from '../models/card';
@@ -24,7 +26,6 @@ import PlayspaceScene from '../models/phaser-scenes/playspaceScene';
 import * as HelperFunctions from '../helper-functions';
 import * as SharedActions from '../actions/sharedActions';
 import * as DeckActions from '../actions/deckActions';
-import { RetrieveGameStatePopupComponent } from '../popups/retrieve-game-state-popup/retrieve-game-state-popup.component';
 
 @Component({
   selector: 'app-playspace',
@@ -70,7 +71,8 @@ export class PlayspaceComponent implements OnInit {
     private hostService: HostService, 
     private onlineGamesService: OnlineGamesService, 
     private savedGameStateService: SavedGameStateService,
-    private dialog: MatDialog
+    private dialog: MatDialog,
+    public middleware: MiddleWare,
    ) {
     this.myPeerID = hostService.getHostID();
     this.gameState = new GameState([], [], [], new Hand(this.playerID, []));
@@ -194,8 +196,50 @@ export class PlayspaceComponent implements OnInit {
       width: '300px',
     });
 
-    dialogRef.afterClosed().subscribe(formData => {
+    dialogRef.afterClosed().subscribe((savedGameState: SavedGameState) => {
+      this.cleanUpGameState();
 
+      this.gameState = new GameState([], [], [], this.gameState.myHand);
+
+      savedGameState.cardMins.forEach((cardMin: CardMin) => {
+        let card: Card = new Card(cardMin.id, cardMin.imagePath, cardMin.x, cardMin.y);
+        HelperFunctions.createCard(card, this, SharedActions.onDragMove, SharedActions.onDragEnd, HelperFunctions.DestinationEnum.TABLE, card.x, card.y);
+      });
+      savedGameState.deckMins.forEach((deckMin: DeckMin) => {
+        let deck: Deck = new Deck(deckMin.id, deckMin.imagePath, [], deckMin.x, deckMin.y);
+        HelperFunctions.createDeck(deck, this, SharedActions.onDragMove, DeckActions.deckRightClick, deck.x, deck.y);
+      });
+      for (let i = 0; i < savedGameState.handMins.length; i++) {
+        if (savedGameState.handMins[i].playerID === this.playerID) {
+          savedGameState.handMins[i].cardMins.forEach((cardMin: CardMin) => {
+            let card: Card = new Card(cardMin.id, cardMin.imagePath, cardMin.x, cardMin.y, true);
+            HelperFunctions.createCard(card, this, SharedActions.onDragMove, SharedActions.onDragEnd, HelperFunctions.DestinationEnum.HAND, card.x, card.y);
+          });
+          break;
+        }
+      }
+
+      this.playerDataObjects.forEach((playerDataObject: PlayerData) => {
+        if (playerDataObject.id != this.playerID) {
+          const sentGameState: SentGameState = new SentGameState(this.gameState, playerDataObject.id);
+    
+          console.log("Sending updated state.");
+          this.connections.forEach((connection: DataConnection) => {
+            // Only send updated state to the person who asked
+            if (connection.peer === playerDataObject.peerID) {
+              connection.send({
+                'action': 'replicateState',
+                'state': sentGameState,
+                'amHost': this.amHost,
+                'playerID': this.playerID,
+                'yourPlayerID': playerDataObject.id,
+                'peerID': this.myPeerID
+              });
+            }
+          });
+        }
+      });
+        
     });
   }
 
@@ -208,7 +252,7 @@ export class PlayspaceComponent implements OnInit {
     dialogRef.afterClosed().subscribe(formData => {
       if (formData.name) {
         console.log(`Saving game with name ${formData.name} to DB.`);
-        this.savedGameStateService.create(new SavedGameState(formData.name, this.gameState, this.playerDataObjects));
+        this.savedGameStateService.create(new SavedGameState(this.middleware.getUsername(), formData.name, this.gameState, this.playerDataObjects));
       }
     });
   }

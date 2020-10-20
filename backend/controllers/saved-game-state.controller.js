@@ -1,6 +1,7 @@
 const express = require('express');
 const router = express.Router();
-const mysql_connection = require('../database/mysql');
+const mySQLConnection = require('../database/mysql');
+const user = require('../database/models/mysql.user.model');
 
 const SavedGameState = require('../database/models/savedGameState');
 
@@ -10,15 +11,25 @@ router.delete('/delete', deleteAll);
 router.patch('/patch', update);
 
 function getAll(request, result) {
-   SavedGameState.find({})
-                 .then((savedGameStates) => result.send(savedGameStates))
-                 .catch((error) => console.log(error));
+    user.getUser(request.query.username, function(err, user) {
+        if (err) {
+            result.send(err);
+        } else {
+            if (user[0] != undefined) {
+                if (request.query.password == user[0].password) {
+                    SavedGameState.find({ username: request.query.username })
+                    .then((savedGameStates) => result.send(savedGameStates))
+                    .catch((error) => console.log(error));
+                }
+            } 
+        }
+    })
 }
 
 function create(request, result) {
     var savedGameState = request.body;    
     
-    (new SavedGameState({ 'id': savedGameState.id, 'name': savedGameState.name, 'date': savedGameState.date, 'cardMins': savedGameState.cardMins, 'deckMins': savedGameState.deckMins, 'handMins': savedGameState.handMins, 'savedPlayerData': savedGameState.savedPlayerData}))
+    (new SavedGameState({ 'username': savedGameState.username, 'name': savedGameState.name, 'date': savedGameState.date, 'cardMins': savedGameState.cardMins, 'deckMins': savedGameState.deckMins, 'handMins': savedGameState.handMins, 'savedPlayerData': savedGameState.savedPlayerData}))
         .save()
         .then((savedGameState) => result.send(savedGameState))
         .catch((error) => console.log(error));

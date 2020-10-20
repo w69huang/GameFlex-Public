@@ -1,5 +1,6 @@
 import { Injectable } from '@angular/core';
 import { WebService } from './web.service';
+import { MiddleWare } from './services/middleware';
 import SavedGameState from './models/savedGameState';
 
 @Injectable({
@@ -7,10 +8,10 @@ import SavedGameState from './models/savedGameState';
 })
 export class SavedGameStateService {
 
-  constructor(private webService: WebService) { }
+  constructor(private webService: WebService, private middleware: MiddleWare) { }
 
   getAll(): any {
-    return this.webService.get('saved-game-state/getAll', true);
+    return this.webService.get(`saved-game-state/getAll?username=${this.middleware.getUsername()}&password=${this.middleware.getPassword()}`, true);
   }
 
   create(savedGameState: SavedGameState): void {

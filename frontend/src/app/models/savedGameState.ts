@@ -9,7 +9,7 @@ import PlayerData from '../models/playerData';
 import SavedPlayerData from '../models/savedPlayerData';
 
 export default class SavedGameState {
-    id: number;
+    username: string;
     name: string;
     date: Date;
     cardMins: CardMin[] = [];
@@ -17,8 +17,8 @@ export default class SavedGameState {
     handMins: HandMin[] = [];
     savedPlayerData: SavedPlayerData[] = [];
 
-    constructor(name: string, gameState: GameState, playerData: PlayerData[]) { 
-        this.id = Math.round(Math.random()*10000); // TODO: Database call to check if this ID is taken
+    constructor(username: string, name: string, gameState: GameState, playerData: PlayerData[]) { 
+        this.username = username;
         this.name = name;
         this.date = new Date(); // Now
         gameState.cards.forEach((card: Card) => {

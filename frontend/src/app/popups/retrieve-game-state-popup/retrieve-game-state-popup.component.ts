@@ -31,14 +31,14 @@ export class RetrieveGameStatePopupComponent implements OnInit {
 
   ngOnInit(): void {
     this.savedGameStateService.getAll().subscribe((savedGameStates: SavedGameState[]) => {
-      savedGameStates.forEach((savedGameState) => {
+      savedGameStates?.forEach((savedGameState) => {
         savedGameState.date = new Date(savedGameState.date);
       });
       
       this.saves = savedGameStates;
       
       // set initial selection
-      this.saveCtrl.setValue(this.saves[0]);
+      // this.saveCtrl.setValue(this.saves[0]);
 
       // load the initial save list
       this.filteredSaves.next(this.saves.slice());
@@ -53,7 +53,7 @@ export class RetrieveGameStatePopupComponent implements OnInit {
   }
 
   ngAfterViewInit() {
-    this.setInitialValue();
+    // this.setInitialValue();
   }
 
   ngOnDestroy() {
@@ -99,7 +99,7 @@ export class RetrieveGameStatePopupComponent implements OnInit {
     this.dialogRef.close();
   }
 
-  submit(name: string): void {
-    this.dialogRef.close({ name: name });
+  submit(savedGameState: SavedGameState): void {
+    this.dialogRef.close(savedGameState);
   }
 }

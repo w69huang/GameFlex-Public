@@ -1,7 +1,10 @@
 const mongoose = require('mongoose')
 
 const SavedGameStateSchema = new mongoose.Schema({
-    id: Number,
+    username: {
+        type: String,
+        minlength: 3
+    },
     name: {
         type: String,
         minlength: 3
