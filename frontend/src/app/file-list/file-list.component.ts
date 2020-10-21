@@ -23,7 +23,14 @@ public fileList$: string[] = [];
 
  public download(fileName: string):  void {
    fileName = "Screenshot_20180823-170541_Google.jpg";
-   this.fileService.download(fileName);
+   this.fileService.download(fileName).subscribe((data) => {
+     
+     var base64Res = btoa(data);
+     var outputImage = document.createElement('img');
+     outputImage.src = 'data:image/jpg;base64,'+base64Res;
+
+     document.body.appendChild(outputImage);
+   });
  }
 
  public remove(fileName: string):  void {

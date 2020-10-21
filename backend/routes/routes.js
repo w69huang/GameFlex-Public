@@ -3,6 +3,7 @@ let express = require('express'),
   mongoose = require('mongoose'),
   router = express.Router(),
   config = require('../config');
+  var fs = require('fs')
 
 
 module.exports = (upload) => {
@@ -83,8 +84,7 @@ module.exports = (upload) => {
     /* 
         GET: Fetches a particular image and render on browser
     */
-   router.route('/image/:filename')
-   .get((req, res, next) => {
+   router.route('/image/:filename').get((req, res, next) => {
        gfs.find({ filename: req.params.filename }).toArray((err, files) => {
            if (!files[0] || files.length === 0) {
                return res.status(200).json({
@@ -98,6 +98,20 @@ module.exports = (upload) => {
                 || files[0].contentType === 'image/svg+xml') {
                // render image to browser
                gfs.openDownloadStreamByName(req.params.filename).pipe(res);
+               console.log(res);
+               //console.log(req.params.filename);
+            //    gfs.openDownloadStreamByName(req.params.filename).
+            //     pipe(fs.createWriteStream(req.params.filename)).
+            //         on('error', function (error) {
+            //             console.log('error ' + error);
+            //             res.status(404).json({
+            //                 err: error.message
+            //             });
+            //         }).
+            //         on('finish', function() {
+            //             console.log('Done!!');
+            //             res.send('Downloaded succesfully!')
+            //         });
            } else {
                res.status(404).json({
                    err: 'Not an image',

@@ -18,17 +18,16 @@ export class FileService {
   public upload(fileName: string, fileContent: FormData) {
     this.fileList.push(fileName);
     this.fileList$.next(this.fileList);
+    console.log(fileContent);
     return this.webService.post('upload', fileContent, {
       reportProgress: true,
       observe: 'events'
     });
   }
 
-  public download(fileName: string): void {
-    console.log(`file/${fileName}`)
-    this.webService.get(`file/${fileName}`).subscribe(res => {
-      window.open(window.URL.createObjectURL(res));
-    });
+  public download(fileName: string): any {
+    console.log(`image/${fileName}`);
+    return this.webService.get(`image/${fileName}`, {responseType: 'text'});
   }
 
   public remove(fileName): void {
