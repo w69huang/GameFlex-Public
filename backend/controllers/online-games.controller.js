@@ -1,11 +1,14 @@
 const express = require('express');
+const crypto = require('crypto');
 const router = express.Router();
 const mysql_connection = require('../database/mysql');
+const hash = crypto.createHash('sha256');
 
 router.get('/get', get);
 router.get('/getAll', getAll);
 router.get('/getIDAndCode', getIDAndCode);
 router.post('/post', create);
+router.post('/verifyGamePassword', verifyGamePassword);
 router.delete('/delete', deleteAll);
 router.patch('/patch', update);
 
@@ -13,7 +16,6 @@ setInterval(deleteOfflineGames, 60000);
 
 function get(request, result) {
     var onlineGameID = request.query['id'];
-    console.log(`onlineGameID: ${onlineGameID}`);
     mysql_connection.query("SELECT * FROM OnlineGameMySQL WHERE id=" + onlineGameID, function(err, res) {
         if (err) {
             console.log("Error in get for online games: ", err);
@@ -33,7 +35,10 @@ function getAll(request, result) {
             result.send(err);
         } else {
             console.log("Successfully retrieved all online games.");
-            console.log(res);
+            res.forEach((onlineGame) => {
+                onlineGame.hostID = ""; // Do not send Host IDs to the frontend
+                onlineGame.encryptedPassword = ""; // No need to send encrypted passwords either
+            });
             result.send(res);
         }
     });
@@ -89,8 +94,12 @@ function getIDAndCode(request, result) {
 }
 
 function create(request, result) {
-    var onlineGame = request.body;    
     // TODO: ADD VALIDATION!
+
+    var onlineGame = request.body;
+    if (onlineGame.encryptedPassword != "") {
+        onlineGame.encryptedPassword = hash.update(onlineGame.encryptedPassword).digest('hex');
+    }
 
     mysql_connection.query("INSERT INTO OnlineGameMySQL SET ?", onlineGame, function (err, res) {
         if (err) {
@@ -102,6 +111,33 @@ function create(request, result) {
             result.send(res);
         }
     });
+}
+
+function verifyGamePassword(request, result) {
+    const onlineGameID = request.body.onlineGame.id;
+    mysql_connection.query("SELECT * FROM OnlineGameMySQL WHERE id=" + onlineGameID, function(err, res) {
+        if (err) {
+            console.log("Error in verifyGamePassword for online games: ", err);
+            result.send(err);
+        } else {
+            let hashedPassword = "";
+            if (request.body.password != "") {
+                hashedPassword = hash.update(request.body.password).digest();
+            } 
+            if (res.length != 1) {
+                console.log("Error in verifyGamePassword for online games: No matching game/more than one matching game.");
+            } else {
+                console.log(`Hashed PW: ${hashedPassword}, Encrypted PW: ${res[0].encryptedPassword}`);
+                if (hashedPassword === res[0].encryptedPassword) {
+                    console.log(`Verification of game password successful. HostID: ${res[0].hostID}.`);
+                    result.send({ hostID: res[0].hostID })
+                } else {
+                    console.log("Verification of game password failed.");
+                }
+            }
+        }
+    });
+
 }
 
 function deleteAll(request, result) {
@@ -140,7 +176,6 @@ function deleteOfflineGames() {
             console.log("Error in deleteOfflineGames for online games: ", err);
         } else {
             console.log("Successfully deleted inactive online games.");
-            console.log(res);
         }
     });
 }
