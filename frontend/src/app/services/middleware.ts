@@ -34,6 +34,14 @@ export class MiddleWare {
         return JSON.parse(localStorage.getItem('loggedIn') || this.loggedInStatus.toString());
     }
 
+    getUsername(): string {
+        return localStorage.getItem('username');
+    }
+
+    getPassword(): string {
+        return localStorage.getItem('password');
+    }
+
     getUserDetails(username, password) {
         //Get a specific user's data. Is this needed? Maybe. 
         return "to do";

@@ -2,6 +2,8 @@ import { Component, OnInit } from '@angular/core';
 import { DataConnection } from 'peerjs';
 import { ActivatedRoute } from '@angular/router';
 import { HostService } from '../host.service';
+import { OnlineGamesService } from '../online-games.service';
+import { MiddleWare } from '../services/middleware';
 import Peer from 'peerjs';
 import Phaser from 'phaser';
 import Card from '../models/card';
@@ -12,12 +14,11 @@ import Hand from '../models/hand';
 import GameState from '../models/gameState';
 import SentGameState from '../models/sentGameState';
 import PlayspaceScene from '../models/phaser-scenes/playspaceScene';
+import OnlineGame from '../models/onlineGame';
 
 import * as HelperFunctions from '../helper-functions';
 import * as SharedActions from '../actions/sharedActions';
 import * as DeckActions from '../actions/deckActions';
-import OnlineGame from '../models/onlineGame';
-import { OnlineGamesService } from '../online-games.service';
 
 class PlayerData {
   id: number; // Player ID
@@ -70,7 +71,7 @@ export class PlayspaceComponent implements OnInit {
   // NOTE: In the future, this should be populated by a DB call for a specific game
   public amHost: boolean = true;
   
-  constructor(private route: ActivatedRoute, private hostService: HostService, private onlineGamesService: OnlineGamesService) {
+  constructor(private route: ActivatedRoute, private hostService: HostService, private onlineGamesService: OnlineGamesService, private middleware: MiddleWare) {
     this.myPeerID = hostService.getHostID();
     this.gameState = new GameState([], [], [], new Hand(this.playerID, []));
     this.playerDataObjects.push(new PlayerData(this.playerID, this.myPeerID));

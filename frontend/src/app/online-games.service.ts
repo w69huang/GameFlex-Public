@@ -14,6 +14,8 @@ export class OnlineGamesService {
     this.webService.post('online-games/verifyGamePassword', { onlineGame: onlineGame, password: password }).subscribe((object: any) => {
       if (object.hostID) {
         this.router.navigate(['/playspace'], { queryParams: { host: object.hostID, onlineGameID: onlineGame.id } });
+      } else {
+        alert('Password incorrect.');
       }
     });
 
@@ -41,12 +43,21 @@ export class OnlineGamesService {
   }
 
   confirmActive(onlineGame: OnlineGame): void {
-    this.webService.patch('online-games/patch/', onlineGame)
+    this.webService.patch('online-games/confirmActive', onlineGame)
         .subscribe(
           (data) => {
             console.log("Patched!");
           }
         );
+  }
+
+  updateHostID(onlineGame: OnlineGame, password: string): void {
+    this.webService.patch('online-games/updateHostID', { onlineGame: onlineGame, password: password })
+    .subscribe(
+      (data) => {
+        console.log("Patched!");
+      }
+    );
   }
 
   getIDAndCode(): any {

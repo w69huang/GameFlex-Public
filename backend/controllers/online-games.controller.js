@@ -2,7 +2,6 @@ const express = require('express');
 const crypto = require('crypto');
 const router = express.Router();
 const mysql_connection = require('../database/mysql');
-const hash = crypto.createHash('sha256');
 
 router.get('/get', get);
 router.get('/getAll', getAll);
@@ -10,7 +9,8 @@ router.get('/getIDAndCode', getIDAndCode);
 router.post('/post', create);
 router.post('/verifyGamePassword', verifyGamePassword);
 router.delete('/delete', deleteAll);
-router.patch('/patch', update);
+router.patch('/confirmActive', confirmActive);
+router.patch('/updateHostID', updateHostID);
 
 setInterval(deleteOfflineGames, 60000);
 
@@ -98,6 +98,7 @@ function create(request, result) {
 
     var onlineGame = request.body;
     if (onlineGame.encryptedPassword != "") {
+        const hash = crypto.createHash('sha256');
         onlineGame.encryptedPassword = hash.update(onlineGame.encryptedPassword).digest('hex');
     }
 
@@ -122,7 +123,8 @@ function verifyGamePassword(request, result) {
         } else {
             let hashedPassword = "";
             if (request.body.password != "") {
-                hashedPassword = hash.update(request.body.password).digest();
+                const hash = crypto.createHash('sha256');
+                hashedPassword = hash.update(request.body.password).digest('hex');
             } 
             if (res.length != 1) {
                 console.log("Error in verifyGamePassword for online games: No matching game/more than one matching game.");
@@ -137,7 +139,6 @@ function verifyGamePassword(request, result) {
             }
         }
     });
-
 }
 
 function deleteAll(request, result) {
@@ -153,7 +154,7 @@ function deleteAll(request, result) {
     });
 }
 
-function update(request, result) {
+function confirmActive(request, result) {
     var onlineGame = request.body;  
     console.log(onlineGame);
     onlineGame.lastUpdated = Date.now();
@@ -165,6 +166,33 @@ function update(request, result) {
             console.log("Successfully updated online game.");
             console.log(res);
             result.send(res);
+        }
+    });
+}
+
+function updateHostID(request, result) {
+    const onlineGameID = request.body.onlineGame.id;
+    mysql_connection.query("SELECT * FROM OnlineGameMySQL WHERE id=" + onlineGameID, function(err, res) {
+        if (err) {
+            console.log("Error in verifyGamePassword for online games: ", err);
+            result.send(err);
+        } else {
+            let hashedPassword = "";
+            if (request.body.password != "") {
+                const hash = crypto.createHash('sha256');
+                hashedPassword = hash.update(request.body.password).digest('hex');
+            } 
+            if (res.length != 1) {
+                console.log("Error in verifyGamePassword for online games: No matching game/more than one matching game.");
+            } else {
+                console.log(`Hashed PW: ${hashedPassword}, Encrypted PW: ${res[0].encryptedPassword}`);
+                if (hashedPassword === res[0].encryptedPassword) {
+                    console.log(`Verification of game password successful. HostID: ${res[0].hostID}.`);
+                    result.send({ hostID: res[0].hostID })
+                } else {
+                    console.log("Verification of game password failed.");
+                }
+            }
         }
     });
 }
