@@ -24,6 +24,7 @@ CREATE TABLE `StoredDeckMySQL` (
 
 CREATE TABLE `OnlineGameMySQL` (
     `onlineGameCode` char(50) NOT NULL,
+    `username` char(20) NOT NULL,
     `name` char(100) NOT NULL,
     `hostID` char(50) NOT NULL, 
     `numPlayers` int NOT NULL,
