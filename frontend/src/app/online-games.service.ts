@@ -1,6 +1,9 @@
 import { Injectable } from '@angular/core';
 import { Router } from '@angular/router';
+
 import { WebService } from './web.service';
+import { HostService } from './host.service';
+import { MiddleWare } from './services/middleware';
 import OnlineGame from './models/onlineGame';
 
 @Injectable({
@@ -8,7 +11,11 @@ import OnlineGame from './models/onlineGame';
 })
 export class OnlineGamesService {
 
-  constructor (private webService: WebService, private router: Router) { }
+  constructor (
+    private router: Router,
+    private webService: WebService,
+    private middleware: MiddleWare
+  ) { }
 
   verifyGamePassword(onlineGame: OnlineGame, password: string): void {
     this.webService.post('online-games/verifyGamePassword', { onlineGame: onlineGame, password: password }).subscribe((object: any) => {
@@ -51,13 +58,8 @@ export class OnlineGamesService {
         );
   }
 
-  updateHostID(onlineGame: OnlineGame, password: string): void {
-    this.webService.patch('online-games/updateHostID', { onlineGame: onlineGame, password: password })
-    .subscribe(
-      (data) => {
-        console.log("Patched!");
-      }
-    );
+  updateHostID(onlineGame: OnlineGame): any {
+    return this.webService.patch('online-games/updateHostID', { onlineGame: onlineGame, accountUsername: this.middleware.getUsername(), accountPassword: this.middleware.getPassword() });
   }
 
   getIDAndCode(): any {

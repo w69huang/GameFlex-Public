@@ -1,7 +1,7 @@
 import { BrowserModule } from '@angular/platform-browser';
 import { NgModule } from '@angular/core';
 import { HttpClientModule } from "@angular/common/http";
-import { FormsModule } from '@angular/forms';
+import { FormsModule, ReactiveFormsModule } from '@angular/forms';
 
 import { AppRoutingModule } from './app-routing.module';
 import { AppComponent } from './app.component';
@@ -18,6 +18,7 @@ import { MatCardModule } from '@angular/material/card';
 import { MatButtonModule } from '@angular/material/button';
 import { MatProgressBarModule } from '@angular/material/progress-bar';
 import { MatFormFieldModule } from '@angular/material/form-field';
+import { MatSelectModule} from '@angular/material/select';
 import { GameBrowserPopupComponent } from './popups/game-browser-password-popup/game-browser-password-popup.component';
 import { DummyComponent } from './dummy/dummy.component';
 import { GameSetupPopupComponent } from './popups/game-setup-popup/game-setup-popup.component';
@@ -27,6 +28,9 @@ import { MiddleWare } from './services/middleware';
 import { MatDialog, MatDialogModule } from '@angular/material/dialog';
 import { ChangepasswordComponent } from './changepassword/changepassword.component';
 import { UsersService } from './services/users.service';
+import { SaveGameStatePopupComponent } from './popups/save-game-state-popup/save-game-state-popup.component';
+import { RetrieveGameStatePopupComponent } from './popups/retrieve-game-state-popup/retrieve-game-state-popup.component';
+import { NgxMatSelectSearchModule } from 'ngx-mat-select-search';
 
 @NgModule({
   declarations: [
@@ -43,7 +47,9 @@ import { UsersService } from './services/users.service';
     SignupComponent,
     LoginComponent,
     DialogForgotPassword,
-    ChangepasswordComponent
+    ChangepasswordComponent,
+    SaveGameStatePopupComponent,
+    RetrieveGameStatePopupComponent,
   ],
   imports: [
     BrowserModule,
@@ -57,11 +63,16 @@ import { UsersService } from './services/users.service';
     MatProgressBarModule,
     MatDialogModule,
     MatFormFieldModule,
-    FormsModule
+    MatSelectModule,
+    FormsModule,
+    ReactiveFormsModule,
+    NgxMatSelectSearchModule
   ],
   entryComponents: [
     GameBrowserPopupComponent,
     GameSetupPopupComponent,
+    SaveGameStatePopupComponent,
+    RetrieveGameStatePopupComponent,
     DialogForgotPassword
   ],
   providers: [

@@ -5,6 +5,7 @@ import { MatDialog } from '@angular/material/dialog';
 
 import { GameBrowserPopupComponent } from '../popups/game-browser-password-popup/game-browser-password-popup.component';
 import { GameSetupPopupComponent } from '../popups/game-setup-popup/game-setup-popup.component';
+import { MiddleWare } from '../services/middleware';
 
 import OnlineGame from '../models/onlineGame';
 
@@ -25,7 +26,9 @@ export class GameBrowserComponent implements OnInit {
 
   constructor(private hostService: HostService,
               private onlineGamesService: OnlineGamesService, 
-              private dialog: MatDialog) { 
+              private dialog: MatDialog,
+              private middleware: MiddleWare
+              ) { 
     this.onlineGames = [];
   }
 
@@ -72,7 +75,7 @@ export class GameBrowserComponent implements OnInit {
     dialogRef.afterClosed().subscribe(gameSetupData => {
       if (gameSetupData) {
         this.onlineGamesService.getIDAndCode().subscribe((idAndCode: IDAndCode) => {
-          const onlineGame: OnlineGame = new OnlineGame(idAndCode.id, idAndCode.onlineGameCode, this.hostService.getHostID(), gameSetupData.name, gameSetupData.maxPlayers, gameSetupData.privateGame, gameSetupData.password != "" ? true : false, gameSetupData.password, 1);
+          const onlineGame: OnlineGame = new OnlineGame(idAndCode.id, idAndCode.onlineGameCode, this.middleware.getUsername(), this.hostService.getHostID(), gameSetupData.name, gameSetupData.maxPlayers, gameSetupData.privateGame, gameSetupData.password != "" ? true : false, gameSetupData.password, 1);
           this.onlineGamesService.create(onlineGame);
         });
       }

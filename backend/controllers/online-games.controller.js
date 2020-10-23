@@ -2,6 +2,7 @@ const express = require('express');
 const crypto = require('crypto');
 const router = express.Router();
 const mysql_connection = require('../database/mysql');
+const user = require('../database/models/mysql.user.model');
 
 router.get('/get', get);
 router.get('/getAll', getAll);
@@ -12,6 +13,7 @@ router.delete('/delete', deleteAll);
 router.patch('/confirmActive', confirmActive);
 router.patch('/updateHostID', updateHostID);
 
+deleteOfflineGames(); // Do a delete upon initialization to clear out old games
 setInterval(deleteOfflineGames, 60000);
 
 function get(request, result) {
@@ -22,7 +24,6 @@ function get(request, result) {
             result.send(err);
         } else {
             console.log("Successfully retrieved online game.");
-            console.log(res);
             result.send(res);
         }
     });
@@ -108,7 +109,6 @@ function create(request, result) {
             result.send(err);
         } else {
             console.log("Successfully inserted a new online game.");
-            console.log(res);
             result.send(res);
         }
     });
@@ -135,6 +135,7 @@ function verifyGamePassword(request, result) {
                     result.send({ hostID: res[0].hostID })
                 } else {
                     console.log("Verification of game password failed.");
+                    result.send(false);
                 }
             }
         }
@@ -148,7 +149,6 @@ function deleteAll(request, result) {
             result.send(err);
         } else {
             console.log("Successfully deleted all online games.");
-            console.log(res);
             result.send(res);
         }
     });
@@ -163,36 +163,31 @@ function confirmActive(request, result) {
             console.log("Error in update of online games: ", err);
             result.send(err);
         } else {
-            console.log("Successfully updated online game.");
-            console.log(res);
+            console.log("Successfully updated online game's lastUpdated date.");
             result.send(res);
         }
     });
 }
 
 function updateHostID(request, result) {
-    const onlineGameID = request.body.onlineGame.id;
-    mysql_connection.query("SELECT * FROM OnlineGameMySQL WHERE id=" + onlineGameID, function(err, res) {
-        if (err) {
-            console.log("Error in verifyGamePassword for online games: ", err);
-            result.send(err);
+    const onlineGame = request.body.onlineGame;
+    const accountUsername = request.body.accountUsername;
+    const accountPassword = request.body.accountPassword;
+    user.getUser(accountUsername, function(error, user) {
+        if (error) {
+            result.send(error);
         } else {
-            let hashedPassword = "";
-            if (request.body.password != "") {
-                const hash = crypto.createHash('sha256');
-                hashedPassword = hash.update(request.body.password).digest('hex');
+            if (user[0] != undefined && accountPassword === user[0].password && accountUsername === onlineGame.username) {
+                mysql_connection.query("UPDATE OnlineGameMySQL SET ? WHERE id=" + onlineGame.id, onlineGame, function (err, res) {
+                    if (err) {
+                        console.log("Error in updateHostID of online games: ", err);
+                        result.send(err);
+                    } else {
+                        console.log("Successfully updated online game's hostID.");
+                        result.send(res);
+                    }
+                });
             } 
-            if (res.length != 1) {
-                console.log("Error in verifyGamePassword for online games: No matching game/more than one matching game.");
-            } else {
-                console.log(`Hashed PW: ${hashedPassword}, Encrypted PW: ${res[0].encryptedPassword}`);
-                if (hashedPassword === res[0].encryptedPassword) {
-                    console.log(`Verification of game password successful. HostID: ${res[0].hostID}.`);
-                    result.send({ hostID: res[0].hostID })
-                } else {
-                    console.log("Verification of game password failed.");
-                }
-            }
         }
     });
 }

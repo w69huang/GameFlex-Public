@@ -4,6 +4,7 @@ import { Injectable } from '@angular/core';
 export class MiddleWare {
     private loggedInStatus = JSON.parse(localStorage.getItem('loggedIn') || 'false');
     private failedAttemps = parseInt(JSON.parse(localStorage.getItem('failedLogin') || '0'));
+
     setLoggedIn(value: boolean, username: string, password: string) {
         this.loggedInStatus = value;
         if (value == true) {

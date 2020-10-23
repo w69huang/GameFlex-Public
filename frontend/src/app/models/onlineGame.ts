@@ -1,5 +1,6 @@
 export default class OnlineGame {
     id: string;
+    username: string;
     onlineGameCode: string;
     name: string;
     hostID: string;
@@ -11,8 +12,9 @@ export default class OnlineGame {
     configurationID: number;
     lastUpdated: number;
 
-    constructor (id: string, onlineGameCode: string, hostID: string, name: string, maxPlayers: number, privateGame: boolean, passwordProtected: boolean, encryptedPassword: string, configurationID: number) {
+    constructor (id: string, onlineGameCode: string, username: string, hostID: string, name: string, maxPlayers: number, privateGame: boolean, passwordProtected: boolean, encryptedPassword: string, configurationID: number) {
         this.id = id;
+        this.username = username;
         this.onlineGameCode = onlineGameCode;
         this.name = name;
         this.hostID = hostID;

@@ -1,9 +1,14 @@
 import { Component, OnInit } from '@angular/core';
 import { DataConnection } from 'peerjs';
-import { ActivatedRoute } from '@angular/router';
+import { ActivatedRoute, Router } from '@angular/router';
+import { MatDialog } from '@angular/material/dialog';
+
 import { HostService } from '../host.service';
 import { OnlineGamesService } from '../online-games.service';
+import { SavedGameStateService } from '../saved-game-state.service';
 import { MiddleWare } from '../services/middleware';
+import { SaveGameStatePopupComponent } from '../popups/save-game-state-popup/save-game-state-popup.component';
+import { RetrieveGameStatePopupComponent } from '../popups/retrieve-game-state-popup/retrieve-game-state-popup.component';
 import Peer from 'peerjs';
 import Phaser from 'phaser';
 import Card from '../models/card';
@@ -12,25 +17,15 @@ import Deck from '../models/deck';
 import DeckMin from '../models/deckMin';
 import Hand from '../models/hand';
 import GameState from '../models/gameState';
+import PlayerData from '../models/playerData';
+import SavedGameState from '../models/savedGameState';
 import SentGameState from '../models/sentGameState';
-import PlayspaceScene from '../models/phaser-scenes/playspaceScene';
 import OnlineGame from '../models/onlineGame';
+import PlayspaceScene from '../models/phaser-scenes/playspaceScene';
 
 import * as HelperFunctions from '../helper-functions';
 import * as SharedActions from '../actions/sharedActions';
 import * as DeckActions from '../actions/deckActions';
-
-class PlayerData {
-  id: number; // Player ID
-  peerID: string;
-  username: string;
-
-  constructor(id: number, peerID: string, username?: string) {
-    this.id = id;
-    this.peerID = peerID;
-    this.username = username;
-  }
-}
 
 @Component({
   selector: 'app-playspace',
@@ -71,7 +66,15 @@ export class PlayspaceComponent implements OnInit {
   // NOTE: In the future, this should be populated by a DB call for a specific game
   public amHost: boolean = true;
   
-  constructor(private route: ActivatedRoute, private hostService: HostService, private onlineGamesService: OnlineGamesService, private middleware: MiddleWare) {
+  constructor(
+    private route: ActivatedRoute, 
+    private hostService: HostService, 
+    private onlineGamesService: OnlineGamesService, 
+    private savedGameStateService: SavedGameStateService,
+    private dialog: MatDialog,
+    private router: Router,
+    public middleware: MiddleWare
+   ) {
     this.myPeerID = hostService.getHostID();
     this.gameState = new GameState([], [], [], new Hand(this.playerID, []));
     this.playerDataObjects.push(new PlayerData(this.playerID, this.myPeerID));
@@ -135,23 +138,32 @@ export class PlayspaceComponent implements OnInit {
       this.mainHostID = params['host'];
       let onlineGameID = params['onlineGameID'];
 
-      if (onlineGameID && this.mainHostID) {
-        this.onlineGamesService.get(onlineGameID).subscribe((onlineGames: OnlineGame[]) => {
-          if (onlineGames[0]) { // If I actually got an online game
-            this.onlineGame = onlineGames[0];
-            if (this.mainHostID != this.myPeerID) {
+      if (onlineGameID) {
+        this.onlineGamesService.get(onlineGameID).subscribe((onlineGames: OnlineGame) => {
+          this.onlineGame = onlineGames[0];
+          if (!this.onlineGame && this.mainHostID != this.myPeerID) {
+            alert('Could not find requested game.')
+            document.getElementById('loading').style.display = "none";
+            document.getElementById('loadingText').style.display = "none";
+          } else if (this.mainHostID != this.myPeerID) {
+            if (this.onlineGame.username === this.middleware.getUsername()) { // i.e. I, the host, DC'd and was granted a new hostID
+              // Update the hostID of the online game
+              this.onlineGame.hostID = this.myPeerID;
+              this.onlineGamesService.updateHostID(this.onlineGame).subscribe((data) => {
+                document.getElementById('loading').style.display = "none";
+                document.getElementById('loadingText').style.display = "none";
+                this.updateOnlineGameInterval = setInterval(this.updateOnlineGame.bind(this), 300000); // Tell the backend that this game still exists every 5 mins
+              });
+            } else {
               this.amHost = false;
               this.openConnection();
-            } else {
-              document.getElementById('loading').style.display = "none";
-              document.getElementById('loadingText').style.display = "none";
-              this.updateOnlineGameInterval = setInterval(this.updateOnlineGame.bind(this), 300000); // Tell the backend that this game still exists every 5 mins
             }
           } else {
             document.getElementById('loading').style.display = "none";
             document.getElementById('loadingText').style.display = "none";
+            this.updateOnlineGameInterval = setInterval(this.updateOnlineGame.bind(this), 300000); // Tell the backend that this game still exists every 5 mins
           }
-        });    
+        }); 
       } else {
         document.getElementById('loading').style.display = "none";
         document.getElementById('loadingText').style.display = "none";
@@ -191,6 +203,78 @@ export class PlayspaceComponent implements OnInit {
     };
 
     this.phaserGame = new Phaser.Game(this.config);
+  }
+
+  getAllSavedGameStates() {
+    let dialogRef = this.dialog.open(RetrieveGameStatePopupComponent, {
+      height: '225',
+      width: '300px',
+    });
+
+    dialogRef.afterClosed().subscribe((savedGameState: SavedGameState) => {
+      if (savedGameState) { // If they actually chose a saved game state
+        this.cleanUpGameState();
+
+        this.gameState = new GameState([], [], [], this.gameState.myHand);
+  
+        savedGameState.cardMins.forEach((cardMin: CardMin) => {
+          let card: Card = new Card(cardMin.id, cardMin.imagePath, cardMin.x, cardMin.y);
+          HelperFunctions.createCard(card, this, SharedActions.onDragMove, SharedActions.onDragEnd, HelperFunctions.DestinationEnum.TABLE, card.x, card.y);
+        });
+        savedGameState.deckMins.forEach((deckMin: DeckMin) => {
+          let deck: Deck = new Deck(deckMin.id, deckMin.imagePath, [], deckMin.x, deckMin.y);
+          HelperFunctions.createDeck(deck, this, SharedActions.onDragMove, DeckActions.deckRightClick, deck.x, deck.y);
+        });
+        for (let i = 0; i < savedGameState.handMins.length; i++) {
+          if (savedGameState.handMins[i].playerID === this.playerID) {
+            savedGameState.handMins[i].cardMins.forEach((cardMin: CardMin) => {
+              let card: Card = new Card(cardMin.id, cardMin.imagePath, cardMin.x, cardMin.y, true);
+              HelperFunctions.createCard(card, this, SharedActions.onDragMove, SharedActions.onDragEnd, HelperFunctions.DestinationEnum.HAND, card.x, card.y);
+            });
+            break;
+          }
+        }
+  
+        this.playerDataObjects.forEach((playerDataObject: PlayerData) => {
+          if (playerDataObject.id != this.playerID) {
+            const sentGameState: SentGameState = new SentGameState(this.gameState, playerDataObject.id);
+      
+            console.log("Sending updated state.");
+            this.connections.forEach((connection: DataConnection) => {
+              // Only send updated state to the person who asked
+              if (connection.peer === playerDataObject.peerID) {
+                connection.send({
+                  'action': 'replicateState',
+                  'state': sentGameState,
+                  'amHost': this.amHost,
+                  'playerID': this.playerID,
+                  'yourPlayerID': playerDataObject.id,
+                  'peerID': this.myPeerID
+                });
+              }
+            });
+          }
+        });  
+      }
+    });
+  }
+
+  saveGameState() {
+    let dialogRef = this.dialog.open(SaveGameStatePopupComponent, {
+      height: '225px',
+      width: '300px',
+    });
+
+    dialogRef.afterClosed().subscribe(formData => {
+      if (formData.name) {
+        console.log(`Saving game with name ${formData.name} to DB.`);
+        this.savedGameStateService.create(new SavedGameState(this.middleware.getUsername(), formData.name, this.gameState, this.playerDataObjects));
+      }
+    });
+  }
+
+  deleteAllSaves() {
+    this.savedGameStateService.deleteAll().subscribe();
   }
 
   updateOnlineGame() {
@@ -247,13 +331,15 @@ export class PlayspaceComponent implements OnInit {
           this.handleData(data);
         });
         conn.on('close', () => {
-          console.log("Peer-to-Peer Error: Other party disconnected.");
+          console.log("Peer-to-Peer Error: Host disconnected.");
           this.connections = this.filterOutPeer(this.connections, conn);
+          this.router.navigate(['/playspace']);
         });
         conn.on('error', (err) => {
           console.log("Unspecified Peer-to-Peer Error:");
           console.log(err);
           this.connections = this.filterOutPeer(this.connections, conn);
+          this.router.navigate(['/playspace']);
         });
         if (this.openConnectionAttempts > 1) {
           conn.send({
@@ -267,6 +353,9 @@ export class PlayspaceComponent implements OnInit {
 
       if (this.openConnectionAttempts >= 5) {
         clearInterval(this.openConnectionInterval);
+        document.getElementById('loading').style.display = "none";
+        document.getElementById('loadingText').style.display = "none";
+        alert('Could not connect to host.');
       }
     } else {
       if (this.openConnectionInterval) {

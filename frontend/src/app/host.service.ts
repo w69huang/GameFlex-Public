@@ -9,13 +9,7 @@ export class HostService {
   hostID: string = null;
 
   constructor(private router: Router, private middleware: MiddleWare) { 
-    if (!this.hostID) {
-      if (middleware.isLoggedIn()) {
-        this.hostID = middleware.getUsername();
-      } else {
-        this.hostID = Math.round(Math.random()*10000).toString();
-      }
-    }
+    this.hostID = Math.round(Math.random()*10000).toString();
   }
 
   getHostID() {
