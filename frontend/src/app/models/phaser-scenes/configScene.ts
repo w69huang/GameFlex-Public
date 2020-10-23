@@ -1,6 +1,8 @@
 import { ConfigEditorComponent } from '../../config-editor/config-editor.component';
 import Card from '../card';
 import Deck from '../deck';
+import Counter from '../counter';
+
 
 import * as HelperFunctions from '../../helper-functions';
 import * as DeckActions from '../../actions/deckActions';
@@ -25,7 +27,7 @@ export default class ConfigScene extends Phaser.Scene {
 
     let cardList: Card[] = [];
     let deckList: Deck[] = [];
-
+    let counterList: Counter[] = [];
 
     if (this.configEditorComponent.gameState.myHand.gameObject == null) {
       this.configEditorComponent.gameState.myHand.gameObject = this.add.image(0, this.handBeginY, 'grey-background').setOrigin(0); // SET ORIGIN IS THE KEY TO HAVING IT PLACED IN THE CORRECT POSITION! Why??
@@ -42,6 +44,9 @@ export default class ConfigScene extends Phaser.Scene {
       HelperFunctions.createDeck(deck, this.configEditorComponent, SharedActions.onDragMove, DeckActions.deckRightClick, deck.x, deck.y);
     });
 
+    counterList.forEach(counter => {
+      HelperFunctions.createCounter(this.configEditorComponent, counter, SharedActions.onDragMove);
+    });
   }
 
   preload() {
@@ -51,8 +56,10 @@ export default class ConfigScene extends Phaser.Scene {
     this.configEditorComponent.gameState.decks.forEach(deck => {
       this.load.image(deck.imagePath, deck.imagePath);
     });
+    this.configEditorComponent.gameState.counters.forEach(counter => {
+      this.load.image('assets/images/playing-cards/counter.png', 'assets/images/playing-cards/counter.png'); //TODO: refactor so this is in counter OR better (imo) there is a object with all image paths OR EVEN BETTER jsut preload everything we know exists and hide it
+    });
     this.load.image('grey-background', 'assets/images/backgrounds/grey.png');
   }
-
   // update() {}
 }

@@ -13,6 +13,7 @@ import Card from '../models/card';
 import CardMin from '../models/cardMin';
 import Deck from '../models/deck';
 import DeckMin from '../models/deckMin';
+import Counter from '../models/counter';
 import Hand from '../models/hand';
 import HandMin from '../models/handMin';
 import GameState from '../models/gameState';
@@ -120,7 +121,7 @@ export class ConfigEditorComponent implements OnInit {
       .subscribe(() => {
         console.log('Deletion has returned.');
         this.configurationId = null;
-        this.configuration = {};
+        this.configuration = new Configuration(0, '', 0, false, [], []);
       })
   }
 
@@ -128,11 +129,13 @@ export class ConfigEditorComponent implements OnInit {
     // TODO: auto save before get (maybe)
     // saveConfig()
 
-    // delete all current decks adn counters
-
+    // delete all current decks and counters
     this.gameState.decks?.forEach(deck => deck.gameObject.destroy());
-
     this.gameState.decks = [];
+
+    this.gameState.counters?.forEach(deck => deck.gameObject.destroy());
+    this.gameState.counters = [];
+
 
     this.configurationService.getConfiguration(configurationId)
       .subscribe((configuration: Configuration) => {
@@ -151,6 +154,13 @@ export class ConfigEditorComponent implements OnInit {
     HelperFunctions.createDeck(deck, this, SharedActions.onDragMove, DeckActions.deckRightClick, deck.x, deck.y);
   }
 
+  initCounter() {
+    // Just for the create counter button
+    this.highestID++;
+    let counter: Counter = new Counter(this.highestID, "counter" + this.highestID, 80, 80); //TODO: Take in meaningful names
+    HelperFunctions.createCounter(this, counter, SharedActions.onDragMove);
+  }
+
   renderConfiguration(configuration: Configuration) {
     console.log(configuration);
     configuration.decks.forEach(deck => {
@@ -159,8 +169,11 @@ export class ConfigEditorComponent implements OnInit {
       deck.imagePath = "assets/images/playing-cards/deck.png";
       HelperFunctions.createDeck(deck, this, SharedActions.onDragMove, DeckActions.deckRightClick, deck.x, deck.y)
     });
-    //this.gameState.counters = configuration.counters;
-
+    // configuration.counters.forEach(counter => {
+    //   //deck.id = null;
+    //   counter.type = "counter"; //TODO This is probably not needed later OR see other comment about renderableObject
+    //   HelperFunctions.createCounter(this, counter, SharedActions.onDragMove)
+    // });
   }
 
 
