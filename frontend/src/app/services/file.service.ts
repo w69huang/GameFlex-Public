@@ -27,7 +27,7 @@ export class FileService {
 
   public download(fileName: string): any {
     console.log(`image/${fileName}`);
-    return this.webService.get(`image/${fileName}`, {responseType: 'text'});
+    return this.webService.getWithArgs(`image/${fileName}`, {responseType: 'text'});
   }
 
   public remove(fileName): void {
