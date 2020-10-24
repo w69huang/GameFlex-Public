@@ -12,9 +12,11 @@ export class WebService {
     this.ROOT_URL = "http://localhost:3000";
   }
 
-  get (uri: string, optionalArgs: any) {
-    return this.http.get(`${this.ROOT_URL}/${uri}`, optionalArgs);
+  get (uri: string) {
+    return this.http.get(`${this.ROOT_URL}/${uri}`);
   }
+
+  //TODO: New get with args
 
   post (uri: string, payload: Object, optionalArgs: Object = null) {
     // 2nd param is the body of the request

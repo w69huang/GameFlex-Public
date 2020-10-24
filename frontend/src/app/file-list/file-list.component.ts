@@ -22,13 +22,13 @@ public fileList$: string[] = [];
   }
 
  public download(fileName: string):  void {
-   fileName = "Screenshot_20180823-170541_Google.jpg";
+   fileName = "testimagepng.png";
    this.fileService.download(fileName).subscribe((data) => {
      
-     var base64Res = btoa(data);
+    //render base64 image to screen
+     console.log(data);
      var outputImage = document.createElement('img');
-     outputImage.src = 'data:image/jpg;base64,'+base64Res;
-
+     outputImage.src = 'data:image/jpg;base64,'+data;
      document.body.appendChild(outputImage);
    });
  }

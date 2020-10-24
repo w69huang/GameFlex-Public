@@ -3,7 +3,8 @@ let express = require('express'),
   mongoose = require('mongoose'),
   router = express.Router(),
   config = require('../config');
-  var fs = require('fs')
+  var fs = require('fs');
+const { resolve } = require('path');
 
 
 module.exports = (upload) => {
@@ -97,21 +98,23 @@ module.exports = (upload) => {
                 || files[0].contentType === 'image/png' 
                 || files[0].contentType === 'image/svg+xml') {
                // render image to browser
-               gfs.openDownloadStreamByName(req.params.filename).pipe(res);
-               console.log(res);
-               //console.log(req.params.filename);
-            //    gfs.openDownloadStreamByName(req.params.filename).
-            //     pipe(fs.createWriteStream(req.params.filename)).
-            //         on('error', function (error) {
-            //             console.log('error ' + error);
-            //             res.status(404).json({
-            //                 err: error.message
-            //             });
-            //         }).
-            //         on('finish', function() {
-            //             console.log('Done!!');
-            //             res.send('Downloaded succesfully!')
-            //         });
+            var rstream = gfs.openDownloadStreamByName(req.params.filename);
+
+            var bufs = [];
+            
+            rstream.on('data', function(chunk) {
+            
+                bufs.push(chunk);
+            
+            }).on('end', function() { // done
+            
+                var fbuf = Buffer.concat(bufs);
+            
+                var base64 = (fbuf.toString('base64'));
+
+                res.send(base64);
+            
+            });
            } else {
                res.status(404).json({
                    err: 'Not an image',
