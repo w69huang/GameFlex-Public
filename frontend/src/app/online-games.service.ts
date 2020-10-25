@@ -28,7 +28,7 @@ export class OnlineGamesService {
 
   }
 
-  get(id: number): any {
+  get(id: string): any {
     return this.webService.get(`online-games/get?id=${id}`);
   }
 

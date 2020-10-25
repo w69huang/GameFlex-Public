@@ -47,11 +47,12 @@ export class PlayspaceComponent implements OnInit {
   public peer: any;
   public myPeerID: string;
   public mainHostID: string;
+  public onlineGameID: string;
   public connections: DataConnection[] = [];
   public firstConnectionAttempt: boolean = false;
   public connOpenedSuccessfully: boolean = false;
+  public connectionClosedIntentionally: boolean = false;
   public openConnectionAttempts: number = 0;
-  public purposefullyClosedConn: boolean = false;
 
   // State
   public playerID: number = 1;
@@ -137,38 +138,9 @@ export class PlayspaceComponent implements OnInit {
   ngOnInit() {
     this.route.queryParams.subscribe(params => {
       this.mainHostID = params['host'];
-      let onlineGameID = params['onlineGameID'];
+      this.onlineGameID = params['onlineGameID'];
 
-      if (onlineGameID) {
-        this.onlineGamesService.get(onlineGameID).subscribe((onlineGames: OnlineGame) => {
-          this.onlineGame = onlineGames[0];
-          if (!this.onlineGame && this.mainHostID != this.myPeerID) {
-            alert('Could not find requested game.')
-            document.getElementById('loading').style.display = "none";
-            document.getElementById('loadingText').style.display = "none";
-          } else if (this.mainHostID != this.myPeerID) {
-            if (this.onlineGame.username === this.middleware.getUsername()) { // i.e. I, the host, DC'd and was granted a new hostID
-              // Update the hostID of the online game
-              this.onlineGame.hostID = this.myPeerID;
-              this.onlineGamesService.updateHostID(this.onlineGame).subscribe((data) => {
-                document.getElementById('loading').style.display = "none";
-                document.getElementById('loadingText').style.display = "none";
-                this.updateOnlineGameInterval = setInterval(this.updateOnlineGame.bind(this), 300000); // Tell the backend that this game still exists every 5 mins
-              });
-            } else {
-              this.amHost = false;
-              this.openConnection();
-            }
-          } else {
-            document.getElementById('loading').style.display = "none";
-            document.getElementById('loadingText').style.display = "none";
-            this.updateOnlineGameInterval = setInterval(this.updateOnlineGame.bind(this), 300000); // Tell the backend that this game still exists every 5 mins
-          }
-        }); 
-      } else {
-        document.getElementById('loading').style.display = "none";
-        document.getElementById('loadingText').style.display = "none";
-      }
+      this.startConnectionProcess();
     });
 
     // TODO: Band-aid solution, find a better one at some point
@@ -177,14 +149,9 @@ export class PlayspaceComponent implements OnInit {
   }
   
   ngOnDestroy() {
-    this.purposefullyClosedConn = true;
+    this.connectionClosedIntentionally = true;
     clearInterval(this.updateOnlineGameInterval);
-    if (this.checkIfCanOpenConnectionInterval) {
-      clearInterval(this.checkIfCanOpenConnectionInterval);
-    }
-    if (this.openConnectionInterval) {
-      clearInterval(this.openConnectionInterval);
-    }
+    this.finishConnectionProcess();
     if (this.connections.length > 0) {
       this.connections.forEach((connection: DataConnection) => {
         connection.close();
@@ -309,67 +276,112 @@ export class PlayspaceComponent implements OnInit {
     return newConnectionList;
   }
 
+  finishConnectionProcess() {
+    this.openConnectionAttempts = 0;
+
+    if (this.checkIfCanOpenConnectionInterval) {
+      clearInterval(this.checkIfCanOpenConnectionInterval);
+    }
+    if (this.openConnectionInterval) {
+      clearInterval(this.openConnectionInterval);
+    }
+
+    document.getElementById('loading').style.display = "none";
+    document.getElementById('loadingText').style.display = "none";
+  }
+
   checkIfCanOpenConnection() {
-    // If the first connection attempt has occurred but the connection was not opened successfully
-    if (this.firstConnectionAttempt && !this.connOpenedSuccessfully) {
-      this.openConnectionInterval = setInterval(this.openConnection.bind(this), 5000);
-      clearInterval(this.checkIfCanOpenConnectionInterval);
-    } else if (this.connOpenedSuccessfully) {
-      clearInterval(this.checkIfCanOpenConnectionInterval);
+    if (!this.connOpenedSuccessfully) {
+      document.getElementById('loading').removeAttribute('style');
+      document.getElementById('loadingText').removeAttribute('style');
+      if (this.firstConnectionAttempt) { // If the first connection attempt has occurred but the connection was not opened successfully
+        this.openConnectionInterval = setInterval(this.startConnectionProcess.bind(this), 5000);
+        clearInterval(this.checkIfCanOpenConnectionInterval);
+      }
+    }
+  }
+
+  startConnectionProcess() {
+    if (this.onlineGameID) {
+      this.onlineGamesService.get(this.onlineGameID).subscribe((onlineGames: OnlineGame) => {
+        this.onlineGame = onlineGames[0];
+        if (this.onlineGame) {
+          this.mainHostID = this.onlineGame.hostID;
+        }
+
+        if (!this.onlineGame && this.mainHostID != this.myPeerID) {
+          alert('Could not find requested game.');
+          this.finishConnectionProcess();
+        } else if (this.mainHostID != this.myPeerID) {
+          if (this.onlineGame.username === this.middleware.getUsername()) { // i.e. I, the host, DC'd and was granted a new hostID
+            // Update the hostID of the online game
+            this.onlineGame.hostID = this.myPeerID;
+            this.onlineGamesService.updateHostID(this.onlineGame).subscribe((data) => {
+              this.updateOnlineGameInterval = setInterval(this.updateOnlineGame.bind(this), 300000); // Tell the backend that this game still exists every 5 mins
+              this.finishConnectionProcess();
+            });
+          } else {
+            this.amHost = false;
+            this.openConnection();
+
+            if (this.openConnectionAttempts >= 5) {
+              this.finishConnectionProcess();
+              alert('Could not connect to host.');
+            }
+          }
+        } else {
+          this.finishConnectionProcess();
+          this.updateOnlineGameInterval = setInterval(this.updateOnlineGame.bind(this), 300000); // Tell the backend that this game still exists every 5 mins
+        }
+      }); 
+    } else {
+      this.finishConnectionProcess();
+
     }
   }
 
   openConnection() {
-    if (!this.connOpenedSuccessfully) {
-      var conn = this.peer.connect(this.mainHostID);
-      this.openConnectionAttempts++;
+    var conn = this.peer.connect(this.mainHostID);
+    this.firstConnectionAttempt = true;
+    this.openConnectionAttempts++;
+    conn?.on('open', () => {
+      console.log(`Connection to ${this.mainHostID} opened successfully.`);
+      this.connections.push(conn);
+      this.connOpenedSuccessfully = true;
       this.firstConnectionAttempt = true;
-      conn?.on('open', () => {
-        console.log(`Connection to ${this.mainHostID} opened successfully.`);
-        this.connections.push(conn);
-        this.connOpenedSuccessfully = true;
-        // Receive messages
-        conn.on('data', (data) => {
-          this.handleData(data);
-        });
-        conn.on('close', () => {
-          console.log("Peer-to-Peer Error: Host disconnected.");
+      this.finishConnectionProcess();
+      // Receive messages
+      conn.on('data', (data) => {
+        this.handleData(data);
+      });
+      conn.on('close', () => {
+        console.log("Peer-to-Peer Error: Connection closed.");
+        if (!this.connectionClosedIntentionally) {
           this.connections = this.filterOutPeer(this.connections, conn);
-          alert('Host has disconnected. Redirecting to game browser.');
-          if (!this.purposefullyClosedConn) {
-            this.router.navigate(['/gameBrowser']);
-          }
-        });
-        conn.on('error', (err) => {
-          console.log("Unspecified Peer-to-Peer Error:");
-          console.log(err);
-          this.connections = this.filterOutPeer(this.connections, conn);
-          alert('Connection error. Redirecting to game browser.');
-          if (!this.purposefullyClosedConn) {
-            this.router.navigate(['/gameBrowser']);
-          }
-        });
-        if (this.openConnectionAttempts > 1) {
-          conn.send({
-            'action': 'sendState',
-            'amHost': this.amHost,
-            'playerID': null,
-            'peerID': this.myPeerID
-          });
+          this.connOpenedSuccessfully = false;
+          this.finishConnectionProcess();
+          this.checkIfCanOpenConnectionInterval = setInterval(this.checkIfCanOpenConnection.bind(this), 2000);
         }
       });
-
-      if (this.openConnectionAttempts >= 5) {
-        clearInterval(this.openConnectionInterval);
-        document.getElementById('loading').style.display = "none";
-        document.getElementById('loadingText').style.display = "none";
-        alert('Could not connect to host.');
+      conn.on('error', (err) => {
+        console.log("Unspecified Peer-to-Peer Error: ");
+        console.log(err);
+        if (!this.connectionClosedIntentionally) {
+          this.connections = this.filterOutPeer(this.connections, conn);
+          this.connOpenedSuccessfully = false;
+          this.finishConnectionProcess();
+          this.checkIfCanOpenConnectionInterval = setInterval(this.checkIfCanOpenConnection.bind(this), 2000);
+        }
+      });
+      if (this.openConnectionAttempts > 1) {
+        conn.send({
+          'action': 'sendState',
+          'amHost': this.amHost,
+          'playerID': null,
+          'peerID': this.myPeerID
+        });
       }
-    } else {
-      if (this.openConnectionInterval) {
-        clearInterval(this.openConnectionInterval);
-      }
-    }
+    });
   }
 
   handleData(data: string) {
