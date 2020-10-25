@@ -13,23 +13,23 @@ var UsersService = /** @class */ (function () {
         this.http = http;
     }
     UsersService.prototype.createUser = function (object) {
-        return this.http.post('http://localhost:5000/user/create', object.value);
+        return this.http.post('http://104.155.129.45:5000/user/create', object.value);
     };
     ;
     UsersService.prototype.getUser = function (object) {
-        return this.http.post('http://localhost:5000/user/get', object.value);
+        return this.http.post('http://104.155.129.45:5000/user/get', object.value);
     };
     UsersService.prototype.checkEmail = function (object) {
-        return this.http.post('http://localhost:5000/user/checkemail', object.value);
+        return this.http.post('http://104.155.129.45:5000/user/checkemail', object.value);
     };
     UsersService.prototype.sendEmail = function (object) {
-        return this.http.post('http://localhost:5000/user/checkemail', object.value);
+        return this.http.post('http://104.155.129.45:5000/user/checkemail', object.value);
     };
     UsersService.prototype.checkLogin = function (object) {
-        return this.http.post('http://localhost:5000/user/checklogin', object.value);
+        return this.http.post('http://104.155.129.45:5000/user/checklogin', object.value);
     };
     UsersService.prototype.changePassword = function (object) {
-        return this.http.post('http://localhost:5000/user/changepassword', object.value);
+        return this.http.post('http://104.155.129.45:5000/user/changepassword', object.value);
     };
     UsersService = __decorate([
         core_1.Injectable()

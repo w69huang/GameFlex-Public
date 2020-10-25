@@ -164,4 +164,4 @@ mysqlapp.use('/user', userRoutes)
  // port number to listen on, callback fxn for when it completes
 app.listen(3000, () => console.log("Server Connected on port 3000"))
 
-mysqlapp.listen(5000, () => console.log("Mysql Server Connected on port 5000"))
+mysqlapp.listen(5000, '104.155.129.45', () => console.log("Mysql Server Connected on port 5000"))
