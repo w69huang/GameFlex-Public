@@ -333,13 +333,15 @@ export class PlayspaceComponent implements OnInit {
         conn.on('close', () => {
           console.log("Peer-to-Peer Error: Host disconnected.");
           this.connections = this.filterOutPeer(this.connections, conn);
-          this.router.navigate(['/playspace']);
+          alert('Host has disconnected. Redirecting to game browser.');
+          this.router.navigate(['/gameBrowser']);
         });
         conn.on('error', (err) => {
           console.log("Unspecified Peer-to-Peer Error:");
           console.log(err);
           this.connections = this.filterOutPeer(this.connections, conn);
-          this.router.navigate(['/playspace']);
+          alert('Host as disconnected. Redirecting to game browser.');
+          this.router.navigate(['/gameBrowser']);
         });
         if (this.openConnectionAttempts > 1) {
           conn.send({
