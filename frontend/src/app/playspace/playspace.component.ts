@@ -305,14 +305,15 @@ export class PlayspaceComponent implements OnInit {
     if (this.onlineGameID) {
       this.onlineGamesService.get(this.onlineGameID).subscribe((onlineGames: OnlineGame) => {
         this.onlineGame = onlineGames[0];
-        if (this.onlineGame) {
+
+        if (this.onlineGame) { // If the online game's hostID has updated (b/c the host disconnects), update our local hostID reference
           this.mainHostID = this.onlineGame.hostID;
         }
 
-        if (!this.onlineGame && this.mainHostID != this.myPeerID) {
-          alert('Could not find requested game.');
-          this.finishConnectionProcess();
-        } else if (this.mainHostID != this.myPeerID) {
+        if (!this.onlineGame && this.mainHostID != this.myPeerID) { // I'm not the host and I couldn't find the game
+          alert('Could not find game.');
+          this.router.navigate(['gameBrowser']);
+        } else if (this.mainHostID != this.myPeerID) { // My ID does not match the host's
           if (this.onlineGame.username === this.middleware.getUsername()) { // i.e. I, the host, DC'd and was granted a new hostID
             // Update the hostID of the online game
             this.onlineGame.hostID = this.myPeerID;
@@ -320,23 +321,23 @@ export class PlayspaceComponent implements OnInit {
               this.updateOnlineGameInterval = setInterval(this.updateOnlineGame.bind(this), 300000); // Tell the backend that this game still exists every 5 mins
               this.finishConnectionProcess();
             });
-          } else {
+          } else { // I am not the host
             this.amHost = false;
             this.openConnection();
 
             if (this.openConnectionAttempts >= 5) {
-              this.finishConnectionProcess();
               alert('Could not connect to host.');
+              this.router.navigate(['gameBrowser']);
             }
           }
-        } else {
+        } else { // I am the host
           this.finishConnectionProcess();
           this.updateOnlineGameInterval = setInterval(this.updateOnlineGame.bind(this), 300000); // Tell the backend that this game still exists every 5 mins
         }
       }); 
     } else {
-      this.finishConnectionProcess();
-
+      alert('Could not find game.');
+      this.router.navigate(['gameBrowser']);
     }
   }
 
