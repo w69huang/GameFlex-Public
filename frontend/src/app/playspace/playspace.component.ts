@@ -51,6 +51,7 @@ export class PlayspaceComponent implements OnInit {
   public firstConnectionAttempt: boolean = false;
   public connOpenedSuccessfully: boolean = false;
   public openConnectionAttempts: number = 0;
+  public purposefullyClosedConn: boolean = false;
 
   // State
   public playerID: number = 1;
@@ -176,6 +177,7 @@ export class PlayspaceComponent implements OnInit {
   }
   
   ngOnDestroy() {
+    this.purposefullyClosedConn = true;
     clearInterval(this.updateOnlineGameInterval);
     if (this.checkIfCanOpenConnectionInterval) {
       clearInterval(this.checkIfCanOpenConnectionInterval);
@@ -334,14 +336,18 @@ export class PlayspaceComponent implements OnInit {
           console.log("Peer-to-Peer Error: Host disconnected.");
           this.connections = this.filterOutPeer(this.connections, conn);
           alert('Host has disconnected. Redirecting to game browser.');
-          this.router.navigate(['/gameBrowser']);
+          if (!this.purposefullyClosedConn) {
+            this.router.navigate(['/gameBrowser']);
+          }
         });
         conn.on('error', (err) => {
           console.log("Unspecified Peer-to-Peer Error:");
           console.log(err);
           this.connections = this.filterOutPeer(this.connections, conn);
-          alert('Host as disconnected. Redirecting to game browser.');
-          this.router.navigate(['/gameBrowser']);
+          alert('Connection error. Redirecting to game browser.');
+          if (!this.purposefullyClosedConn) {
+            this.router.navigate(['/gameBrowser']);
+          }
         });
         if (this.openConnectionAttempts > 1) {
           conn.send({
