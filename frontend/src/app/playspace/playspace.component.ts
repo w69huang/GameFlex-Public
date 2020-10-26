@@ -59,6 +59,7 @@ export class PlayspaceComponent implements OnInit {
   public playerDataObjects: PlayerData[] = [];
   public gameState: GameState;
   public onlineGame: OnlineGame;
+  public initialStateRequest: boolean = false;
 
   // Interval Fxns
   public updateOnlineGameInterval: any;
@@ -139,13 +140,11 @@ export class PlayspaceComponent implements OnInit {
     this.route.queryParams.subscribe(params => {
       this.mainHostID = params['host'];
       this.onlineGameID = params['onlineGameID'];
-
-      this.startConnectionProcess();
     });
 
     // TODO: Band-aid solution, find a better one at some point
     setTimeout(_=> this.initialize(), 100);
-    this.checkIfCanOpenConnectionInterval = setInterval(this.checkIfCanOpenConnection.bind(this), 2000);
+    this.checkIfCanOpenConnectionInterval = setInterval(this.checkIfCanOpenConnection.bind(this), 5000);
   }
   
   ngOnDestroy() {
@@ -374,14 +373,12 @@ export class PlayspaceComponent implements OnInit {
           this.checkIfCanOpenConnectionInterval = setInterval(this.checkIfCanOpenConnection.bind(this), 2000);
         }
       });
-      if (this.openConnectionAttempts > 1) {
-        conn.send({
-          'action': 'sendState',
-          'amHost': this.amHost,
-          'playerID': null,
-          'peerID': this.myPeerID
-        });
-      }
+      conn.send({
+        'action': 'sendState',
+        'amHost': this.amHost,
+        'playerID': null,
+        'peerID': this.myPeerID
+      });
     });
   }
 

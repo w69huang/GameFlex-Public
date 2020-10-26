@@ -40,12 +40,7 @@ export default class PlayspaceScene extends Phaser.Scene {
       });
 
       this.events.once('update', () => {
-        this.playspaceComponent.connections[0]?.send({
-          'action': 'sendState',
-          'amHost': this.playspaceComponent.amHost,
-          'playerID': null,
-          'peerID': this.playspaceComponent.myPeerID
-        });
+        this.playspaceComponent.startConnectionProcess();
       });
     }
   
