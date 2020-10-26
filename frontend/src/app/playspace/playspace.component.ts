@@ -335,8 +335,7 @@ export class PlayspaceComponent implements OnInit {
         }
       }); 
     } else {
-      alert('Could not find game.');
-      this.router.navigate(['gameBrowser']);
+      this.finishConnectionProcess();
     }
   }
 
