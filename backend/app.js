@@ -8,7 +8,7 @@ const bodyParser = require('body-parser')
 // The express() library will be used to handle backend routing
 const app = express()
 const mysqlapp = express()
-
+const cors = require('cors')
 // allows our app to use json data
 app.use(express.json())
 app.use(bodyParser.urlencoded({ extended: false })); // Parses urlencoded bodies
@@ -27,12 +27,13 @@ const Task = require('./database/models/task')
 const Configuration = require('./database/models/configuration')
 const Deck = require('./database/models/deck')
 const Counter = require('./database/models/counter')
-const test = require('./database/models/mysql.test.model')
+const user = require('./database/models/mysql.user.model')
 
 /*
     CORS: Cross-origin resource sharing
-    localhost:3000 - back-end api
+    localhost:3000 - back-end api (mongo)
     localhost:4200 - front-end
+    localhost:5000 - back-end api (mysql)
 
     For our back-end, CORS will take any request that comes from ports other than 3000 and reject it
 */
@@ -198,12 +199,15 @@ mysqlapp.get('/', (req, res) => {
     res.send("Hello World");
 });
 
-// const testRoutes = require('./routes/mysql.test.routes')
-const testRoutes = require('./controller/mysql.test.controller');
+// Setting up routes that live in different controllers
 
-mysqlapp.use('/test', testRoutes)
+const onlineGamesRoutes = require('./controllers/online-games.controller');
+const userRoutes = require('./controllers/mysql.user.controllers');
+const savedGameStateRoutes = require('./controllers/saved-game-state.controller');
+mysqlapp.use('/user', userRoutes)
+mysqlapp.use('/online-games', onlineGamesRoutes);
+app.use('/saved-game-state', savedGameStateRoutes);
 
 // port number to listen on, callback fxn for when it completes
-app.listen(3000, () => console.log("Server Connected on port 3000"))
-
-mysqlapp.listen(5000, () => console.log("Mysql Server Connected on port 5000"))
+app.listen(3000, () => console.log("Server Connected on port 3000"));
+mysqlapp.listen(5000, () => console.log("Mysql Server Connected on port 5000"));

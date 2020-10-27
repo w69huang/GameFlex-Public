@@ -1,4 +1,5 @@
 import { PlayspaceComponent } from '../playspace/playspace.component';
+import { DataConnection } from 'peerjs';
 import Card from '../models/card';
 import Deck from '../models/deck';
 import OptionObject from '../models/optionObject';
@@ -7,17 +8,20 @@ import PopupScene from '../models/phaser-scenes/popupScene';
 import * as HelperFunctions from '../helper-functions';
 import * as SharedActions from '../actions/sharedActions';
 
+
 enum DestinationEnum {
     TABLE = "Table",
     HAND = "Hand"
 }
 
-function popupClose(popupScene: PopupScene, component: any) {
+function popupClose(popupScene: PopupScene, deck: Deck, component: any) {
     component.phaserScene.scene.remove(popupScene.key);
+    deck.rightClick = false;
 }
 
 export function deckRightClick(deck: Deck, component: any, pointer: Phaser.Input.Pointer) {
-    if (pointer.rightButtonDown()) {
+    if (pointer.rightButtonDown() && deck.rightClick == false) {
+
         let optionWidth = 200;
         let optionHeight = 75;
         let optionObjects = [];
@@ -33,6 +37,7 @@ export function deckRightClick(deck: Deck, component: any, pointer: Phaser.Input
         let popupScene = new PopupScene(handle, pointer.x, pointer.y, component, deck, width, height, optionObjects, optionSeparation);
 
         component.phaserScene.scene.add(handle, popupScene, true);
+        deck.rightClick = true;
     }
 }
 
@@ -47,32 +52,39 @@ export function retrieveTopCard(popupScene: PopupScene, deck: Deck, playspaceCom
 
                 HelperFunctions.createCard(card, playspaceComponent, SharedActions.onDragMove, SharedActions.onDragEnd, DestinationEnum.TABLE, deck.gameObject.x, deck.gameObject.y);
 
-                if (playspaceComponent.conn) {
-                    playspaceComponent.conn.send({
-                        'action': 'sendTopCard',
-                        'type': 'card',
-                        'cardID': card.id,
-                        'imagePath': card.imagePath,
-                        'deckID': deck.id,
-                        'x': deck.gameObject.x,
-                        'y': deck.gameObject.y,
-                        'amHost': playspaceComponent.amHost,
-                        'playerID': playspaceComponent.playerID
+                if (playspaceComponent.connections) {
+                    playspaceComponent.connections.forEach((connection: DataConnection) => {
+                        connection.send({
+                            'action': 'sendTopCard',
+                            'type': 'card',
+                            'cardID': card.id,
+                            'imagePath': card.imagePath,
+                            'deckID': deck.id,
+                            'x': deck.gameObject.x,
+                            'y': deck.gameObject.y,
+                            'amHost': playspaceComponent.amHost,
+                            'playerID': playspaceComponent.playerID,
+                            'peerID': playspaceComponent.myPeerID
+                        });
                     });
+ 
                 }
             }
         }
-    } else if (playspaceComponent.conn) {
-        playspaceComponent.conn.send({
-        'action': 'retrieveTopCard',
-        'type': 'card',
-        'deckID': deck.id,
-        'amHost': playspaceComponent.amHost,
-        'playerID': playspaceComponent.playerID
+    } else if (playspaceComponent.connections) {
+        playspaceComponent.connections.forEach((connection: DataConnection) => {
+            connection.send({
+                'action': 'retrieveTopCard',
+                'type': 'card',
+                'deckID': deck.id,
+                'amHost': playspaceComponent.amHost,
+                'playerID': playspaceComponent.playerID,
+                'peerID': playspaceComponent.myPeerID
+                });
         });
     }
 
-    popupClose(popupScene, playspaceComponent);
+    popupClose(popupScene, deck, playspaceComponent);
 }
 
 export function shuffleDeck(popupScene: PopupScene, deck: Deck, playspaceComponent: PlayspaceComponent, pointer: Phaser.Input.Pointer) {
@@ -99,12 +111,13 @@ export function shuffleDeck(popupScene: PopupScene, deck: Deck, playspaceCompone
         //  'deckID': deck.id,
         //  'shuffledCardIDs': shuffledCardIDs,
         //  'amHost': playspaceComponent.amHost,
-        //  'playerID': playspaceComponent.playerID
+        //  'playerID': playspaceComponent.playerID,
+        //  'peerID': playspaceComponent.peerID
         //  });
         //}
     }
 
-    popupClose(popupScene, playspaceComponent);
+    popupClose(popupScene, deck, playspaceComponent);
 }
 
 export function importDeck(popupScene: PopupScene, deck: Deck, playspaceComponent: PlayspaceComponent, pointer: Phaser.Input.Pointer) {
@@ -116,16 +129,19 @@ export function importDeck(popupScene: PopupScene, deck: Deck, playspaceComponen
         });
     }
 
-    if (playspaceComponent.conn && !playspaceComponent.amHost) { // If the host imports a deck, the other players don't need that info
-        playspaceComponent.conn.send({
-        'action': 'importDeck',
-        'type': 'deck',
-        'imagePaths': imagePaths,
-        'deckID': deck.id,
-        'amHost': playspaceComponent.amHost,
-        'playerID': playspaceComponent.playerID
+    if (playspaceComponent.connections && !playspaceComponent.amHost) { // If the host imports a deck, the other players don't need that info
+        playspaceComponent.connections.forEach((connection: DataConnection) => {
+            connection.send({
+                'action': 'importDeck',
+                'type': 'deck',
+                'imagePaths': imagePaths,
+                'deckID': deck.id,
+                'amHost': playspaceComponent.amHost,
+                'playerID': playspaceComponent.playerID,
+                'peerID': playspaceComponent.myPeerID
+                });
         });
     }
 
-   popupClose(popupScene, playspaceComponent);
+   popupClose(popupScene, deck, playspaceComponent);
 }

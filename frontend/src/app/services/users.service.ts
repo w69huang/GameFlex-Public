@@ -30,18 +30,3 @@ export class UsersService {
         return this.http.post('http://localhost:5000/user/changepassword', object.value);
     }
 }
-
-
-
-// // e = now + 10 min;
-
-// Loop
-//     if checked_in:
-//         // e + 1 min
-//         last_u = now
-
-//     if last_u < now - 10 min:
-//         game_has_expired
-//     else
-//         good to be displayed still
-
