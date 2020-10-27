@@ -1,6 +1,6 @@
 import { Injectable } from '@angular/core';
 import { Router } from '@angular/router';
-import { MiddleWare } from './services/middleware';
+import { MiddleWare } from './middleware';
 
 @Injectable({
   providedIn: 'root'

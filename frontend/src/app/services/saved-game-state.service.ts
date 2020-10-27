@@ -1,7 +1,7 @@
 import { Injectable } from '@angular/core';
 import { WebService } from './web.service';
-import { MiddleWare } from './services/middleware';
-import SavedGameState from './models/savedGameState';
+import { MiddleWare } from './middleware';
+import SavedGameState from '../models/savedGameState';
 
 @Injectable({
   providedIn: 'root'

@@ -1,6 +1,6 @@
 import { Component, OnInit } from '@angular/core';
-import { HostService } from 'src/app/host.service';
-import { OnlineGamesService } from 'src/app/online-games.service';
+import { HostService } from 'src/app/services/host.service';
+import { OnlineGamesService } from 'src/app/services/online-games.service';
 import { MatDialog } from '@angular/material/dialog';
 
 import { GameBrowserPopupComponent } from '../popups/game-browser-password-popup/game-browser-password-popup.component';
