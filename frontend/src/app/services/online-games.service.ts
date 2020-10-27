@@ -11,7 +11,7 @@ import OnlineGame from '../models/onlineGame';
 })
 export class OnlineGamesService {
 
-  constructor (
+  constructor(
     private router: Router,
     private webService: WebService,
     private middleware: MiddleWare
@@ -38,11 +38,11 @@ export class OnlineGamesService {
 
   create(onlineGame: OnlineGame): void {
     this.webService.post('online-games/post', onlineGame)
-        .subscribe(
-          (data) => {
-            this.router.navigate(['/playspace'], { queryParams: { host: onlineGame.hostID, onlineGameID: onlineGame.id } });
-          }
-        );
+      .subscribe(
+        (data) => {
+          this.router.navigate(['/playspace'], { queryParams: { host: onlineGame.hostID, onlineGameID: onlineGame.id } });
+        }
+      );
   }
 
   deleteAll(): any {
@@ -51,11 +51,11 @@ export class OnlineGamesService {
 
   confirmActive(onlineGame: OnlineGame): void {
     this.webService.patch('online-games/confirmActive', onlineGame)
-        .subscribe(
-          (data) => {
-            console.log("Patched!");
-          }
-        );
+      .subscribe(
+        (data) => {
+          console.log("Patched!");
+        }
+      );
   }
 
   updateHostID(onlineGame: OnlineGame): any {

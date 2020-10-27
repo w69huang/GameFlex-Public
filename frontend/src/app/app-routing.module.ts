@@ -16,7 +16,7 @@ import { ChangepasswordComponent } from './changepassword/changepassword.compone
 const routes: Routes = [
   { path: '', redirectTo: 'playspace', pathMatch: 'full' },
   { path: 'playspace', component: PlayspaceComponent },
-  { path: 'deckeditor', component: DeckEditorComponent },
+  { path: 'deckEditor', component: DeckEditorComponent },
   { path: 'configeditor', component: ConfigEditorComponent },
   { path: 'gameBrowser', component: GameBrowserComponent },
 
@@ -36,4 +36,3 @@ const routes: Routes = [
   exports: [RouterModule]
 })
 export class AppRoutingModule { }
-    
