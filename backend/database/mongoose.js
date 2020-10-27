@@ -16,7 +16,7 @@ const mongoose = require('mongoose')
 mongoose.Promise = global.Promise;
 
 mongoose.connect('mongodb://35.215.71.108:27017/test-app', { useNewUrlParser: true, useUnifiedTopology: true, useFindAndModify: false })
-        .then(() => console.log('Database Connected'))
+        .then(() => console.log('Mongo Database Connection Complete!'))
         .catch((error) => console.log(error))
 
 module.exports = mongoose
