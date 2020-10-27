@@ -17,12 +17,12 @@ export class OnlineGamesService {
     private middleware: MiddleWare
   ) { }
 
-  verifyGamePassword(onlineGame: OnlineGame, password: string): void {
-    this.webService.post('online-games/verifyGamePassword', { onlineGame: onlineGame, password: password }).subscribe((object: any) => {
+  verify(onlineGame: OnlineGame, password: string): void {
+    this.webService.post('online-games/verify', { onlineGame: onlineGame, password: password }).subscribe((object: any) => {
       if (object.hostID) {
         this.router.navigate(['/playspace'], { queryParams: { host: object.hostID, onlineGameID: onlineGame.id } });
       } else {
-        alert('Password incorrect.');
+        alert(object.message);
       }
     });
 
@@ -49,17 +49,8 @@ export class OnlineGamesService {
     return this.webService.delete('online-games/delete');
   }
 
-  confirmActive(onlineGame: OnlineGame): void {
-    this.webService.patch('online-games/confirmActive', onlineGame)
-        .subscribe(
-          (data) => {
-            console.log("Patched!");
-          }
-        );
-  }
-
-  updateHostID(onlineGame: OnlineGame): any {
-    return this.webService.patch('online-games/updateHostID', { onlineGame: onlineGame, accountUsername: this.middleware.getUsername(), accountPassword: this.middleware.getPassword() });
+  update(onlineGame: OnlineGame): any {
+    return this.webService.patch('online-games/update', { onlineGame: onlineGame, accountUsername: this.middleware.getUsername(), accountPassword: this.middleware.getPassword() });
   }
 
   getIDAndCode(): any {
