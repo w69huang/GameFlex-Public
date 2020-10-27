@@ -10,6 +10,7 @@ import { DummyComponent } from './dummy/dummy.component';
 import { SignupComponent } from './signup/signup.component';
 import { LoginComponent } from './login/login.component';
 import { ChangepasswordComponent } from './changepassword/changepassword.component';
+import { JoinByCodeComponent } from './join-by-code/join-by-code.component';
 
 
 const routes: Routes = [
@@ -17,6 +18,7 @@ const routes: Routes = [
   { path: 'playspace', component: PlayspaceComponent },
   { path: 'deckEditor', component: DeckEditorComponent },
   { path: 'gameBrowser', component: GameBrowserComponent },
+  { path: 'joinByCode', component: JoinByCodeComponent },
   
   { path: 'dummy', component: DummyComponent},
   { path: 'signup', component: SignupComponent},
