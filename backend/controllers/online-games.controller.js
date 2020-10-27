@@ -22,7 +22,6 @@ function get(request, result) {
             console.log("Error in get for online games: ", err);
             result.send(err);
         } else {
-            console.log("Successfully retrieved online game.");
             result.send(res);
         }
     });
@@ -34,12 +33,14 @@ function getAll(request, result) {
             console.log("Error in getAll for online games: ", err);
             result.send(err);
         } else {
-            console.log("Successfully retrieved all online games.");
-            res.forEach((onlineGame) => {
+            console.log
+            let onlineGames = res.filter(onlineGame => !onlineGame.privateGame); // Private games will have a game code and should not appear in the game browser
+            onlineGames.forEach((onlineGame) => {
                 onlineGame.hostID = ""; // Do not send Host IDs to the frontend
                 onlineGame.encryptedPassword = ""; // No need to send encrypted passwords either
+                onlineGame.onlineGameCode = ""; // Also no need for online game codes in the game browser list
             });
-            result.send(res);
+            result.send(onlineGames);
         }
     });
 }
@@ -170,8 +171,6 @@ function update(request, result) {
                         console.log("Error in update of online game: ", err);
                         result.send(err);
                     } else {
-                        console.log("Successfully updated online game.");
-                        console.log(onlineGame);
                         result.send(res);
                     }
                 });
@@ -185,8 +184,6 @@ function deleteOfflineGames() {
     mysql_connection.query("DELETE FROM OnlineGameMySQL WHERE lastUpdated<" + (Date.now() - 600000), function(err, res) {
         if (err) {
             console.log("Error in deleteOfflineGames for online games: ", err);
-        } else {
-            console.log("Successfully deleted inactive online games.");
         }
     });
 }
