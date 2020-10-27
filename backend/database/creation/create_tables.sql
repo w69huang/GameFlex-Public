@@ -24,13 +24,14 @@ CREATE TABLE `StoredDeckMySQL` (
 
 CREATE TABLE `OnlineGameMySQL` (
     `onlineGameCode` char(50) NOT NULL,
+    `username` char(20) NOT NULL,
     `name` char(100) NOT NULL,
     `hostID` char(50) NOT NULL, 
     `numPlayers` int NOT NULL,
     `maxPlayers` int NOT NULL,
     `passwordProtected` BOOLEAN NOT NULL,
     `privateGame` BOOLEAN NOT NULL,
-    `encryptedPassword` char(50) DEFAULT NULL,
+    `encryptedPassword` char(100) DEFAULT NULL,
     `configurationID` int NOT NULL,
 
     PRIMARY KEY (`onlineGameCode`)

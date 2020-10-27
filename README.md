@@ -142,3 +142,28 @@ Currently only one user exists:
 Similar to the mySQL server, select the **_Compute Engine_** from the side bar and click the box beside **_gameflex-mongodb-arbiters-vm-0_** and  **_gameflex-mongodb-servers-vm-0_** to select them. Press the play button beside VM Instances. Wait a couple seconds and it should be up. The external IP of **_gameflex-mongodb-servers-vm-0_** should be what is used to replace **_127.0.0.1_** inside the connection code. 
 
 
+## Live Demo:
+
+### VM Side:
+To start up the live demo, check that the VM instances **_gameflex_frontend_**  and **_gameflex-mongodb-servers-vm-0_** are running. Then ssh into the mongo VM with the ssh button and type in ./startup.sh which will run the peerjs in that terminal. After that, open up a new tab and go to google.com and then enter in the external IP of the frontend VM (104.155.129.45) as the url. 
+This should direct you to the playspace of the app, but if it doesn't take a screenshot of the issue and direct it to Will. 
+
+### Code Side:
+The code for the application isn't exactly the same code as what we manage and change. You first have to go to the .../FYDP_Project/frontend/ directory on your local machine and then type in :
+
+    ng build --prod
+
+This will build a new dist/ folder. The contents of dist/frontend/* will contain the files that we use with apache to load in the webpage we see on 104.155.129.45. After we have these files, we want to SCP them into the VM into 
+
+    /var/www/html 
+
+**_NOTE:_** The SCP should be done using the gcloud console on your local machine. It easier this way. The command should be:
+
+    sudo gcloud compute scp --recurse <Wherever the FYDP_Project is WRT where you currently are>/frontend/dist/frontend/* 104.155.129.45:/var/www/html/ --zone us-central1-a
+
+After doing that, you should restart the apache server to ensure that these are updated.
+
+    sudo systemctl restart apache2
+
+Then the new pages should show up no problem. If this is not the case, once again take a screenshot of the issue and then send it over to Will. :) 
+
