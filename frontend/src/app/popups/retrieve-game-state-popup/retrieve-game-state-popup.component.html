@@ -1,0 +1,18 @@
+<div mat-dialog-content>
+    <mat-select [formControl]="saveCtrl" placeholder="Save Name" #saveNameSelect>
+        <mat-option>
+            <ngx-mat-select-search [formControl]="saveFilterCtrl" placeholderLabel="Search" noEntriesFoundLabel="No Matching Save Found"></ngx-mat-select-search>
+        </mat-option>
+        <mat-option *ngFor="let save of filteredSaves | async" [value]="save">
+            {{save.name}} | {{ save.date }}
+        </mat-option>
+    </mat-select>
+</div>
+<div class="actions" mat-dialog-actions>
+    <mat-card>
+        <button mat-button (click)="cancel()">Cancel</button>
+    </mat-card>
+    <mat-card>
+        <button mat-button (click)="submit(saveNameSelect.value)" value="Submit">Submit</button>
+    </mat-card>
+</div>

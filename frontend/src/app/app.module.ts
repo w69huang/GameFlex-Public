@@ -1,7 +1,7 @@
 import { BrowserModule } from '@angular/platform-browser';
 import { NgModule } from '@angular/core';
 import { HttpClientModule } from "@angular/common/http";
-import {FormsModule} from '@angular/forms';
+import { FormsModule, ReactiveFormsModule } from '@angular/forms';
 
 import { AppRoutingModule } from './app-routing.module';
 import { AppComponent } from './app.component';
@@ -10,19 +10,27 @@ import { NewListComponent } from './pages/new-list/new-list.component';
 import { NewTaskComponent } from './pages/new-task/new-task.component';
 import { PlayspaceComponent } from './playspace/playspace.component';
 import { DeckEditorComponent } from './deck-editor/deck-editor.component';
+import { GameBrowserComponent } from './game-browser/game-browser.component';
 import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
 import { MatToolbarModule } from '@angular/material/toolbar';
 import { MatIconModule } from '@angular/material/icon';
 import { MatCardModule } from '@angular/material/card';
 import { MatButtonModule } from '@angular/material/button';
 import { MatProgressBarModule } from '@angular/material/progress-bar';
+import { MatFormFieldModule } from '@angular/material/form-field';
+import { MatSelectModule} from '@angular/material/select';
+import { GameBrowserPopupComponent } from './popups/game-browser-password-popup/game-browser-password-popup.component';
 import { DummyComponent } from './dummy/dummy.component';
+import { GameSetupPopupComponent } from './popups/game-setup-popup/game-setup-popup.component';
 import { SignupComponent } from './signup/signup.component';
 import { LoginComponent, DialogForgotPassword } from './login/login.component';
 import { MiddleWare } from './services/middleware';
 import { MatDialog, MatDialogModule } from '@angular/material/dialog';
 import { ChangepasswordComponent } from './changepassword/changepassword.component';
 import { UsersService } from './services/users.service';
+import { SaveGameStatePopupComponent } from './popups/save-game-state-popup/save-game-state-popup.component';
+import { RetrieveGameStatePopupComponent } from './popups/retrieve-game-state-popup/retrieve-game-state-popup.component';
+import { NgxMatSelectSearchModule } from 'ngx-mat-select-search';
 
 @NgModule({
   declarations: [
@@ -32,14 +40,16 @@ import { UsersService } from './services/users.service';
     NewTaskComponent,
     PlayspaceComponent,
     DeckEditorComponent,
+    GameBrowserComponent,
+    GameBrowserPopupComponent,
+    GameSetupPopupComponent,
     DummyComponent,
     SignupComponent,
     LoginComponent,
     DialogForgotPassword,
-    ChangepasswordComponent
-  ],
-  entryComponents: [
-    DialogForgotPassword
+    ChangepasswordComponent,
+    SaveGameStatePopupComponent,
+    RetrieveGameStatePopupComponent,
   ],
   imports: [
     BrowserModule,
@@ -51,10 +61,24 @@ import { UsersService } from './services/users.service';
     MatCardModule,
     MatButtonModule,
     MatProgressBarModule,
+    MatDialogModule,
+    MatFormFieldModule,
+    MatSelectModule,
     FormsModule,
-    MatDialogModule
+    ReactiveFormsModule,
+    NgxMatSelectSearchModule
   ],
-  providers: [MiddleWare, UsersService],
+  entryComponents: [
+    GameBrowserPopupComponent,
+    GameSetupPopupComponent,
+    SaveGameStatePopupComponent,
+    RetrieveGameStatePopupComponent,
+    DialogForgotPassword
+  ],
+  providers: [
+    MiddleWare, 
+    UsersService
+  ],
   bootstrap: [AppComponent]
 })
 export class AppModule { }

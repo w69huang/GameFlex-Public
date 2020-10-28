@@ -5,6 +5,7 @@ import { NewListComponent } from './pages/new-list/new-list.component';
 import { NewTaskComponent } from './pages/new-task/new-task.component';
 import { PlayspaceComponent } from './playspace/playspace.component';
 import { DeckEditorComponent } from './deck-editor/deck-editor.component';
+import { GameBrowserComponent } from './game-browser/game-browser.component';
 import { DummyComponent } from './dummy/dummy.component';
 import { SignupComponent } from './signup/signup.component';
 import { LoginComponent } from './login/login.component';
@@ -12,9 +13,11 @@ import { ChangepasswordComponent } from './changepassword/changepassword.compone
 
 
 const routes: Routes = [
-  { path: '', redirectTo: 'playspace', pathMatch: 'full' },
-  { path: 'playspace', component: PlayspaceComponent},
-  { path: 'deckeditor', component: DeckEditorComponent},
+  { path: '', redirectTo: 'gameBrowser', pathMatch: 'full' },
+  { path: 'playspace', component: PlayspaceComponent },
+  { path: 'deckEditor', component: DeckEditorComponent },
+  { path: 'gameBrowser', component: GameBrowserComponent },
+  
   { path: 'dummy', component: DummyComponent},
   { path: 'signup', component: SignupComponent},
   { path: 'login', component: LoginComponent},

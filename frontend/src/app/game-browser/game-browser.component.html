@@ -1,0 +1,25 @@
+
+<mat-card class="gameList" *ngFor="let onlineGame of onlineGames">
+    <div>
+        Host ID: {{ onlineGame.hostID }}
+    </div>
+    <div>
+        Game Name: {{ onlineGame.name }}
+    </div>
+    <div>
+        Game Code: {{ onlineGame.onlineGameCode }}
+    </div>
+    <div>
+        Max Players: {{ onlineGame.maxPlayers }}
+    </div>
+    <div>
+        Configuration ID: {{ onlineGame.configurationID }}
+    </div>
+    <div>
+        Password Protected: {{ onlineGame.passwordProtected ? "Yes" : "No" }}
+    </div>
+    <button mat-raised-button (click)="joinGame(onlineGame)">Join</button>
+</mat-card>
+<button mat-raised-button (click)="getAllGames()">Get All Games</button>
+<button mat-raised-button (click)="createGame()">Create Game</button>
+<button mat-raised-button (click)="deleteAllGames()">Delete All Games</button>
