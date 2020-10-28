@@ -15,7 +15,7 @@ app.use(express.json())
 // Allows use to parse application/json type post data
 mysqlapp.use(bodyParser.json());
 mysqlapp.use(bodyParser.urlencoded({extended:true}));
-// mysqlapp.use(cors());
+mysqlapp.use(cors());
 
 // instantiate our database that was set up and connected in mongoose.js
 const mongoose = require('./database/mongoose')
@@ -164,4 +164,4 @@ mysqlapp.use('/user', userRoutes)
  // port number to listen on, callback fxn for when it completes
 app.listen(3000, () => console.log("Server Connected on port 3000"))
 
-mysqlapp.listen(5000, '104.155.129.45', () => console.log("Mysql Server Connected on port 5000"))
+mysqlapp.listen(5000, () => console.log("Mysql Server Connected on port 5000"))
