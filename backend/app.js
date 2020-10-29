@@ -70,7 +70,7 @@ mysqlapp.use((req, res, next) => {
 // patch = used to just update one single field
 
 //ENDPOINT VERIFICATION
-app.get('/',(req,res) => res.send("HELLO WORLD FROM MONGO!"));
+app.get('/mongo',(req,res) => res.send("HELLO WORLD FROM MONGO!"));
 
 
 // http://localhost:3000/lists
