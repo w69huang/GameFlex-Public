@@ -11,6 +11,8 @@ export class WebService {
   constructor (private http: HttpClient) {
     this.ROOT_URL_MYSQL = "http://localhost:5000";
     this.ROOT_URL_MONGO = "http://localhost:3000";
+    // this.ROOT_URL_MYSQL = "http://104.155.129.45";
+    // this.ROOT_URL_MONGO = "http://35.215.71.108";
   }
 
   get (uri: string, useMongo?: boolean) {
