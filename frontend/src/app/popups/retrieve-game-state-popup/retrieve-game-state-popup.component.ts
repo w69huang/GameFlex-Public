@@ -5,7 +5,7 @@ import { MatSelect } from '@angular/material/select';
 import { ReplaySubject, Subject } from 'rxjs';
 import { take, takeUntil } from 'rxjs/operators';
 
-import { SavedGameStateService } from 'src/app/saved-game-state.service';
+import { SavedGameStateService } from 'src/app/services/saved-game-state.service';
 import SavedGameState from '../../models/savedGameState';
 
 @Component({

@@ -3,8 +3,8 @@ import { Router } from '@angular/router';
 
 import { WebService } from './web.service';
 import { HostService } from './host.service';
-import { MiddleWare } from './services/middleware';
-import OnlineGame from './models/onlineGame';
+import { MiddleWare } from './middleware';
+import OnlineGame from '../models/onlineGame';
 
 @Injectable({
   providedIn: 'root'

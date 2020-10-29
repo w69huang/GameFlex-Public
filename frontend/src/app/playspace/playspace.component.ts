@@ -3,9 +3,9 @@ import { DataConnection } from 'peerjs';
 import { ActivatedRoute, Router } from '@angular/router';
 import { MatDialog } from '@angular/material/dialog';
 
-import { HostService } from '../host.service';
-import { OnlineGamesService } from '../online-games.service';
-import { SavedGameStateService } from '../saved-game-state.service';
+import { HostService } from '../services/host.service';
+import { OnlineGamesService } from '../services/online-games.service';
+import { SavedGameStateService } from '../services/saved-game-state.service';
 import { MiddleWare } from '../services/middleware';
 import { SaveGameStatePopupComponent } from '../popups/save-game-state-popup/save-game-state-popup.component';
 import { RetrieveGameStatePopupComponent } from '../popups/retrieve-game-state-popup/retrieve-game-state-popup.component';
