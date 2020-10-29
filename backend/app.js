@@ -155,7 +155,7 @@ const onlineGamesRoutes = require('./controllers/online-games.controller');
 const userRoutes = require('./controllers/mysql.user.controllers');
 const savedGameStateRoutes = require('./controllers/saved-game-state.controller');
 // TEST:
-mysqlapp.get('/', (req,res) => res.send('HELLO WORLD!'));
+mysqlapp.get('/user', (req,res) => res.send('HELLO WORLD!'));
 //
 mysqlapp.use('/user', userRoutes)
 mysqlapp.use('/online-games', onlineGamesRoutes);
