@@ -139,7 +139,15 @@ Currently only one user exists:
 
 ### MongoDB: 
 
-Similar to the mySQL server, select the **_Compute Engine_** from the side bar and click the box beside **_gameflex-mongodb-arbiters-vm-0_** and  **_gameflex-mongodb-servers-vm-0_** to select them. Press the play button beside VM Instances. Wait a couple seconds and it should be up. The external IP of **_gameflex-mongodb-servers-vm-0_** should be what is used to replace **_127.0.0.1_** inside the connection code. 
+Similar to the mySQL server, select the **_Compute Engine_** from the side bar and click the box beside **_gameflex-mongodb-arbiters-vm-0_** and  **_gameflex-mongodb-servers-vm-0_** to select them. Press the play button beside VM Instances. Wait a couple seconds and it should be up. The external IP of **_gameflex-mongodb-servers-vm-0_** should be what is used to replace **_127.0.0.1_** inside the connection code.
+
+#### Peer JS:
+The peer JS server is also here. To install peerjs locally on ur user:
+    curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.36.0/install.sh | bash
+
+    nvm install node
+
+    npm install peerjs -g
 
 
 ## Live Demo:
@@ -167,3 +175,11 @@ After doing that, you should restart the apache server to ensure that these are 
 
 Then the new pages should show up no problem. If this is not the case, once again take a screenshot of the issue and then send it over to Will. :) 
 
+
+# MAJOR THINGS TO LOOK OUT FOR
+
+    1. When adding a new batch of endpoints to the SQL server, make sure to give them all a common starting url. For example:
+        http//.../user/{Whatever endpoint}
+    This makes it easier for us to reroute the endpoints on the VM. This isn't a problem with the mongo endpoints since i've allowed them to take the default "http//.../" so the only thing to look out for is that we don't have common url between mongo and SQL.   
+
+    2.
