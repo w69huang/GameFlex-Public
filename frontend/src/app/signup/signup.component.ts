@@ -27,6 +27,8 @@ export class SignupComponent implements OnInit {
   emailExists = false;
   passwordMatch = true;
   passwordMissing = false;
+  invalidPwd = false;
+  invalidUser = false;
 
   onSubmit(obj) {
     // Does SQL checks to confirm if a username exists or an email address is in use;
@@ -42,11 +44,26 @@ export class SignupComponent implements OnInit {
     } else {
       this.passwordMissing = false;
     }
+
+    if (obj.value.password.length < 6) {
+      this.invalidPwd = true;
+      return null;
+    } else {
+      this.invalidPwd = false;
+    }
+
+    if (obj.value.username.length < 3) {
+      this.invalidUser = true;
+      return null;
+    } else {
+      this.invalidUser = false;
+    }
+
     if (obj.value.username != '' && obj.value.email != '') {
 
       forkJoin(
-        this.usersService.getUser(obj),
-        this.usersService.checkEmail(obj)
+      [this.usersService.getUser(obj),
+        this.usersService.checkEmail(obj)]
       ).subscribe(
         data => {
           if(data instanceof Array && data[0] instanceof Array && data[1] instanceof Array) {
