@@ -25,7 +25,19 @@ export class OnlineGamesService {
         alert(object.message);
       }
     });
+  }
 
+  joinByCode(code: string, name: string) {
+    this.webService.post('online-games/joinByCode', { onlineGameCode: code })
+      .subscribe(
+        (data: any) => {
+          if (data.message) {
+            alert(data.message);
+          } else if (data.hostID && data.id) {
+            this.router.navigate(['/playspace'], { queryParams: { host: data.hostID, onlineGameID: data.id } });
+          }
+        }
+      );
   }
 
   get(id: string): any {

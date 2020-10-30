@@ -14,7 +14,7 @@ import { JoinByCodeComponent } from './join-by-code/join-by-code.component';
 
 
 const routes: Routes = [
-  { path: '', redirectTo: 'gameBrowser', pathMatch: 'full' },
+  { path: '', redirectTo: 'joinByCode', pathMatch: 'full' },
   { path: 'playspace', component: PlayspaceComponent },
   { path: 'deckEditor', component: DeckEditorComponent },
   { path: 'gameBrowser', component: GameBrowserComponent },

@@ -9,6 +9,7 @@ router.get('/getAll', getAll);
 router.get('/getIDAndCode', getIDAndCode);
 router.post('/post', create);
 router.post('/verify', verify);
+router.post('/joinByCode', joinByCode);
 router.delete('/delete', deleteAll);
 router.patch('/update', update);
 
@@ -55,6 +56,31 @@ function generateRandomString (length) {
     return result;
 }
 
+function joinByCode(request, result) {
+    mysql_connection.query(`SELECT * FROM OnlineGameMySQL WHERE onlineGameCode='${request.body.onlineGameCode}'`, function (err, res) {
+        if (err) {
+            console.log("Error in joinByCode for online games: ", err);
+            result.send(err);
+        } else {
+            if (res.length != 1) {
+                if (res.length === 0) {
+                    result.send({ message: "No active game with that code." });
+                } else {
+                    result.send({ message: "Error: More than one matching game with that code." });
+                }
+            } else {
+                const onlineGame = res[0];
+
+                if (onlineGame.numPlayers < onlineGame.maxPlayers) {
+                    result.send(onlineGame);
+                } else {
+                    result.send({ message: "Room is full." });
+                }
+            }
+        }
+    });
+}
+
 function getIDAndCode(request, result) {
     mysql_connection.query("SELECT * FROM OnlineGameMySQL", function(err, res) {
         if (err) {
@@ -86,7 +112,7 @@ function getIDAndCode(request, result) {
                     object.onlineGameCode = code;
                 }
             }
-            console.log("Successfully generated new ID and code");
+            console.log("Successfully generated new ID and code.");
             console.log(object);
             result.send(object);
         }
@@ -122,7 +148,11 @@ function verify(request, result) {
             result.send(err);
         } else {
             if (res.length != 1) {
-                result.send({ message: "No matching game/more than one matching game." });
+                if (res.length === 0) {
+                    result.send({ message: "Error: game does not exist." });
+                } else {
+                    result.send({ message: "Error: more than one matching game." });
+                }
             } else {
                 const onlineGame = res[0];
 

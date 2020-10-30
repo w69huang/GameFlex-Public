@@ -255,6 +255,10 @@ export class PlayspaceComponent implements OnInit {
     this.savedGameStateService.deleteAll().subscribe();
   }
 
+  getOnlineGameCode() {
+    alert(`Online Game Code: ${this.onlineGame.onlineGameCode}`);
+  }
+
   updateOnlineGame() {
     if (this.amHost && this.onlineGame) {
       this.onlineGame.lastUpdated = Date.now();
