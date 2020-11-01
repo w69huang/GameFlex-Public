@@ -1,6 +1,6 @@
-import { Component, Input, OnInit } from '@angular/core';
+import { Component, EventEmitter, Input, OnInit, Output } from '@angular/core';
 import { DataConnection } from 'peerjs';
-import { ActivatedRoute, Router } from '@angular/router';
+import { Router } from '@angular/router';
 import { MatDialog } from '@angular/material/dialog';
 
 import { HostService } from '../services/host.service';
@@ -46,6 +46,11 @@ export class PlayspaceComponent implements OnInit {
   // From Game Instance
   @Input() public mainHostID: string;
   @Input() public onlineGameID: string;
+
+  // To Game Instance
+  @Output() public onlineGameEmitter: EventEmitter<OnlineGame> = new EventEmitter<OnlineGame>();
+  @Output() public playerDataEmitter: EventEmitter<PlayerData[]> = new EventEmitter<PlayerData[]>();
+  @Output() public amHostEmitter: EventEmitter<boolean> = new EventEmitter<boolean>();
   
   // Peer
   public peer: any;
@@ -120,6 +125,7 @@ export class PlayspaceComponent implements OnInit {
 
         if (playerData) {
           this.playerDataObjects = this.filterOutID(this.playerDataObjects, playerData);
+          this.playerDataEmitter.emit(this.playerDataObjects);
 
           this.onlineGame.numPlayers--;
           this.onlineGamesService.update(this.onlineGame).subscribe();
@@ -139,6 +145,7 @@ export class PlayspaceComponent implements OnInit {
 
         if (playerData) {
           this.playerDataObjects = this.filterOutID(this.playerDataObjects, playerData);
+          this.playerDataEmitter.emit(this.playerDataObjects);
 
           this.onlineGame.numPlayers--;
           this.onlineGamesService.update(this.onlineGame).subscribe();
@@ -318,6 +325,7 @@ export class PlayspaceComponent implements OnInit {
 
         if (this.onlineGame) { // If the online game's hostID has updated (b/c the host disconnects), update our local hostID reference
           this.mainHostID = this.onlineGame.hostID;
+          this.onlineGameEmitter.emit(this.onlineGame);
         }
 
         if (!this.onlineGame && this.mainHostID != this.myPeerID) { // I'm not the host and I couldn't find the game
@@ -326,6 +334,7 @@ export class PlayspaceComponent implements OnInit {
         } else if (this.mainHostID != this.myPeerID) { // My ID does not match the host's
           if (this.onlineGame.username === this.middleware.getUsername()) { // i.e. I, the host, DC'd and was granted a new hostID
             // Update the hostID of the online game
+            this.amHostEmitter.emit(true);
             this.onlineGame.hostID = this.myPeerID;
             this.onlineGamesService.update(this.onlineGame).subscribe((data) => {
               this.updateOnlineGameInterval = setInterval(this.updateOnlineGame.bind(this), 300000); // Tell the backend that this game still exists every 5 mins
@@ -341,6 +350,7 @@ export class PlayspaceComponent implements OnInit {
             }
           }
         } else { // I am the host
+          this.amHostEmitter.emit(true);
           this.finishConnectionProcess();
           this.updateOnlineGameInterval = setInterval(this.updateOnlineGame.bind(this), 300000); // Tell the backend that this game still exists every 5 mins
         }
@@ -421,6 +431,7 @@ export class PlayspaceComponent implements OnInit {
         const sentGameState: SentGameState = new SentGameState(this.gameState, playerID);
 
         this.playerDataObjects.push(new PlayerData(playerID, data['peerID']));
+        this.playerDataEmitter.emit(this.playerDataObjects);
 
         console.log("Sending state.");
         this.connections.forEach((connection: DataConnection) => {
