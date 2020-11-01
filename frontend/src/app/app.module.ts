@@ -31,6 +31,7 @@ import { UsersService } from './services/users.service';
 import { SaveGameStatePopupComponent } from './popups/save-game-state-popup/save-game-state-popup.component';
 import { RetrieveGameStatePopupComponent } from './popups/retrieve-game-state-popup/retrieve-game-state-popup.component';
 import { NgxMatSelectSearchModule } from 'ngx-mat-select-search';
+import { JoinByCodeComponent } from './join-by-code/join-by-code.component';
 
 @NgModule({
   declarations: [
@@ -50,6 +51,7 @@ import { NgxMatSelectSearchModule } from 'ngx-mat-select-search';
     ChangepasswordComponent,
     SaveGameStatePopupComponent,
     RetrieveGameStatePopupComponent,
+    JoinByCodeComponent,
   ],
   imports: [
     BrowserModule,

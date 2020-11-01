@@ -24,3 +24,13 @@
     margin-left: 45%;
     font-size: 64px;
 }
+
+.onlineGameCode-container {
+    float: right;
+    text-align: center;
+
+    .onlineGameCode {
+        font-size: 30px;
+        color: white;
+    }
+}
