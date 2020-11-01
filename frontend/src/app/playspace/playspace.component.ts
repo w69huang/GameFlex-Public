@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, Input, OnInit } from '@angular/core';
 import { DataConnection } from 'peerjs';
 import { ActivatedRoute, Router } from '@angular/router';
 import { MatDialog } from '@angular/material/dialog';
@@ -42,12 +42,14 @@ export class PlayspaceComponent implements OnInit {
   public sceneHeight: number = 1000;
   public handBeginY: number = 600;
   public highestID: number = 1;
+
+  // From Game Instance
+  @Input() public mainHostID: string;
+  @Input() public onlineGameID: string;
   
   // Peer
   public peer: any;
   public myPeerID: string;
-  public mainHostID: string;
-  public onlineGameID: string;
   public connections: DataConnection[] = [];
   public firstConnectionAttempt: boolean = false;
   public connOpenedSuccessfully: boolean = false;
@@ -70,7 +72,6 @@ export class PlayspaceComponent implements OnInit {
   public amHost: boolean = true;
   
   constructor(
-    private route: ActivatedRoute, 
     private hostService: HostService, 
     private onlineGamesService: OnlineGamesService, 
     private savedGameStateService: SavedGameStateService,
@@ -147,11 +148,6 @@ export class PlayspaceComponent implements OnInit {
    }
 
   ngOnInit() {
-    this.route.queryParams.subscribe(params => {
-      this.mainHostID = params['host'];
-      this.onlineGameID = params['onlineGameID'];
-    });
-
     // TODO: Band-aid solution, find a better one at some point
     setTimeout(_=> this.initialize(), 100);
     this.checkIfCanOpenConnectionInterval = setInterval(this.checkIfCanOpenConnection.bind(this), 5000);

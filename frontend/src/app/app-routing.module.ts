@@ -11,11 +11,12 @@ import { SignupComponent } from './signup/signup.component';
 import { LoginComponent } from './login/login.component';
 import { ChangepasswordComponent } from './changepassword/changepassword.component';
 import { JoinByCodeComponent } from './join-by-code/join-by-code.component';
+import { GameInstanceComponent } from './game-instance/game-instance.component';
 
 
 const routes: Routes = [
   { path: '', redirectTo: 'joinByCode', pathMatch: 'full' },
-  { path: 'playspace', component: PlayspaceComponent },
+  { path: 'gameInstance', component: GameInstanceComponent },
   { path: 'deckEditor', component: DeckEditorComponent },
   { path: 'gameBrowser', component: GameBrowserComponent },
   { path: 'joinByCode', component: JoinByCodeComponent },
