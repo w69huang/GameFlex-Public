@@ -11,6 +11,13 @@
     (amHostEmitter)="receiveAmHost($event)"
     (playerDataEmitter)="receivePlayerData($event)"
     (onlineGameEmitter)="receiveOnlineGameData($event)"
+    [saveGameStateEmitter]="saveGameStateEmitter"
+    [getAllSavedGameStatesEmitter]="getAllSavedGameStatesEmitter"
     [mainHostID]="mainHostID"
     [onlineGameID]="onlineGameID"
 ></app-playspace>
+<div *ngIf="middleware.isLoggedIn()">
+    <div class="btn btn-primary" (click)="getAllSavedGameStates()">Get Saved Games</div>
+    <div class="btn btn-primary" (click)="saveGameState()">Save Game</div>
+    <div class="btn btn-primary" (click)="deleteAllSaves()">Delete All Saves</div>
+</div>

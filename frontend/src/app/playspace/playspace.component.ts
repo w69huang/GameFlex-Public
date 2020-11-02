@@ -7,8 +7,7 @@ import { HostService } from '../services/host.service';
 import { OnlineGamesService } from '../services/online-games.service';
 import { SavedGameStateService } from '../services/saved-game-state.service';
 import { MiddleWare } from '../services/middleware';
-import { SaveGameStatePopupComponent } from '../popups/save-game-state-popup/save-game-state-popup.component';
-import { RetrieveGameStatePopupComponent } from '../popups/retrieve-game-state-popup/retrieve-game-state-popup.component';
+
 import Peer from 'peerjs';
 import Phaser from 'phaser';
 import Card from '../models/card';
@@ -44,13 +43,15 @@ export class PlayspaceComponent implements OnInit {
   public highestID: number = 1;
 
   // From Game Instance
-  @Input() public mainHostID: string;
-  @Input() public onlineGameID: string;
+  @Input() private mainHostID: string;
+  @Input() private onlineGameID: string;
+  @Input() private saveGameStateEmitter: EventEmitter<string> = new EventEmitter<string>();
+  @Input() private getAllSavedGameStatesEmitter: EventEmitter<SavedGameState> = new EventEmitter<SavedGameState>();
 
   // To Game Instance
-  @Output() public onlineGameEmitter: EventEmitter<OnlineGame> = new EventEmitter<OnlineGame>();
-  @Output() public playerDataEmitter: EventEmitter<PlayerData[]> = new EventEmitter<PlayerData[]>();
-  @Output() public amHostEmitter: EventEmitter<boolean> = new EventEmitter<boolean>();
+  @Output() private onlineGameEmitter: EventEmitter<OnlineGame> = new EventEmitter<OnlineGame>();
+  @Output() private playerDataEmitter: EventEmitter<PlayerData[]> = new EventEmitter<PlayerData[]>();
+  @Output() private amHostEmitter: EventEmitter<boolean> = new EventEmitter<boolean>();
   
   // Peer
   public peer: any;
@@ -82,7 +83,7 @@ export class PlayspaceComponent implements OnInit {
     private savedGameStateService: SavedGameStateService,
     private dialog: MatDialog,
     private router: Router,
-    public middleware: MiddleWare
+    private middleware: MiddleWare
    ) {
     this.myPeerID = hostService.getHostID();
     this.gameState = new GameState([], [], [], new Hand(this.playerID, []));
@@ -158,6 +159,8 @@ export class PlayspaceComponent implements OnInit {
     // TODO: Band-aid solution, find a better one at some point
     setTimeout(_=> this.initialize(), 100);
     this.checkIfCanOpenConnectionInterval = setInterval(this.checkIfCanOpenConnection.bind(this), 5000);
+    this.getAllSavedGameStates();
+    this.saveGameState();
   }
   
   ngOnDestroy() {
@@ -187,12 +190,7 @@ export class PlayspaceComponent implements OnInit {
   }
 
   getAllSavedGameStates() {
-    let dialogRef = this.dialog.open(RetrieveGameStatePopupComponent, {
-      height: '225',
-      width: '300px',
-    });
-
-    dialogRef.afterClosed().subscribe((savedGameState: SavedGameState) => {
+    this.getAllSavedGameStatesEmitter.subscribe((savedGameState: SavedGameState) => {
       if (savedGameState) { // If they actually chose a saved game state
         this.cleanUpGameState();
 
@@ -241,25 +239,9 @@ export class PlayspaceComponent implements OnInit {
   }
 
   saveGameState() {
-    let dialogRef = this.dialog.open(SaveGameStatePopupComponent, {
-      height: '225px',
-      width: '300px',
+    this.saveGameStateEmitter.subscribe(name => {
+      this.savedGameStateService.create(new SavedGameState(this.middleware.getUsername(), name, this.gameState, this.playerDataObjects));
     });
-
-    dialogRef.afterClosed().subscribe(formData => {
-      if (formData.name) {
-        console.log(`Saving game with name ${formData.name} to DB.`);
-        this.savedGameStateService.create(new SavedGameState(this.middleware.getUsername(), formData.name, this.gameState, this.playerDataObjects));
-      }
-    });
-  }
-
-  deleteAllSaves() {
-    this.savedGameStateService.deleteAll().subscribe();
-  }
-
-  getOnlineGameCode() {
-    alert(`Online Game Code: ${this.onlineGame.onlineGameCode}`);
   }
 
   updateOnlineGame() {
