@@ -31,6 +31,7 @@ import { UsersService } from './services/users.service';
 import { SaveGameStatePopupComponent } from './popups/save-game-state-popup/save-game-state-popup.component';
 import { RetrieveGameStatePopupComponent } from './popups/retrieve-game-state-popup/retrieve-game-state-popup.component';
 import { NgxMatSelectSearchModule } from 'ngx-mat-select-search';
+import { AuthGuard } from './services/auth-guard';
 
 @NgModule({
   declarations: [
@@ -77,7 +78,8 @@ import { NgxMatSelectSearchModule } from 'ngx-mat-select-search';
   ],
   providers: [
     MiddleWare, 
-    UsersService
+    UsersService,
+    AuthGuard
   ],
   bootstrap: [AppComponent]
 })

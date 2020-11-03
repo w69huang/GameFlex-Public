@@ -10,18 +10,19 @@ import { DummyComponent } from './dummy/dummy.component';
 import { SignupComponent } from './signup/signup.component';
 import { LoginComponent } from './login/login.component';
 import { ChangepasswordComponent } from './changepassword/changepassword.component';
+import { AuthGuard } from './services/auth-guard';
 
 
 const routes: Routes = [
   { path: '', redirectTo: 'gameBrowser', pathMatch: 'full' },
-  { path: 'playspace', component: PlayspaceComponent },
-  { path: 'deckEditor', component: DeckEditorComponent },
-  { path: 'gameBrowser', component: GameBrowserComponent },
+  { path: 'playspace', component: PlayspaceComponent, canActivate:[AuthGuard] },
+  { path: 'deckEditor', component: DeckEditorComponent,canActivate:[AuthGuard] },
+  { path: 'gameBrowser', component: GameBrowserComponent,canActivate:[AuthGuard]  },
   
   { path: 'dummy', component: DummyComponent},
-  { path: 'signup', component: SignupComponent},
-  { path: 'login', component: LoginComponent},
-  { path: 'changepassword', component: ChangepasswordComponent },
+  { path: 'signup', component: SignupComponent,canActivate:[AuthGuard] },
+  { path: 'login', component: LoginComponent,canActivate:[AuthGuard] },
+  { path: 'changepassword', component: ChangepasswordComponent,canActivate:[AuthGuard] },
 
   { path: 'lists', component: TaskViewComponent },
   { path: 'lists/:listId', component: TaskViewComponent },
