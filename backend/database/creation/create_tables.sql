@@ -1,6 +1,8 @@
 
 SET FOREIGN_KEY_CHECKS=0;
 
+use testdb;
+
 DROP TABLE IF EXISTS `UserMySQL`;
 DROP TABLE IF EXISTS `StoredDeckMySQL`;
 DROP TABLE IF EXISTS `OnlineGameMySQL`;
@@ -23,7 +25,8 @@ CREATE TABLE `StoredDeckMySQL` (
 );
 
 CREATE TABLE `OnlineGameMySQL` (
-    `onlineGameCode` char(50) NOT NULL,
+	`id` char(50) NOT NULL,
+    `onlineGameCode` char(50) DEFAULT NULL,
     `username` char(20) NOT NULL,
     `name` char(100) NOT NULL,
     `hostID` char(50) NOT NULL, 
@@ -33,8 +36,9 @@ CREATE TABLE `OnlineGameMySQL` (
     `privateGame` BOOLEAN NOT NULL,
     `encryptedPassword` char(100) DEFAULT NULL,
     `configurationID` int NOT NULL,
+    `lastUpdated` BIGINT NOT NULL,
 
-    PRIMARY KEY (`onlineGameCode`)
+    PRIMARY KEY (`id`)
 );
 
 CREATE TABLE `SavedGameStateMySQL` (
