@@ -38,10 +38,13 @@ export class GameInstanceComponent implements OnInit {
       this.mainHostID = params['host'];
       this.onlineGameID = params['onlineGameID'];
     });
+
+    document.getElementById('onlineGameCode').style.setProperty('display', 'none');
   }
 
   receiveOnlineGameData(onlineGame: OnlineGame) {
     this.onlineGame = onlineGame;
+    document.getElementById('onlineGameCode').style.setProperty('display', 'unset');
   }
 
   receivePlayerData(playerData: PlayerData[]) {
