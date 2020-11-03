@@ -21,7 +21,7 @@ export class AuthGuard implements CanActivate {
             }
             return true;
         } else {
-            if(state.url == '/playspace' || state.url == '/deckEditor' || state.url == '/gameBrowser'){
+            if(state.url == '/joinByCode' || state.url == '/playspace' || state.url == '/deckEditor' || state.url == '/gameBrowser'){
                 this.router.navigate(['/login']);
                 return false;
             }

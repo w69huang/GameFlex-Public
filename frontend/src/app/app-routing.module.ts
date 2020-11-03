@@ -11,6 +11,7 @@ import { SignupComponent } from './signup/signup.component';
 import { LoginComponent } from './login/login.component';
 import { ChangepasswordComponent } from './changepassword/changepassword.component';
 import { AuthGuard } from './services/auth-guard';
+import { JoinByCodeComponent } from './join-by-code/join-by-code.component';
 
 
 const routes: Routes = [
@@ -18,6 +19,7 @@ const routes: Routes = [
   { path: 'playspace', component: PlayspaceComponent, canActivate:[AuthGuard] },
   { path: 'deckEditor', component: DeckEditorComponent,canActivate:[AuthGuard] },
   { path: 'gameBrowser', component: GameBrowserComponent,canActivate:[AuthGuard]  },
+  { path: 'joinByCode', component: JoinByCodeComponent, canActivate:[AuthGuard] },
   
   { path: 'dummy', component: DummyComponent},
   { path: 'signup', component: SignupComponent,canActivate:[AuthGuard] },
