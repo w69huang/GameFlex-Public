@@ -192,7 +192,7 @@ export class PlayspaceComponent implements OnInit {
   getAllSavedGameStates() {
     this.getAllSavedGameStatesEmitter.subscribe((savedGameState: SavedGameState) => {
       if (savedGameState) { // If they actually chose a saved game state
-        this.cleanUpGameState();
+        this.gameState.cleanUp();
 
         this.gameState = new GameState([], [], [], this.gameState.myHand);
   
@@ -436,7 +436,7 @@ export class PlayspaceComponent implements OnInit {
         const receivedGameState: SentGameState = data['state'];
         this.playerID = data['yourPlayerID'];
 
-        this.cleanUpGameState();
+        this.gameState.cleanUp();
 
         this.gameState = new GameState([], [], [], this.gameState.myHand);
 
@@ -459,30 +459,8 @@ export class PlayspaceComponent implements OnInit {
 
       case 'move':
         if (data['type'] === 'card') {
-          let card: Card = null;
-          let found: boolean = true;
           
-          for (let i = 0; i < this.gameState.cards.length; i++) {
-            if (this.gameState.cards[i].id === data['id']) {
-              card = this.gameState.cards[i];
-              found = false;
-              break;
-            }
-          }
-
-          if (!found && this.amHost) {
-            for (let i = 0; i < this.gameState.hands.length; i++) {
-              if (data['playerID'] === this.gameState.hands[i].playerID) {
-                for (let j = 0; j < this.gameState.hands[i].cards.length; j++) {
-                  if (this.gameState.hands[i].cards[j].id === data['id']) {
-                    card = this.gameState.hands[i].cards[j];
-                    break;
-                  }
-                }
-                break;
-              }
-            }
-          }
+          let card: Card = this.gameState.getCardByID(data['id'], data['playerID']);
 
           if (card) {
             card.x = data['x'];
@@ -510,13 +488,8 @@ export class PlayspaceComponent implements OnInit {
             }
           }
         } else if (data['type'] === 'deck') {
-          let deck: Deck = null;
-          for (let i = 0; i < this.gameState.decks.length; i++) {
-            if (this.gameState.decks[i].id === data['id']) {
-              deck = this.gameState.decks[i];
-              break;
-            }
-          }
+          let deck: Deck = this.gameState.getDeckByID(data['id']);
+
           if (deck) {
             deck.x = data['x'];
             deck.y = data['y'];
@@ -546,15 +519,8 @@ export class PlayspaceComponent implements OnInit {
       // The host receives this action, which was sent by a non-host requesting the top card of the deck
       case 'retrieveTopCard':
         if (data['type'] === 'card' && this.amHost) {
-          let deck: Deck = null;
+          let deck: Deck = this.gameState.getDeckByID(data['deckID']);
 
-          for (let i = 0; i < this.gameState.decks.length; i++) {
-            if (this.gameState.decks[i].id === data['deckID']) {
-              deck = this.gameState.decks[i];
-              break;
-            }
-          }
-  
           if (deck && deck.cards.length > 0) {
             let card: Card = deck.cards[deck.cards.length - 1];
 
@@ -584,14 +550,7 @@ export class PlayspaceComponent implements OnInit {
       // The non-host receives this action, which was sent by the host after the non-host requested the top card from a deck
       case 'sendTopCard':
         if (data['type'] === 'card' && !this.amHost) {
-          let deck: Deck = null;
-
-          for (let i = 0; i < this.gameState.decks.length; i++) {
-            if (this.gameState.decks[i].id === data['deckID']) {
-              deck = this.gameState.decks[i];
-              break;
-            }
-          }
+          let deck: Deck = this.gameState.getDeckByID(data['deckID']);
 
           if (deck) {
 
@@ -606,44 +565,11 @@ export class PlayspaceComponent implements OnInit {
       // Received by the host when a player inserts a card into the deck or by the player when the host inserts a card into the deck
       case 'insertIntoDeck':
         if (data['type'] === 'card' && this.amHost) {
-          let card: Card = null;
-          let deck: Deck = null;
-          let handIndex: number = null;
-          let foundInHand = data['foundInHand'];
-
-          if (!foundInHand) {
-            for (let i = 0; i < this.gameState.cards.length; i++) {
-              if (this.gameState.cards[i].id === data['cardID']) {
-                card = this.gameState.cards[i];
-                break;
-              }
-            }
-          } else {
-            for (let i = 0; i < this.gameState.hands.length; i++) {
-              if (this.gameState.hands[i].playerID === data['playerID']) {
-                let hand: Hand = this.gameState.hands[i];
-                handIndex = i;
-
-                for (let j = 0; j < hand.cards.length; j++) {
-                  if (hand.cards[j].id === data['cardID']) {
-                    card = hand.cards[j];
-                    break;
-                  }
-                }
-                break;
-              }
-            }
-          }
-
-          for (let i = 0; i < this.gameState.decks.length; i++) {
-            if (this.gameState.decks[i].id === data['deckID']) {
-              deck = this.gameState.decks[i];
-              break;
-            }
-          }
+          let card: Card = this.gameState.getCardByID(data['cardID'], data['playerID'], true, true);
+          let deck: Deck = this.gameState.getDeckByID(data['deckID']);
 
           if (card && deck) {
-            if (this.amHost && !foundInHand) {
+            if (this.amHost) {
               // If I am the host, tell everyone else that this card was inserted
               // Assuming they can actually see the card all ready -- if it was in the person's hand, no point in telling them
 
@@ -657,7 +583,6 @@ export class PlayspaceComponent implements OnInit {
                     'imagePath': card.imagePath,
                     'x': card.gameObject.x,
                     'y': card.gameObject.y,
-                    'foundInHand': foundInHand,
                     'amHost': this.amHost,
                     'playerID': this.playerID,
                     'peerID': this.myPeerID
@@ -666,36 +591,12 @@ export class PlayspaceComponent implements OnInit {
               });
             }
 
-            deck.cards.push(card);
-
-            if (card.gameObject) {
-              card.gameObject.destroy();
-              card.gameObject = null;
-            }
-
-            if (!foundInHand) {
-              this.gameState.cards = this.filterOutID(this.gameState.cards, card);
-            } else {
-              card.inHand = false;
-              this.gameState.hands[handIndex].cards = this.filterOutID(this.gameState.hands[handIndex].cards, card);
-            }
+            this.gameState.addCardToDeck(card, deck.id);
           }
         } else if (data['type'] === 'card' && !this.amHost) {
-          let card: Card = null;
-
-          for (let i = 0; i < this.gameState.cards.length; i++) {
-            if (this.gameState.cards[i].id === data['cardID']) {
-              card = this.gameState.cards[i];
-              break;
-            }
-          }
-
-          if (card) {
-            // If I am not the host and someone inserts a card into the deck, completely remove all reference to it
-
-            card.gameObject.destroy();
-            this.gameState.cards = this.filterOutID(this.gameState.cards, card);
-          }
+          // If I am not the host and someone inserts a card into the deck, completely remove all reference to it
+          // Passing in true, true means that even though the card object is returned, it is destroyed
+          this.gameState.getCardByID(data['cardID'], data['playerID'], true, true);
         }
         break;
 
@@ -703,20 +604,9 @@ export class PlayspaceComponent implements OnInit {
       case 'insertIntoHand':
         // If someone else inserts a card into their hand, we need to delete that card from everyone else's screen
         if (data['type'] === 'card') {
-          let card: Card = null;
-
-          for (let i = 0; i < this.gameState.cards.length; i++) {
-            if (this.gameState.cards[i].id === data['cardID']) {
-              card = this.gameState.cards[i];
-              break;
-            }
-          }
+          let card: Card = this.gameState.getCardByID(data['cardID'], data['playerID'], true, true);
 
           if (card) {
-            // Delete the card
-            card.gameObject.destroy();
-            card.gameObject = null;
-
             if (this.amHost) {
               // If I am the host, first we will tell any other players that the action occured
               this.connections.forEach((connection: DataConnection) => {
@@ -732,24 +622,9 @@ export class PlayspaceComponent implements OnInit {
                 }
               });
 
-              // Then, add it to the appropriate player's hand in the game state
-
-              card.inHand = true;
-              let hand: Hand = null;
-              this.gameState.hands.forEach((refHand: Hand) => {
-                if (data['playerID'] === refHand.playerID) {
-                  hand = refHand;
-                }
-              });
-
-              if (!hand) {
-                this.gameState.hands.push(new Hand(data['playerID'], [card]));
-              } else {
-                hand.cards.push(card);
-              }
+              // Then, add it to the appropriate player's hand in the game state (will only actually take effect if host)
+              this.gameState.addCardToPlayerHand(card, data['playerID']);
             }
-
-            this.gameState.cards = this.filterOutID(this.gameState.cards, card);
           }
         }
 
@@ -760,38 +635,27 @@ export class PlayspaceComponent implements OnInit {
         if (data['type'] === 'card') {
           let card: Card = null;
           if (this.amHost) {
-            // Card already exists
-            for (let i = 0; i < this.gameState.hands.length; i++) {
-              if (this.gameState.hands[i].playerID === data['playerID']) {
-                for (let j = 0; j < this.gameState.hands[i].cards.length; j++) {
-                  if (this.gameState.hands[i].cards[j].id === data['cardID']) {
-                    card = this.gameState.hands[i].cards[j];
-                    card.inHand = false;
-                    this.gameState.hands[i].cards = this.filterOutID(this.gameState.hands[i].cards, card);
-                    HelperFunctions.createCard(card, this,  SharedActions.onDragMove, SharedActions.onDragEnd, HelperFunctions.DestinationEnum.TABLE, data['x'], data['y'])
+            // Card already exists if I'm the host, since I know everyone's hands
+            card = this.gameState.getCardByID(data['cardID'], data['playerID'], true, true);
 
-                    // Tell other possible peers that this card was removed from a hand
-                    this.connections.forEach((connection: DataConnection) => {
-                      if (connection.peer != data['peerID']) {
-                        connection.send({
-                          'action': 'removeFromHand',
-                          'type': card.type,
-                          'cardID': card.id,
-                          'imagePath': card.imagePath,
-                          'x': card.gameObject.x,
-                          'y': card.gameObject.y,
-                          'amHost': this.amHost,
-                          'playerID': this.playerID,
-                          'peerID': this.myPeerID
-                        });
-                      }
-                    });
-                    break;
-                  }
-                }
-                break;
+            HelperFunctions.createCard(card, this, SharedActions.onDragMove, SharedActions.onDragEnd, HelperFunctions.DestinationEnum.TABLE, data['x'], data['y'])
+
+            // Tell other possible peers that this card was removed from a hand
+            this.connections.forEach((connection: DataConnection) => {
+              if (connection.peer != data['peerID']) {
+                connection.send({
+                  'action': 'removeFromHand',
+                  'type': card.type,
+                  'cardID': card.id,
+                  'imagePath': card.imagePath,
+                  'x': card.gameObject.x,
+                  'y': card.gameObject.y,
+                  'amHost': this.amHost,
+                  'playerID': this.playerID,
+                  'peerID': this.myPeerID
+                });
               }
-            }
+            });            
           } else {
             card = new Card(data['cardID'], data['imagePath'], data['x'], data['y']);
             HelperFunctions.createCard(card, this, SharedActions.onDragMove, SharedActions.onDragEnd, HelperFunctions.DestinationEnum.TABLE, data['x'], data['y']);
@@ -802,13 +666,7 @@ export class PlayspaceComponent implements OnInit {
 
       case 'importDeck':
         if (data['type'] === 'deck' && this.amHost) {
-          let deck: Deck = null;
-
-          for (let i = 0; i < this.gameState.decks.length; i++) {
-            if (this.gameState.decks[i].id === data['deckID']) {
-              deck = this.gameState.decks[i];
-            }
-          }
+          let deck: Deck = this.gameState.getDeckByID(data['deckID']);
 
           if (deck) {
             let imagePaths: string[] = data['imagePaths'];
@@ -853,20 +711,5 @@ export class PlayspaceComponent implements OnInit {
         console.log('received action');
         break;
     }
-  }
-
-  cleanUpGameState() {
-    this.gameState.cards.forEach((card: Card) => {
-      card.gameObject.destroy();
-    });
-    this.gameState.cards = [];
-    this.gameState.decks.forEach((deck: Deck) => {
-      deck.gameObject.destroy();
-    });
-    this.gameState.decks = [];
-    this.gameState.myHand.cards.forEach((card: Card) => {
-      card.gameObject.destroy();
-    });
-    this.gameState.myHand.cards = [];
   }
 }

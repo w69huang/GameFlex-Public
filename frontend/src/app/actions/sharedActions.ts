@@ -36,28 +36,9 @@ export function onDragEnd(object: any, playspaceComponent: PlayspaceComponent, p
     if (object.type === 'card') {
       // Step 1: Find Card
 
-      let card: Card = null;
-      let found = false;
-      let foundInHand = false;
+      let card: Card = playspaceComponent.gameState.getCardByID(object.id, playspaceComponent.playerID);
 
-      playspaceComponent.gameState.myHand.cards.forEach((refCard: Card) => {
-        if (object.id === refCard.id) {
-          card = refCard;
-          found = true;
-          foundInHand = true;
-        }
-      });
-
-      if (!found) {
-        playspaceComponent.gameState.cards.forEach((refCard: Card) => {
-          if (object.id === refCard.id) {
-            card = refCard;
-            found = true;
-          }
-        });
-      }
-
-      if (found) {
+      if (card) {
         let myCenterX = object.gameObject.x + object.gameObject.displayWidth/2;
         let myCenterY = object.gameObject.y + object.gameObject.displayHeight/2;
         let inserted = false;
@@ -71,7 +52,7 @@ export function onDragEnd(object: any, playspaceComponent: PlayspaceComponent, p
           if (!card.inHand) {
             inserted = true;
             card.inHand = true;
-            hand.cards.push(card);
+            playspaceComponent.gameState.addCardToOwnHand(card);
 
             if (playspaceComponent.connections) {
               playspaceComponent.connections.forEach((connection: DataConnection) => {

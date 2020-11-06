@@ -19,9 +19,9 @@ export function createCard(card: Card, playspaceComponent: PlayspaceComponent, d
         card.gameObject.displayWidth = 200;
         card.gameObject.displayHeight = 300;
         if (destination === DestinationEnum.TABLE) {
-        playspaceComponent.gameState.cards.push(card);
+            playspaceComponent.gameState.addCardToTable(card);
         } else {
-        playspaceComponent.gameState.myHand.cards.push(card);
+            playspaceComponent.gameState.addCardToOwnHand(card);
         }
     } else {
         // Otherwise, we have to dynamically load it
@@ -40,9 +40,9 @@ export function cardCreationCallback(card: Card, playspaceComponent: PlayspaceCo
     card.gameObject.displayWidth = 200;
     card.gameObject.displayHeight = 300;
     if (destination === DestinationEnum.TABLE) {
-        playspaceComponent.gameState.cards.push(card);
+        playspaceComponent.gameState.addCardToTable(card);
     } else {
-        playspaceComponent.gameState.myHand.cards.push(card);
+        playspaceComponent.gameState.addCardToOwnHand(card);
     }
 }
 
@@ -57,7 +57,7 @@ export function createDeck(deck: Deck, playspaceComponent: PlayspaceComponent, d
         deck.gameObject.on('pointerdown', rightClick.bind(this, deck, playspaceComponent));
         deck.gameObject.displayWidth = 200;
         deck.gameObject.displayHeight = 300;
-        playspaceComponent.gameState.decks.push(deck);
+        playspaceComponent.gameState.addDeckToTable(deck);
     } else {
         // Otherwise, we have to dynamically load it
         playspaceComponent.phaserScene.load.image(deck.imagePath, deck.imagePath);
@@ -74,5 +74,5 @@ export function deckCreationCallback(deck: Deck, playspaceComponent: PlayspaceCo
     deck.gameObject.on('pointerdown', rightClick.bind(this, deck, playspaceComponent));
     deck.gameObject.displayWidth = 200;
     deck.gameObject.displayHeight = 300;
-    playspaceComponent.gameState.decks.push(deck);
+    playspaceComponent.gameState.addDeckToTable(deck);
 }

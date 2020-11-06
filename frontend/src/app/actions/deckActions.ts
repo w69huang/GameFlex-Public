@@ -74,12 +74,12 @@ export function retrieveTopCard(popupScene: PopupScene, deck: Deck, playspaceCom
     } else if (playspaceComponent.connections) {
         playspaceComponent.connections.forEach((connection: DataConnection) => {
             connection.send({
-                'action': 'retrieveTopCard',
-                'type': 'card',
-                'deckID': deck.id,
-                'amHost': playspaceComponent.amHost,
-                'playerID': playspaceComponent.playerID,
-                'peerID': playspaceComponent.myPeerID
+                    'action': 'retrieveTopCard',
+                    'type': 'card',
+                    'deckID': deck.id,
+                    'amHost': playspaceComponent.amHost,
+                    'playerID': playspaceComponent.playerID,
+                    'peerID': playspaceComponent.myPeerID
                 });
         });
     }
@@ -98,7 +98,7 @@ export function shuffleDeck(popupScene: PopupScene, deck: Deck, playspaceCompone
         let shuffledCardIDs = [];
 
         shuffled.forEach((card: Card) => {
-        shuffledCardIDs.push(card.id);
+            shuffledCardIDs.push(card.id);
         });
 
         // TODO: Only host can shuffle, and host is not sending shuffled data to players
