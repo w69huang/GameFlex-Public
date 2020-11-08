@@ -460,7 +460,7 @@ export class PlayspaceComponent implements OnInit {
       case 'move':
         if (data['type'] === 'card') {
           
-          let card: Card = this.gameState.getCardByID(data['id'], data['playerID']);
+          let card: Card = this.gameState.getCardByID(data['id'], data['playerID']).card;
 
           if (card) {
             card.x = data['x'];
@@ -565,7 +565,7 @@ export class PlayspaceComponent implements OnInit {
       // Received by the host when a player inserts a card into the deck or by the player when the host inserts a card into the deck
       case 'insertIntoDeck':
         if (data['type'] === 'card' && this.amHost) {
-          let card: Card = this.gameState.getCardByID(data['cardID'], data['playerID'], true, true);
+          let card: Card = this.gameState.getCardByID(data['cardID'], data['playerID'], true, true).card;
           let deck: Deck = this.gameState.getDeckByID(data['deckID']);
 
           if (card && deck) {
@@ -604,7 +604,7 @@ export class PlayspaceComponent implements OnInit {
       case 'insertIntoHand':
         // If someone else inserts a card into their hand, we need to delete that card from everyone else's screen
         if (data['type'] === 'card') {
-          let card: Card = this.gameState.getCardByID(data['cardID'], data['playerID'], true, true);
+          let card: Card = this.gameState.getCardByID(data['cardID'], data['playerID'], true, true).card;
 
           if (card) {
             if (this.amHost) {
@@ -636,7 +636,7 @@ export class PlayspaceComponent implements OnInit {
           let card: Card = null;
           if (this.amHost) {
             // Card already exists if I'm the host, since I know everyone's hands
-            card = this.gameState.getCardByID(data['cardID'], data['playerID'], true, true);
+            card = this.gameState.getCardByID(data['cardID'], data['playerID'], true, true).card;
 
             HelperFunctions.createCard(card, this, SharedActions.onDragMove, SharedActions.onDragEnd, HelperFunctions.DestinationEnum.TABLE, data['x'], data['y'])
 

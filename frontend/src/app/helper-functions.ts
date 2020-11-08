@@ -21,7 +21,7 @@ export function createCard(card: Card, playspaceComponent: PlayspaceComponent, d
         if (destination === DestinationEnum.TABLE) {
             playspaceComponent.gameState.addCardToTable(card);
         } else {
-            playspaceComponent.gameState.addCardToOwnHand(card);
+            playspaceComponent.gameState.addCardToOwnHand(card, playspaceComponent.playerID);
         }
     } else {
         // Otherwise, we have to dynamically load it
@@ -42,7 +42,7 @@ export function cardCreationCallback(card: Card, playspaceComponent: PlayspaceCo
     if (destination === DestinationEnum.TABLE) {
         playspaceComponent.gameState.addCardToTable(card);
     } else {
-        playspaceComponent.gameState.addCardToOwnHand(card);
+        playspaceComponent.gameState.addCardToOwnHand(card, playspaceComponent.playerID);
     }
 }
 
