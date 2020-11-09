@@ -135,7 +135,7 @@ To start the mySQL server, log onto the GCP console and select the **_SQL_** opt
 
 Currently only one user exists:
 - **User**: root
-- **Password**: 123
+- **Password**: gameflex123
 
 ### MongoDB: 
 
@@ -152,7 +152,7 @@ The peer JS server is also here. To install peerjs locally on ur user:
 
 ## Live Demo:
 
-### VM Side:
+### VM Startup:
 To start up the live demo, check that the VM instances **_gameflex_frontend_**  and **_gameflex-mongodb-servers-vm-0_** are running. Then SSH into the mongo VM with the ssh button and type in ./startup.sh which will run the peerjs in that terminal. 
 
 Then you want to SSH into the frontend VM and go to my profile (w69huang) by typing:
@@ -161,9 +161,9 @@ Then you want to SSH into the frontend VM and go to my profile (w69huang) by typ
 Here, you should see multiple folders, but you should CD into **_FYDP_Project_** and into **_backend_**. Start the backend service as normal. If it doesn't start, check the Possible Issues section at the bottom.
 
 After that, open up a new tab and then enter in the external IP of the frontend VM (104.155.129.45) as the url. If it just automatically closes your new tab when you go to that, then go to google.com first then enter in the IP of the VM (I'm guessing it has something to do with security settings on the browser).
-This should direct you to the playspace of the app, but if it doesn't take a screenshot of the issue and direct it to Will. 
+This should direct you to the frontend page, but if it doesn't take a screenshot of the issue and direct it to Will. 
 
-### Code Side:
+### Frontend Code:
 The code for the application isn't exactly the same code as what we manage and change. You first have to go to the .../FYDP_Project/frontend/ directory on your local machine and then type in:
 
     ng build --prod
@@ -189,6 +189,20 @@ After doing that, you should restart the apache server to ensure that these are 
     sudo systemctl restart apache2
 
 Then the new pages should show up no problem. If this is not the case, once again take a screenshot of the issue and then send it over to Will. :) 
+
+### Backend Code:
+
+When creating more backend code and new endpoints, we want to make sure we add a proxy to catch requests sent to port 80 (for http requests) and then determine whether or not it's a Mongo call or a MySQL call. To do this, you want to do the following:
+
+    1. cd /etc/apache2/
+    2. sudo vim apache2.conf
+    3. Scroll all the way down
+    4. Determine if the new backend code is for MySQL or Mongo and find what the common route is. E.g. for user calls, every request beings with 104.155.129.45/user/... with /user/ being the common route.
+    5. Create two new lines where port if 5000 for MySQL and 3000 for Mongo:
+        i. ProxyPass /<common-route>/ http://localhost:<port>/<common-route>/
+        ii. ProxyPassReverse /<common-route>/ http://localhost:<port>/<common-route>/
+    6. Restart apache2 using:
+        sudo systemctl restart apache2
 
 
 # MAJOR THINGS TO LOOK OUT FOR
