@@ -135,7 +135,7 @@ To start the mySQL server, log onto the GCP console and select the **_SQL_** opt
 
 Currently only one user exists:
 - **User**: root
-- **Password**: 123
+- **Password**: gameflex123
 
 ### MongoDB: 
 
@@ -161,7 +161,7 @@ Then you want to SSH into the frontend VM and go to my profile (w69huang) by typ
 Here, you should see multiple folders, but you should CD into **_FYDP_Project_** and into **_backend_**. Start the backend service as normal. If it doesn't start, check the Possible Issues section at the bottom.
 
 After that, open up a new tab and then enter in the external IP of the frontend VM (104.155.129.45) as the url. If it just automatically closes your new tab when you go to that, then go to google.com first then enter in the IP of the VM (I'm guessing it has something to do with security settings on the browser).
-This should direct you to the playspace of the app, but if it doesn't take a screenshot of the issue and direct it to Will. 
+This should direct you to the frontend page, but if it doesn't take a screenshot of the issue and direct it to Will. 
 
 ### Frontend Code:
 The code for the application isn't exactly the same code as what we manage and change. You first have to go to the .../FYDP_Project/frontend/ directory on your local machine and then type in:
@@ -203,6 +203,7 @@ When creating more backend code and new endpoints, we want to make sure we add a
         ii. ProxyPassReverse /<common-route>/ http://localhost:<port>/<common-route>/
     6. Restart apache2 using:
         sudo systemctl restart apache2
+
 
 # MAJOR THINGS TO LOOK OUT FOR
 
