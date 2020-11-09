@@ -94,11 +94,15 @@ export class PlayspaceComponent implements OnInit {
 
     this.peer.on('connection', (conn) => { 
       console.log(`Received connection request from peer with id ${conn.peer}.`);
-      this.onlineGame.numPlayers++;
-      // Check if there are duplicate connections, if so filter out
-      this.connections = this.closeAndFilterDuplicateConnections(conn);
-      this.connections.push(conn);
 
+      conn.on('open', () => {
+        // Check if there are duplicate connections, if so filter out
+        this.connections = this.closeAndFilterDuplicateConnections(conn);
+        this.connections.push(conn);
+
+        this.onlineGame.numPlayers++;
+        this.onlineGamesService.update(this.onlineGame).subscribe();
+      });
       conn.on('data', (data) => {
         this.handleData(data);
       });
@@ -115,6 +119,9 @@ export class PlayspaceComponent implements OnInit {
 
         if (playerData) {
           this.playerDataObjects = this.filterOutID(this.playerDataObjects, playerData);
+
+          this.onlineGame.numPlayers--;
+          this.onlineGamesService.update(this.onlineGame).subscribe();
         }
       });
       conn.on('error', (err) => {
@@ -131,6 +138,9 @@ export class PlayspaceComponent implements OnInit {
 
         if (playerData) {
           this.playerDataObjects = this.filterOutID(this.playerDataObjects, playerData);
+
+          this.onlineGame.numPlayers--;
+          this.onlineGamesService.update(this.onlineGame).subscribe();
         }
       });
     });
@@ -245,9 +255,14 @@ export class PlayspaceComponent implements OnInit {
     this.savedGameStateService.deleteAll().subscribe();
   }
 
+  getOnlineGameCode() {
+    alert(`Online Game Code: ${this.onlineGame.onlineGameCode}`);
+  }
+
   updateOnlineGame() {
     if (this.amHost && this.onlineGame) {
-      this.onlineGamesService.confirmActive(this.onlineGame);
+      this.onlineGame.lastUpdated = Date.now();
+      this.onlineGamesService.update(this.onlineGame).subscribe();
     }
   }
 
@@ -316,7 +331,7 @@ export class PlayspaceComponent implements OnInit {
           if (this.onlineGame.username === this.middleware.getUsername()) { // i.e. I, the host, DC'd and was granted a new hostID
             // Update the hostID of the online game
             this.onlineGame.hostID = this.myPeerID;
-            this.onlineGamesService.updateHostID(this.onlineGame).subscribe((data) => {
+            this.onlineGamesService.update(this.onlineGame).subscribe((data) => {
               this.updateOnlineGameInterval = setInterval(this.updateOnlineGame.bind(this), 300000); // Tell the backend that this game still exists every 5 mins
               this.finishConnectionProcess();
             });

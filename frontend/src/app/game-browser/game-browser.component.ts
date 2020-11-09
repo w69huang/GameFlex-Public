@@ -50,11 +50,11 @@ export class GameBrowserComponent implements OnInit {
   
       dialogRef.afterClosed().subscribe(password => {
         if (password) {
-          this.onlineGamesService.verifyGamePassword(onlineGame, password);
+          this.onlineGamesService.verify(onlineGame, password);
         }
       });
     } else {
-      this.onlineGamesService.verifyGamePassword(onlineGame, "");
+      this.onlineGamesService.verify(onlineGame, "");
     }
   }
 
