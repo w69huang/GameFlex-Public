@@ -49,15 +49,30 @@ export function onDragEnd(object: any, playspaceComponent: PlayspaceComponent, p
             'peerID': playspaceComponent.myPeerID
           });
         });
-      } else if (overlapObject.overlapType === EOverlapType.ALREADYINHAND || overlapObject.overlapType === EOverlapType.NONE) {
-        // If no overlap or the card was already in hand and overlapped with hand again, report movement
+      } else if (overlapObject.overlapType === EOverlapType.ALREADYINHAND || (overlapObject.overlapType === EOverlapType.TABLE && overlapObject.wasInHand === false)) {
+        // If overlapped with only the table or the card was already in hand and overlapped with hand again, report movement
         playspaceComponent.connections.forEach((connection: DataConnection) => {
           connection.send({
             'action': 'move',
             'type': object.type,
             'id': object.id,
-            'x': object.gameObject.x,
-            'y': object.gameObject.y,
+            'x': object.x,
+            'y': object.y,
+            'amHost': playspaceComponent.amHost,
+            'playerID': playspaceComponent.playerID,
+            'peerID': playspaceComponent.myPeerID
+          });
+        });
+      } else if (overlapObject.overlapType === EOverlapType.TABLE && overlapObject.wasInHand === true) {
+        // If card overlapped with table and it was in my hand previously
+        playspaceComponent.connections.forEach((connection: DataConnection) => {
+          connection.send({
+            'action': 'removeFromHand',
+            'type': object.type,
+            'cardID': object.id,
+            'imagePath': object.imagePath,
+            'x': object.x,
+            'y': object.y,
             'amHost': playspaceComponent.amHost,
             'playerID': playspaceComponent.playerID,
             'peerID': playspaceComponent.myPeerID
@@ -71,8 +86,8 @@ export function onDragEnd(object: any, playspaceComponent: PlayspaceComponent, p
             'cardID': object.id,
             'deckID': overlapObject.deckID,
             'imagePath': object.imagePath,
-            'x': object.gameObject.x,
-            'y': object.gameObject.y,
+            'x': object.x,
+            'y': object.y,
             'amHost': playspaceComponent.amHost,
             'playerID': playspaceComponent.playerID,
             'peerID': playspaceComponent.myPeerID

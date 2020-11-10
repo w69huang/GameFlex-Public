@@ -17,6 +17,7 @@ export class CardLocationObject {
 export class OverlapObject {
     overlapType: EOverlapType;
     deckID?: number;
+    wasInHand?: boolean;
 }
 
 /**
@@ -34,7 +35,7 @@ export enum ECardLocation {
  * An enum representing all the possible objects a card could overlap with 
  */
 export enum EOverlapType {
-    NONE,
+    TABLE,
     HAND,
     ALREADYINHAND,
     DECK
@@ -67,7 +68,7 @@ export default class GameState {
     /**
      * A boolean representing whether this player is the host, used to control branching paths
      */
-    public amHost: boolean = false;
+    public amHost: boolean = true;
 
     /**
      * A public accessor to get all cards, should not be used outside of other game state classes
@@ -109,7 +110,7 @@ export default class GameState {
      * @param objectListToFilter - The list to remove objects from
      * @param object - The object to be removed by ID
      */
-    private filterOutID(objectListToFilter: any[], object: any): void {
+    private filterOutID(objectListToFilter: any[], object: any): any[] {
         objectListToFilter = objectListToFilter.filter( (refObject: any) => {
             return object.id !== refObject.id;
         });
@@ -117,6 +118,8 @@ export default class GameState {
         if (this.amHost) {
             this.saveToCache();
         }
+
+        return objectListToFilter;
     }
 
     /**
@@ -127,7 +130,7 @@ export default class GameState {
         this._hands.forEach((hand: Hand) => {
             for (let i: number = 0; i < hand.cards.length; i++) {
                 if (hand.cards[i].id === card.id) {
-                    this.filterOutID(hand.cards, card);
+                    hand.cards = this.filterOutID(hand.cards, card);
                     return;
                 }
             }
@@ -135,26 +138,26 @@ export default class GameState {
     }
 
     /**
-     * Used to remove and the destroy the gameObjects of cards from a list of cards
+     * Used to remove and the destroy the gameObjects of cards from a list of cards, RETURNS A NEW LIST WITH THE CHANGES MADE
      * @param cardList - The list to remove from
      * @param card - The card to remove
      * @param location - The location the card was in, used to determine whether or not to remove the card from the hands array
      */
-    private removeAndDestroyCardFromListByID(cardList: Card[], card: Card, location: ECardLocation) {
+    private removeAndDestroyCardFromListByID(cardList: Card[], card: Card, location: ECardLocation): Card[] {
         if (this.amHost && location === ECardLocation.OTHERHAND || location === ECardLocation.MYHAND) {
             this.removeFromHandsArray(card);
         }
 
-        this.filterOutID(cardList, card);
         card.gameObject?.destroy();
         card.gameObject = null;
+        return this.filterOutID(cardList, card);
     }
 
     /**
      * Used to save the current game state to the user's local storage
      */
     public saveToCache(): void {
-        this.saveToCache();
+        localStorage.setItem('cachedGameState', JSON.stringify(new CachedGameState(this)));
     }
 
     /**
@@ -214,6 +217,24 @@ export default class GameState {
     }
 
     /**
+     * Used to remove a card from the player's own hand, which also removes the card from the overall hands array if the player is the host
+     * @param cardID - The ID of the card to remove
+     * @param playerID - The ID of the player removing it
+     */
+    public removeCardFromOwnHand(cardID: number, playerID: number): void {
+        const card: Card = this.getCardByID(cardID, playerID).card;
+
+        if (card) {
+            card.inHand = false;
+            this.myHand.cards = this.filterOutID(this.myHand.cards, card);
+
+            if (this.amHost) {
+                this.removeCardFromPlayerHand(cardID, playerID);
+            }
+        }
+    }
+
+    /**
      * Used to add a card to the overall hands array, used by hosts
      * @param card - The card to add
      * @param playerID - The ID of the player whose hand is being added to
@@ -240,6 +261,68 @@ export default class GameState {
         }
     }
 
+     /**
+     * Used to remove a card to the overall hands array, used by hosts
+     * @param card - The card to remove
+     * @param playerID - The ID of the player whose hand is being removed from
+     */
+    public removeCardFromPlayerHand(cardID: number, playerID: number): void {
+        if (this.amHost) {
+            const card: Card = this.getCardByID(cardID, playerID).card;
+
+            if (card) {
+                for (let i: number = 0; i < this._hands.length; i++) {
+                    if (this._hands[i].playerID === playerID) {
+                        this._hands[i].cards = this.filterOutID(this._hands[i].cards, card);
+                        break;
+                    }
+                } 
+    
+                card.inHand = false;
+        
+                this.saveToCache();
+            }
+        }
+    }
+
+    /**
+     * Used to retrieve a card from a deck
+     * @param index - The index of the card in the deck that is wanted
+     * @param deckID - The deck to retrieve the card from
+     * @param removeOnRetrieve - Whether or not the card should be removed from the deck upon retrieval
+     */
+    public getCardFromDeck(index: number, deckID: number, removeOnRetrieve: boolean = false): Card {
+        const deck: Deck = this.getDeckByID(deckID);
+        const card: Card = deck.cards[index];
+
+        if (deck && card) {
+            if (removeOnRetrieve) {
+                deck.cards = this.filterOutID(deck.cards, card);
+                card.inDeck = false;
+
+                this.saveToCache();
+            }
+            return card;
+        } else {
+            return null;
+        }
+    }
+
+    /**
+     * Used to replace all the cards in a deck
+     * @param cardList - The cards to replace the deck's cards with
+     * @param deckID - The ID of the deck to have its cards replaced
+     */
+    public replaceCardsInDeck(cardList: Card[], deckID: number): void {
+        const deck: Deck = this.getDeckByID(deckID);
+        
+        if (deck) {
+            deck.cards = cardList;
+
+            this.saveToCache();
+        }
+    }
+
     /**
      * Used to check overlap of an object on hands and decks
      * @param id - The id of the object overlap is being checked for (card/deck)
@@ -257,7 +340,7 @@ export default class GameState {
 
             if (myCenterX > image.x && myCenterX < image.x + image.displayWidth && myCenterY > image.y && myCenterY < image.y + image.displayHeight) {
                 if (cardLocation !== ECardLocation.MYHAND) {
-                    this.filterOutID(this._cards, card);
+                    this._cards = this.filterOutID(this._cards, card);
                     this.addCardToOwnHand(card, playerID);
                     return { overlapType: EOverlapType.HAND };
                 }
@@ -267,11 +350,19 @@ export default class GameState {
                     image = this.decks[i].gameObject;
 
                     if (myCenterX > image.x && myCenterX < image.x + image.displayWidth && myCenterY > image.y && myCenterY < image.y + image.displayHeight) {
-                        this.removeAndDestroyCardFromListByID(this.myHand.cards, card, cardLocation);
+                        this._cards = this.removeAndDestroyCardFromListByID(this._cards, card, cardLocation);
                         this.addCardToDeck(card, this.decks[i].id);
                         return { overlapType: EOverlapType.DECK, deckID: this.decks[i].id };
                     }
                 }
+            }
+
+            if (cardLocation === ECardLocation.MYHAND) {
+                this.addCardToTable(card);
+                this.removeCardFromOwnHand(card.id, playerID);
+                return { overlapType: EOverlapType.TABLE, wasInHand: true };
+            } else {
+                return { overlapType: EOverlapType.TABLE, wasInHand: false };
             }
         } else {
             const deck: Deck = this.getDeckByID(id);
@@ -281,7 +372,6 @@ export default class GameState {
             }
         }
 
-        return { overlapType: EOverlapType.NONE };
     }
 
     /**
@@ -301,7 +391,7 @@ export default class GameState {
                 found = true;
 
                 if (removeAndDestroyFromTable) {
-                    this.removeAndDestroyCardFromListByID(this._cards, card, ECardLocation.TABLE);
+                    this._cards = this.removeAndDestroyCardFromListByID(this._cards, card, ECardLocation.TABLE);
                 }
                 return { card: card, location: ECardLocation.TABLE };
             }
@@ -315,7 +405,7 @@ export default class GameState {
 
                     if (removeAndDestroyFromHand) {
                         card.inHand = false;
-                        this.removeAndDestroyCardFromListByID(this.myHand.cards, card, ECardLocation.MYHAND);
+                        this.myHand.cards = this.removeAndDestroyCardFromListByID(this.myHand.cards, card, ECardLocation.MYHAND);
                     }
                     return { card: card, location: ECardLocation.MYHAND };
                 }
@@ -327,11 +417,12 @@ export default class GameState {
                 if (playerIDOfWhoActedOnCard === this._hands[i].playerID) {
                     for (let j = 0; j < this._hands[i].cards.length; j++) {
                         if (this._hands[i].cards[j].id === id) {
+                            card = this._hands[i].cards[j];
                             if (removeAndDestroyFromHand) {
-                                this._hands[i].cards[j].inHand = false;
-                                this.removeAndDestroyCardFromListByID(this._hands[i].cards, this._hands[i].cards[j], ECardLocation.OTHERHAND);
+                                card.inHand = false;
+                                this._hands[i].cards = this.removeAndDestroyCardFromListByID(this._hands[i].cards, card, ECardLocation.OTHERHAND);
                             }
-                            return { card: this._hands[i].cards[j], location: ECardLocation.OTHERHAND };
+                            return { card: card, location: ECardLocation.OTHERHAND };
                         }
                     }
                     break;

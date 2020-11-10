@@ -10,7 +10,7 @@ const mysql = require('mysql');
 const mysql_connection = mysql.createConnection({
   host: '35.188.40.76',
   user: 'root',
-  password: '123',
+  password: 'gameflex123',
   database: 'testdb'
 });
 mysql_connection.connect((err) => {

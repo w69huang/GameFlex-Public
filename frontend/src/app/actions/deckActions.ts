@@ -44,7 +44,7 @@ export function deckRightClick(deck: Deck, component: any, pointer: Phaser.Input
 export function retrieveTopCard(popupScene: PopupScene, deck: Deck, playspaceComponent: PlayspaceComponent, pointer: Phaser.Input.Pointer) {
 
     if (playspaceComponent.amHost) {
-        var card = deck.cards.pop();
+        const card: Card = playspaceComponent.gameState.getCardFromDeck(deck.cards.length - 1, deck.id);
 
         if (card) {
             if (card.gameObject == null) {
@@ -93,28 +93,7 @@ export function shuffleDeck(popupScene: PopupScene, deck: Deck, playspaceCompone
                                 .sort((object1, object2) => object1.randomVal - object2.randomVal)
                                 .map((object) => object.card);
 
-        deck.cards = shuffled;
-
-        let shuffledCardIDs = [];
-
-        shuffled.forEach((card: Card) => {
-            shuffledCardIDs.push(card.id);
-        });
-
-        // TODO: Only host can shuffle, and host is not sending shuffled data to players
-        // Can change if necessary
-
-        //if (playspaceComponent.conn) {
-        //  playspaceComponent.conn.send({
-        //  'action': 'shuffle',
-        //  'type': 'deck',
-        //  'deckID': deck.id,
-        //  'shuffledCardIDs': shuffledCardIDs,
-        //  'amHost': playspaceComponent.amHost,
-        //  'playerID': playspaceComponent.playerID,
-        //  'peerID': playspaceComponent.peerID
-        //  });
-        //}
+        playspaceComponent.gameState.replaceCardsInDeck(shuffled, deck.id);
     }
 
     popupClose(popupScene, deck, playspaceComponent);
@@ -125,7 +104,7 @@ export function importDeck(popupScene: PopupScene, deck: Deck, playspaceComponen
 
     if (playspaceComponent.amHost) {
         imagePaths.forEach((imagePath: string) => {
-        deck.cards.push(new Card(playspaceComponent.highestID++, imagePath, deck.gameObject.x, deck.gameObject.y));
+            playspaceComponent.gameState.addCardToDeck(new Card(playspaceComponent.highestID++, imagePath, deck.gameObject.x, deck.gameObject.y), deck.id)
         });
     }
 

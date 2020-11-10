@@ -81,7 +81,6 @@ export class PlayspaceComponent implements OnInit {
     private hostService: HostService, 
     private onlineGamesService: OnlineGamesService, 
     private savedGameStateService: SavedGameStateService,
-    private dialog: MatDialog,
     private router: Router,
     private middleware: MiddleWare
    ) {
@@ -324,6 +323,7 @@ export class PlayspaceComponent implements OnInit {
             });
           } else { // I am not the host
             this.amHost = false;
+            this.gameState.amHost = false;
             this.openConnection();
 
             if (this.openConnectionAttempts >= 5) {
@@ -522,12 +522,9 @@ export class PlayspaceComponent implements OnInit {
           let deck: Deck = this.gameState.getDeckByID(data['deckID']);
 
           if (deck && deck.cards.length > 0) {
-            let card: Card = deck.cards[deck.cards.length - 1];
+            let card: Card = this.gameState.getCardFromDeck(deck.cards.length - 1, deck.id, true);
 
-            card.inDeck = false;
             HelperFunctions.createCard(card, this, SharedActions.onDragMove, SharedActions.onDragEnd, HelperFunctions.DestinationEnum.TABLE, deck.gameObject.x, deck.gameObject.y);
-
-            deck.cards = this.filterOutID(deck.cards, card);
 
             this.connections.forEach((connection: DataConnection) => { 
               connection.send({
@@ -581,8 +578,8 @@ export class PlayspaceComponent implements OnInit {
                     'cardID': card.id,
                     'deckID': deck.id,
                     'imagePath': card.imagePath,
-                    'x': card.gameObject.x,
-                    'y': card.gameObject.y,
+                    'x': card.x,
+                    'y': card.y,
                     'amHost': this.amHost,
                     'playerID': this.playerID,
                     'peerID': this.myPeerID
@@ -678,37 +675,8 @@ export class PlayspaceComponent implements OnInit {
         }
         break;
 
-      case 'shuffle':
-        // TODO: Right now, only hosts can shuffle because only they know what is in the deck, and so no one should be receiving this call
-        // Can change if necessary
-
-        //if (data['type'] === 'deck' && this.amHost) {
-        //  let deck: Deck = null;
-        //
-        //  for (let i = 0; i < this.phaserScene.decks.length; i++) {
-        //    if (this.phaserScene.decks[i].id === data['deckID']) {
-        //      deck = this.phaserScene.decks[i];
-        //    }
-        //  }
-        //
-        //  if (deck) {
-        //    let shuffled = [];
-        //    data['shuffledCardIDs'].forEach((id) => {
-        //      for (let i = 0; i < deck.cards.length; i++) {
-        //        if (id === deck.cards[i].id) {
-        //          shuffled.push(deck.cards[i]);
-        //          break;
-        //        }
-        //      }
-        //    });
-        //
-        //    deck.cards = shuffled;
-        //  }
-        //}
-        break;
-
       default:
-        console.log('received action');
+        console.log('Received action did not match any existing action.');
         break;
     }
   }
