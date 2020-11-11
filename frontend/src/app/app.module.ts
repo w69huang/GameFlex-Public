@@ -32,6 +32,7 @@ import { SaveGameStatePopupComponent } from './popups/save-game-state-popup/save
 import { RetrieveGameStatePopupComponent } from './popups/retrieve-game-state-popup/retrieve-game-state-popup.component';
 import { NgxMatSelectSearchModule } from 'ngx-mat-select-search';
 import { JoinByCodeComponent } from './join-by-code/join-by-code.component';
+import { HomepageComponent } from './homepage/homepage.component';
 
 @NgModule({
   declarations: [
@@ -52,6 +53,7 @@ import { JoinByCodeComponent } from './join-by-code/join-by-code.component';
     SaveGameStatePopupComponent,
     RetrieveGameStatePopupComponent,
     JoinByCodeComponent,
+    HomepageComponent,
   ],
   imports: [
     BrowserModule,

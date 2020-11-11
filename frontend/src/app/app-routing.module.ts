@@ -11,10 +11,11 @@ import { SignupComponent } from './signup/signup.component';
 import { LoginComponent } from './login/login.component';
 import { ChangepasswordComponent } from './changepassword/changepassword.component';
 import { JoinByCodeComponent } from './join-by-code/join-by-code.component';
+import { HomepageComponent } from './homepage/homepage.component';
 
 
 const routes: Routes = [
-  { path: '', redirectTo: 'joinByCode', pathMatch: 'full' },
+  // { path: '', redirectTo: 'joinByCode', pathMatch: 'full' },
   { path: 'playspace', component: PlayspaceComponent },
   { path: 'deckEditor', component: DeckEditorComponent },
   { path: 'gameBrowser', component: GameBrowserComponent },
@@ -28,7 +29,8 @@ const routes: Routes = [
   { path: 'lists', component: TaskViewComponent },
   { path: 'lists/:listId', component: TaskViewComponent },
   { path: 'new-list', component: NewListComponent },
-  { path: 'lists/:listId/new-task', component: NewTaskComponent }
+  { path: 'lists/:listId/new-task', component: NewTaskComponent },
+  { path: '', component: HomepageComponent }
 ];
 
 @NgModule({

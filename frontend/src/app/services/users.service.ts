@@ -12,8 +12,8 @@ export class UsersService {
         });
         
     }
-    // host = "http://localhost:5000"
-    host = "http://104.155.129.45"
+    host = "http://localhost:5000"
+    // host = "http://104.155.129.45"
     createUser(object) {
         return this.http.post(this.host+'/user/create', object.value, {headers: this.corsHeaders})
     };
