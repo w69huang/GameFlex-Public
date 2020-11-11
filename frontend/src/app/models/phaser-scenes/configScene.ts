@@ -29,6 +29,8 @@ export default class ConfigScene extends Phaser.Scene {
     let deckList: Deck[] = [];
     let counterList: Counter[] = [];
 
+    this.add.dom(400, 0).createFromCache('nameform');
+
     if (this.configEditorComponent.gameState.myHand.gameObject == null) {
       this.configEditorComponent.gameState.myHand.gameObject = this.add.image(0, this.handBeginY, 'grey-background').setOrigin(0); // SET ORIGIN IS THE KEY TO HAVING IT PLACED IN THE CORRECT POSITION! Why??
       this.configEditorComponent.gameState.myHand.gameObject.setInteractive();
@@ -50,6 +52,10 @@ export default class ConfigScene extends Phaser.Scene {
   }
 
   preload() {
+
+    this.load.html('nameform', '../../config-editor/nameForm.html');
+
+
     this.configEditorComponent.gameState.cards.forEach(card => {
       this.load.image(card.imagePath, card.imagePath);
     });

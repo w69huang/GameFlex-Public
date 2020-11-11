@@ -176,5 +176,21 @@ export class ConfigEditorComponent implements OnInit {
     // });
   }
 
+  counterText(inputText) {
+    //var inputText = this.getChildByName('nameField');
+
+    //  Have they entered anything?
+    if (inputText.value !== '') {
+      // //  Turn off the click events
+      // this.removeListener('click');
+
+      // //  Hide the login element
+      // this.setVisible(false);
+      console.log('inputText == ', inputText);
+    }
+
+  }
+
+
 
 }

@@ -7,4 +7,11 @@
 <button class="btn btn-primary" (click)="deleteConfig()">Delete from Mongo</button>
 <button class="btn btn-primary" (click)="getConfig(configIdInput.value)">Get a Config</button>
 <input #configIdInput type="text" placeholder="Game Id">
-<div id="configEditorContainer"></div>
+<div id="configEditorContainer">
+    <div
+        style="z-index: 0; display: block; position: absolute; opacity: 1; pointer-events: auto; mix-blend-mode: normal; transform: matrix(1, 0, 0, 1, 122.5, 260) skew(0rad, 0rad) rotate3d(0, 0, 0, 0deg); transform-origin: 50% 50%;">
+        <input #nameField (change)="counterText(nameField.value)" type="text" id="nameField" name="nameField"
+            placeholder="Enter your name" style="font-size: 32px">
+    </div>
+
+</div>
