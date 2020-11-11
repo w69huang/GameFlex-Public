@@ -75,7 +75,7 @@ export class PlayspaceComponent implements OnInit {
   public openConnectionInterval: any;
 
   // NOTE: In the future, this should be populated by a DB call for a specific game
-  public amHost: boolean = true;
+  public amHost: boolean = false;
   
   constructor(
     private hostService: HostService, 
@@ -191,27 +191,7 @@ export class PlayspaceComponent implements OnInit {
   getAllSavedGameStates() {
     this.getAllSavedGameStatesEmitter.subscribe((savedGameState: SavedGameState) => {
       if (savedGameState) { // If they actually chose a saved game state
-        this.gameState.cleanUp();
-
-        this.gameState = new GameState([], [], [], this.gameState.myHand);
-  
-        savedGameState.cardMins.forEach((cardMin: CardMin) => {
-          let card: Card = new Card(cardMin.id, cardMin.imagePath, cardMin.x, cardMin.y);
-          HelperFunctions.createCard(card, this, SharedActions.onDragMove, SharedActions.onDragEnd, HelperFunctions.DestinationEnum.TABLE, card.x, card.y);
-        });
-        savedGameState.deckMins.forEach((deckMin: DeckMin) => {
-          let deck: Deck = new Deck(deckMin.id, deckMin.imagePath, [], deckMin.x, deckMin.y);
-          HelperFunctions.createDeck(deck, this, SharedActions.onDragMove, DeckActions.deckRightClick, deck.x, deck.y);
-        });
-        for (let i = 0; i < savedGameState.handMins.length; i++) {
-          if (savedGameState.handMins[i].playerID === this.playerID) {
-            savedGameState.handMins[i].cardMins.forEach((cardMin: CardMin) => {
-              let card: Card = new Card(cardMin.id, cardMin.imagePath, cardMin.x, cardMin.y, true);
-              HelperFunctions.createCard(card, this, SharedActions.onDragMove, SharedActions.onDragEnd, HelperFunctions.DestinationEnum.HAND, card.x, card.y);
-            });
-            break;
-          }
-        }
+        this.gameState.buildGameStateFromSavedState(savedGameState, this);      
   
         this.playerDataObjects.forEach((playerDataObject: PlayerData) => {
           if (playerDataObject.id != this.playerID) {
@@ -315,9 +295,12 @@ export class PlayspaceComponent implements OnInit {
         } else if (this.mainHostID != this.myPeerID) { // My ID does not match the host's
           if (this.onlineGame.username === this.middleware.getUsername()) { // i.e. I, the host, DC'd and was granted a new hostID
             // Update the hostID of the online game
+            this.amHost = true;
+            this.gameState.amHost = true;
             this.amHostEmitter.emit(true);
             this.onlineGame.hostID = this.myPeerID;
             this.onlineGamesService.update(this.onlineGame).subscribe((data) => {
+              this.gameState.buildGameFromCache(this);
               this.updateOnlineGameInterval = setInterval(this.updateOnlineGame.bind(this), 300000); // Tell the backend that this game still exists every 5 mins
               this.finishConnectionProcess();
             });
@@ -332,9 +315,12 @@ export class PlayspaceComponent implements OnInit {
             }
           }
         } else { // I am the host
+          this.amHost = true;
+          this.gameState.amHost = true;
           this.amHostEmitter.emit(true);
-          this.finishConnectionProcess();
+          this.gameState.buildGameFromCache(this);
           this.updateOnlineGameInterval = setInterval(this.updateOnlineGame.bind(this), 300000); // Tell the backend that this game still exists every 5 mins
+          this.finishConnectionProcess();
         }
       }); 
     } else {
@@ -446,7 +432,7 @@ export class PlayspaceComponent implements OnInit {
         });
         receivedGameState.deckMins.forEach((deckMin: DeckMin) => {
           let deck: Deck = new Deck(deckMin.id, deckMin.imagePath, [], deckMin.x, deckMin.y);
-          HelperFunctions.createDeck(deck, this, SharedActions.onDragMove, DeckActions.deckRightClick, deck.x, deck.y);
+          HelperFunctions.createDeck(deck, this, SharedActions.onDragMove, SharedActions.onDragEnd, DeckActions.deckRightClick, deck.x, deck.y);
         });
         receivedGameState.handMin.cardMins.forEach((cardMin: CardMin) => {
           let card: Card = new Card(cardMin.id, cardMin.imagePath, cardMin.x, cardMin.y, true);
@@ -513,6 +499,10 @@ export class PlayspaceComponent implements OnInit {
               });
             }
           }
+        }
+
+        if (data['finishedMoving']) { // If they have finished moving a card/deck, save to cache
+          this.gameState.saveToCache();
         }
         break;
 

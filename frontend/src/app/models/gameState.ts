@@ -2,6 +2,13 @@ import Card from './card';
 import Deck from './deck';
 import Hand from './hand';
 import CachedGameState from './cachedGameState'
+import SavedGameState from './savedGameState';
+import CardMin from './cardMin';
+import DeckMin from './deckMin';
+import * as HelperFunctions from '../helper-functions';
+import * as SharedActions from '../actions/sharedActions';
+import * as DeckActions from '../actions/deckActions';
+import { PlayspaceComponent } from '../playspace/playspace.component';
 
 /**
  * Used when getting a card by ID to grab both the card and the location it was grabbed from
@@ -68,7 +75,7 @@ export default class GameState {
     /**
      * A boolean representing whether this player is the host, used to control branching paths
      */
-    public amHost: boolean = true;
+    public amHost: boolean = false;
 
     /**
      * A public accessor to get all cards, should not be used outside of other game state classes
@@ -158,6 +165,60 @@ export default class GameState {
      */
     public saveToCache(): void {
         localStorage.setItem('cachedGameState', JSON.stringify(new CachedGameState(this)));
+    }
+
+    public buildGameFromCache(playspaceComponent: PlayspaceComponent): void {
+        if (this.amHost) {
+            const cachedGameState: CachedGameState = JSON.parse(localStorage.getItem('cachedGameState'));
+
+            this.cleanUp();
+      
+            cachedGameState.cardMins.forEach((cardMin: CardMin) => {
+                let card: Card = new Card(cardMin.id, cardMin.imagePath, cardMin.x, cardMin.y);
+                HelperFunctions.createCard(card, playspaceComponent, SharedActions.onDragMove, SharedActions.onDragEnd, HelperFunctions.DestinationEnum.TABLE, card.x, card.y);
+            });
+            cachedGameState.deckMins.forEach((deckMin: DeckMin) => {
+                let deck: Deck = new Deck(deckMin.id, deckMin.imagePath, [], deckMin.x, deckMin.y);
+                HelperFunctions.createDeck(deck, playspaceComponent, SharedActions.onDragMove, SharedActions.onDragEnd, DeckActions.deckRightClick, deck.x, deck.y);
+            });
+            for (let i = 0; i < cachedGameState.handMins.length; i++) {
+                cachedGameState.handMins[i].cardMins.forEach((cardMin: CardMin) => {
+                    if (cachedGameState.handMins[i].playerID === playspaceComponent.playerID) {
+                        const card: Card = new Card(cardMin.id, cardMin.imagePath, cardMin.x, cardMin.y);
+                        this.addCardToOwnHand(card, cachedGameState.handMins[i].playerID);
+                        HelperFunctions.createCard(card, playspaceComponent, SharedActions.onDragMove, SharedActions.onDragEnd, HelperFunctions.DestinationEnum.HAND, card.x, card.y);
+                    } else {
+                        this.addCardToPlayerHand(new Card(cardMin.id, cardMin.imagePath, cardMin.x, cardMin.y), cachedGameState.handMins[i].playerID);
+                    }
+                });
+            } 
+        }        
+    }
+
+    public buildGameStateFromSavedState(savedGameState: SavedGameState, playspaceComponent: PlayspaceComponent): void {
+        if (this.amHost) {
+            this.cleanUp();
+      
+            savedGameState.cardMins.forEach((cardMin: CardMin) => {
+                let card: Card = new Card(cardMin.id, cardMin.imagePath, cardMin.x, cardMin.y);
+                HelperFunctions.createCard(card, playspaceComponent, SharedActions.onDragMove, SharedActions.onDragEnd, HelperFunctions.DestinationEnum.TABLE, card.x, card.y);
+            });
+            savedGameState.deckMins.forEach((deckMin: DeckMin) => {
+                let deck: Deck = new Deck(deckMin.id, deckMin.imagePath, [], deckMin.x, deckMin.y);
+                HelperFunctions.createDeck(deck, playspaceComponent, SharedActions.onDragMove, SharedActions.onDragEnd, DeckActions.deckRightClick, deck.x, deck.y);
+            });
+            for (let i = 0; i < savedGameState.handMins.length; i++) {
+                savedGameState.handMins[i].cardMins.forEach((cardMin: CardMin) => {
+                    if (savedGameState.handMins[i].playerID === playspaceComponent.playerID) {
+                        const card: Card = new Card(cardMin.id, cardMin.imagePath, cardMin.x, cardMin.y);
+                        this.addCardToOwnHand(card, savedGameState.handMins[i].playerID);
+                        HelperFunctions.createCard(card, playspaceComponent, SharedActions.onDragMove, SharedActions.onDragEnd, HelperFunctions.DestinationEnum.HAND, card.x, card.y);
+                    } else {
+                        this.addCardToPlayerHand(new Card(cardMin.id, cardMin.imagePath, cardMin.x, cardMin.y), savedGameState.handMins[i].playerID);
+                    }
+                });
+            }        
+        }
     }
 
     /**
@@ -330,8 +391,8 @@ export default class GameState {
      */
     public checkForOverlap(id: number, playerID: number): OverlapObject {
         const cardLocationObject: CardLocationObject = this.getCardByID(id, playerID);
-        const card: Card = cardLocationObject.card;
-        const cardLocation: ECardLocation = cardLocationObject.location;
+        const card: Card = cardLocationObject?.card;
+        const cardLocation: ECardLocation = cardLocationObject?.location;
         let image: Phaser.GameObjects.Image = this.myHand.gameObject;
 
         if (card) {
@@ -362,14 +423,14 @@ export default class GameState {
                 this.removeCardFromOwnHand(card.id, playerID);
                 return { overlapType: EOverlapType.TABLE, wasInHand: true };
             } else {
+                this.saveToCache();
                 return { overlapType: EOverlapType.TABLE, wasInHand: false };
             }
         } else {
             const deck: Deck = this.getDeckByID(id);
+            this.saveToCache();
 
-            if (deck) {
-                // Something that we want to do when decks overlap
-            }
+            return { overlapType: EOverlapType.TABLE };
         }
 
     }

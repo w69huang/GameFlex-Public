@@ -36,7 +36,7 @@ export default class PlayspaceScene extends Phaser.Scene {
       });
   
       this.initialDeckList.forEach(deck => {
-        HelperFunctions.createDeck(deck, this.playspaceComponent, SharedActions.onDragMove, DeckActions.deckRightClick, deck.x, deck.y);
+        HelperFunctions.createDeck(deck, this.playspaceComponent, SharedActions.onDragMove, SharedActions.onDragEnd, DeckActions.deckRightClick, deck.x, deck.y);
       });
 
       this.events.once('update', () => {

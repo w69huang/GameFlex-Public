@@ -34,7 +34,7 @@ export function onDragMove(object: any, component: any, pointer: Phaser.Input.Po
 export function onDragEnd(object: any, playspaceComponent: PlayspaceComponent, pointer: Phaser.Input.Pointer) {
 
     // TODO: If card being moved around in hand, report back to host
-    const card: Card = playspaceComponent.gameState.getCardByID(object.id, playspaceComponent.playerID).card;
+    const card: Card = playspaceComponent.gameState.getCardByID(object.id, playspaceComponent.playerID)?.card;
     const overlapObject: OverlapObject = playspaceComponent.gameState.checkForOverlap(object.id, playspaceComponent.playerID);
 
     if (playspaceComponent.connections) {
@@ -58,9 +58,10 @@ export function onDragEnd(object: any, playspaceComponent: PlayspaceComponent, p
             'id': object.id,
             'x': object.x,
             'y': object.y,
+            'finishedMoving': true,
             'amHost': playspaceComponent.amHost,
             'playerID': playspaceComponent.playerID,
-            'peerID': playspaceComponent.myPeerID
+            'peerID': playspaceComponent.myPeerID,
           });
         });
       } else if (overlapObject.overlapType === EOverlapType.TABLE && overlapObject.wasInHand === true) {

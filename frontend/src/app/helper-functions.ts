@@ -46,7 +46,7 @@ export function cardCreationCallback(card: Card, playspaceComponent: PlayspaceCo
     }
 }
 
-export function createDeck(deck: Deck, playspaceComponent: PlayspaceComponent, dragMove: Function, rightClick: Function, x: number, y: number) {
+export function createDeck(deck: Deck, playspaceComponent: PlayspaceComponent, dragMove: Function, dragEnd: Function, rightClick: Function, x: number, y: number) {
     if (playspaceComponent.phaserScene.textures.exists(deck.imagePath)) {
         // If the image already exists in the texture manager's cache, we can create the object now
 
@@ -54,6 +54,7 @@ export function createDeck(deck: Deck, playspaceComponent: PlayspaceComponent, d
         deck.gameObject.setInteractive();
         playspaceComponent.phaserScene.input.setDraggable(deck.gameObject);
         deck.gameObject.on('drag', dragMove.bind(this, deck, playspaceComponent));
+        deck.gameObject.on('dragend', dragEnd.bind(this, deck, playspaceComponent));
         deck.gameObject.on('pointerdown', rightClick.bind(this, deck, playspaceComponent));
         deck.gameObject.displayWidth = 200;
         deck.gameObject.displayHeight = 300;
