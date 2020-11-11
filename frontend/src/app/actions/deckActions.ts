@@ -44,7 +44,7 @@ export function deckRightClick(deck: Deck, component: any, pointer: Phaser.Input
 export function retrieveTopCard(popupScene: PopupScene, deck: Deck, playspaceComponent: PlayspaceComponent, pointer: Phaser.Input.Pointer) {
 
     if (playspaceComponent.amHost) {
-        const card: Card = playspaceComponent.gameState.getCardFromDeck(deck.cards.length - 1, deck.id);
+        const card: Card = playspaceComponent.gameState.getCardFromDeck(deck.cards.length - 1, deck.id, true);
 
         if (card) {
             if (card.gameObject == null) {

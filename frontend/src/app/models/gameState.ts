@@ -52,6 +52,12 @@ export enum EOverlapType {
  * The game state class, which is responsible for holding the current state of the game
  */
 export default class GameState {
+
+    /**
+     * Whether caching of the game state is enabled
+     */
+    private cachingEnabled: boolean = true;
+
     /**
      * Holds all cards on the table
      */
@@ -122,10 +128,7 @@ export default class GameState {
             return object.id !== refObject.id;
         });
 
-        if (this.amHost) {
-            this.saveToCache();
-        }
-
+        this.saveToCache();
         return objectListToFilter;
     }
 
@@ -164,47 +167,65 @@ export default class GameState {
      * Used to save the current game state to the user's local storage
      */
     public saveToCache(): void {
-        localStorage.setItem('cachedGameState', JSON.stringify(new CachedGameState(this)));
+        if (this.cachingEnabled && this.amHost) {
+            localStorage.setItem('cachedGameState', JSON.stringify(new CachedGameState(this)));
+        }
     }
 
     public buildGameFromCache(playspaceComponent: PlayspaceComponent): void {
         if (this.amHost) {
             const cachedGameState: CachedGameState = JSON.parse(localStorage.getItem('cachedGameState'));
 
-            this.cleanUp();
+            if (cachedGameState) {
+                this.cachingEnabled = false;
+
+                this.cleanUp();
       
-            cachedGameState.cardMins.forEach((cardMin: CardMin) => {
-                let card: Card = new Card(cardMin.id, cardMin.imagePath, cardMin.x, cardMin.y);
-                HelperFunctions.createCard(card, playspaceComponent, SharedActions.onDragMove, SharedActions.onDragEnd, HelperFunctions.DestinationEnum.TABLE, card.x, card.y);
-            });
-            cachedGameState.deckMins.forEach((deckMin: DeckMin) => {
-                let deck: Deck = new Deck(deckMin.id, deckMin.imagePath, [], deckMin.x, deckMin.y);
-                HelperFunctions.createDeck(deck, playspaceComponent, SharedActions.onDragMove, SharedActions.onDragEnd, DeckActions.deckRightClick, deck.x, deck.y);
-            });
-            for (let i = 0; i < cachedGameState.handMins.length; i++) {
-                cachedGameState.handMins[i].cardMins.forEach((cardMin: CardMin) => {
-                    if (cachedGameState.handMins[i].playerID === playspaceComponent.playerID) {
-                        const card: Card = new Card(cardMin.id, cardMin.imagePath, cardMin.x, cardMin.y);
-                        this.addCardToOwnHand(card, cachedGameState.handMins[i].playerID);
-                        HelperFunctions.createCard(card, playspaceComponent, SharedActions.onDragMove, SharedActions.onDragEnd, HelperFunctions.DestinationEnum.HAND, card.x, card.y);
-                    } else {
-                        this.addCardToPlayerHand(new Card(cardMin.id, cardMin.imagePath, cardMin.x, cardMin.y), cachedGameState.handMins[i].playerID);
-                    }
+                cachedGameState.cardMins.forEach((cardMin: CardMin) => {
+                    const card: Card = new Card(cardMin.id, cardMin.imagePath, cardMin.x, cardMin.y);
+                    HelperFunctions.createCard(card, playspaceComponent, SharedActions.onDragMove, SharedActions.onDragEnd, HelperFunctions.DestinationEnum.TABLE, card.x, card.y);
                 });
-            } 
+                cachedGameState.deckMins.forEach((deckMin: DeckMin) => {
+                    let cardList: Card[] = [];
+                    deckMin.cardMins.forEach((cardMin: CardMin) => {
+                        cardList.push(new Card(cardMin.id, cardMin.imagePath, cardMin.x, cardMin.y));
+                    });
+                    const deck: Deck = new Deck(deckMin.id, deckMin.imagePath, cardList, deckMin.x, deckMin.y);
+                    HelperFunctions.createDeck(deck, playspaceComponent, SharedActions.onDragMove, SharedActions.onDragEnd, DeckActions.deckRightClick, deck.x, deck.y);
+                });
+                for (let i = 0; i < cachedGameState.handMins.length; i++) {
+                    cachedGameState.handMins[i].cardMins.forEach((cardMin: CardMin) => {
+                        if (cachedGameState.handMins[i].playerID === playspaceComponent.playerID) {
+                            const card: Card = new Card(cardMin.id, cardMin.imagePath, cardMin.x, cardMin.y);
+                            this.addCardToOwnHand(card, cachedGameState.handMins[i].playerID);
+                            HelperFunctions.createCard(card, playspaceComponent, SharedActions.onDragMove, SharedActions.onDragEnd, HelperFunctions.DestinationEnum.HAND, card.x, card.y);
+                        } else {
+                            this.addCardToPlayerHand(new Card(cardMin.id, cardMin.imagePath, cardMin.x, cardMin.y), cachedGameState.handMins[i].playerID);
+                        }
+                    });
+                }
+
+                this.cachingEnabled = true; 
+            }            
         }        
     }
 
     public buildGameStateFromSavedState(savedGameState: SavedGameState, playspaceComponent: PlayspaceComponent): void {
         if (this.amHost) {
+            this.cachingEnabled = false;
+
             this.cleanUp();
       
             savedGameState.cardMins.forEach((cardMin: CardMin) => {
-                let card: Card = new Card(cardMin.id, cardMin.imagePath, cardMin.x, cardMin.y);
+                const card: Card = new Card(cardMin.id, cardMin.imagePath, cardMin.x, cardMin.y);
                 HelperFunctions.createCard(card, playspaceComponent, SharedActions.onDragMove, SharedActions.onDragEnd, HelperFunctions.DestinationEnum.TABLE, card.x, card.y);
             });
             savedGameState.deckMins.forEach((deckMin: DeckMin) => {
-                let deck: Deck = new Deck(deckMin.id, deckMin.imagePath, [], deckMin.x, deckMin.y);
+                let cardList: Card[] = [];
+                deckMin.cardMins.forEach((cardMin: CardMin) => {
+                    cardList.push(new Card(cardMin.id, cardMin.imagePath, cardMin.x, cardMin.y));
+                });
+                const deck: Deck = new Deck(deckMin.id, deckMin.imagePath, cardList, deckMin.x, deckMin.y);
                 HelperFunctions.createDeck(deck, playspaceComponent, SharedActions.onDragMove, SharedActions.onDragEnd, DeckActions.deckRightClick, deck.x, deck.y);
             });
             for (let i = 0; i < savedGameState.handMins.length; i++) {
@@ -217,7 +238,9 @@ export default class GameState {
                         this.addCardToPlayerHand(new Card(cardMin.id, cardMin.imagePath, cardMin.x, cardMin.y), savedGameState.handMins[i].playerID);
                     }
                 });
-            }        
+            }
+            
+            this.cachingEnabled = true;
         }
     }
 
@@ -227,10 +250,7 @@ export default class GameState {
      */
     public addCardToTable(card: Card): void {
         this._cards.push(card);
-
-        if (this.amHost) {
-            this.saveToCache();
-        }
+        this.saveToCache();
     }
 
     /**
@@ -246,9 +266,7 @@ export default class GameState {
             deck.cards.push(card);
         }
 
-        if (this.amHost) {
-            this.saveToCache();
-        }
+        this.saveToCache();
     }
 
     /**
@@ -257,10 +275,7 @@ export default class GameState {
      */
     public addDeckToTable(deck: Deck): void {
         this._decks.push(deck);
-
-        if (this.amHost) {
-            this.saveToCache();
-        }
+        this.saveToCache();
     }
 
     /**
@@ -379,7 +394,6 @@ export default class GameState {
         
         if (deck) {
             deck.cards = cardList;
-
             this.saveToCache();
         }
     }

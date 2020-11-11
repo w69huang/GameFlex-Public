@@ -82,4 +82,8 @@ export class GameInstanceComponent implements OnInit {
   deleteAllSaves() {
     this.savedGameStateService.deleteAll().subscribe();
   }
+
+  clearCachedSave() {
+    localStorage.removeItem('cachedGameState');
+  }
 }
