@@ -142,6 +142,35 @@ module.exports = (upload) => {
        });
    });
 
+   //TODO: integrate deck functionality into the routes
+
+   //Deck Model
+   let Deck = require('../database/models/userDeck');
+
+   router.route('/new-deck').post((req, res, next) => {
+        const deckName = req.deckName;
+        const deck = new Deck({
+            userID: req.userID,
+            deckID: new mongoose.Types.ObjectId(),
+            deckName: deckName
+        });
+        deck.save().then(result => {
+            console.log(result);
+            res.status(201).json({
+                message: "Done upload!",
+                userCreated: {
+                    _id: result._id,
+                    avatar: result.avatar
+                }
+            })
+        }).catch(err => {
+            console.log(err),
+            res.status(500).json({
+                error: err
+            });
+        })
+    })
+
     return router;
 };
 

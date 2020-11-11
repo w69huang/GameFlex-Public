@@ -1,8 +1,8 @@
 <h1>Your files</h1>
 <ul>
- <li *ngFor="let fileName of fileList$" >
-   {{fileName}}&nbsp;&nbsp;
-   <span (click)="download(fileName)">download</span>&nbsp;
-   <span (click)="remove(fileName)">remove</span>
+ <li *ngFor="let fileObject of fileList$" >
+   {{fileObject.fileName}}&nbsp;&nbsp;
+   <span (click)="download(fileObject.fileName)">download</span>&nbsp;
+   <span (click)="remove(fileObject.fileName)">remove</span>
  </li>
 </ul>
