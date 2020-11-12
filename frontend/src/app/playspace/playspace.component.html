@@ -1,7 +1,9 @@
-<h1>My id - {{peerId}}</h1>
-<div class="startConnection">
-    <h1>Connect to Peer</h1>
-    <input #peerInput type="text" placeholder="Enter peer id">
-    <button class="btn btn-primary" (click)="startConnection(peerInput.value)">Open Connection</button>
+<div id="loading"></div>
+<div id="loadingText">Loading...</div>
+<div id="gameContainer" oncontextmenu="return false;"></div>
+<div *ngIf="middleware.isLoggedIn()">
+    <div class="btn btn-primary" (click)="getAllSavedGameStates()">Get Saved Games</div>
+    <div class="btn btn-primary" (click)="saveGameState()">Save Game</div>
+    <div class="btn btn-primary" (click)="deleteAllSaves()">Delete All Saves</div>
+    <div class="btn btn-primary" (click)="getOnlineGameCode()">Get Online Game Code</div>
 </div>
-<div id="gameContainer"></div>

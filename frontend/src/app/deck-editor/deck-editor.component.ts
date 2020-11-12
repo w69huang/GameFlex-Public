@@ -3,7 +3,10 @@ import { HttpEventType, HttpErrorResponse } from '@angular/common/http';
 import { of } from 'rxjs';  
 import { catchError, map } from 'rxjs/operators';  
 import { UploadService } from  '../services/upload.service';
+<<<<<<< HEAD
 import { FileService } from '../services/file.service';
+=======
+>>>>>>> develop
 
 @Component({
   selector: 'app-deck-editor',

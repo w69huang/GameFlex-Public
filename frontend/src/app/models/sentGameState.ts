@@ -7,11 +7,14 @@ import DeckMin from './deckMin';
 import HandMin from './handMin';
 
 export default class SentGameState {
+    playerID: number
     cardMins: CardMin[] = [];
     deckMins: DeckMin[] = [];
     handMin: HandMin;
 
     constructor(gameState: GameState, playerID: number) {
+        this.playerID = playerID;
+
         gameState.cards.forEach((card: Card) => {
             this.cardMins.push(new CardMin(card));
         });
@@ -21,7 +24,7 @@ export default class SentGameState {
 
         let handFound: boolean = false;
         for (let i = 0; i < gameState.hands.length; i++) {
-            if (gameState.hands[i].playerID === playerID) {
+            if (gameState.hands[i].playerID === this.playerID) {
                 this.handMin = new HandMin(gameState.hands[i]);
                 handFound = true;
                 break;
@@ -29,7 +32,7 @@ export default class SentGameState {
         }
 
         if (!handFound) {
-            this.handMin = new HandMin(new Hand(playerID, []));
+            this.handMin = new HandMin(new Hand(this.playerID, []));
         }
     }
 }
