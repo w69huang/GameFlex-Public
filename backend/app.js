@@ -24,7 +24,6 @@ const bodyParser = require('body-parser')
 // The express() library will be used to handle backend routing
 const app = express()
 const mysqlapp = express()
-const cors = require('cors')
 // allows our app to use json data
 app.use(express.json())
 
@@ -116,40 +115,41 @@ mysqlapp.use((req, res, next) => {
 // patch = used to just update one single field
 
 // http://localhost:3000/lists
-app.get('/lists', (req, res) => {
-    List.find({}) // get all lists in the mongoDB
-        .then(lists => res.send(lists)) // send the lists in the response to the request
-        .catch((error) => console.log(error))
-}) 
+// app.get('/lists', (req, res) => {
+//     List.find({}) // get all lists in the mongoDB
+//         .then(lists => res.send(lists)) // send the lists in the response to the request
+//         .catch((error) => console.log(error))
+// }) 
 
-app.get('/lists/:listId', (req, res) => {
-    // note: `_id` is the auto-generated id for the list
-    List.find({ _id: req.params.listId }) // find the list in the mongoDB w/ _id equal to id in parameter (pulled out from req)
-        .then((list) => res.send(list)) // send the list in the response to the request
-        .catch((error) => console.log(error))
-})
+// app.get('/lists/:listId', (req, res) => {
+//     // note: `_id` is the auto-generated id for the list
+//     List.find({ _id: req.params.listId }) // find the list in the mongoDB w/ _id equal to id in parameter (pulled out from req)
+//         .then((list) => res.send(list)) // send the list in the response to the request
+//         .catch((error) => console.log(error))
+// })
 
-app.post('/lists', (req, res) => {
-    (new List({'title': req.body.title}))
-        .save()
-        .then((list) => res.send(list)) // send back to user
-        .catch((error) => console.log(error))
-})
+// app.post('/lists', (req, res) => {
+//     (new List({'title': req.body.title}))
+//         .save()
+//         .then((list) => res.send(list)) // send back to user
+//         .catch((error) => console.log(error))
+// })
 
-app.patch('/lists/:listId', (req, res) => {
-    // List.findOneAndUpdate will look for a `List` with a parameter of `_id` equal to `req.params.listId`
-    // `$set: req.body` will set the parameters of the list according to what was set in the request body - if a title was specified, it'll set the title
-    // We could also use findByIdAndUpdate in this scenario
-    List.findOneAndUpdate({ _id: req.params.listId }, { $set: req.body }) 
-        .then((list) => res.send(list))
-        .catch((error) => console.log(error))
-})
+// app.patch('/lists/:listId', (req, res) => {
+//     // List.findOneAndUpdate will look for a `List` with a parameter of `_id` equal to `req.params.listId`
+//     // `$set: req.body` will set the parameters of the list according to what was set in the request body - if a title was specified, it'll set the title
+//     // We could also use findByIdAndUpdate in this scenario
+//     List.findOneAndUpdate({ _id: req.params.listId }, { $set: req.body }) 
+//         .then((list) => res.send(list))
+//         .catch((error) => console.log(error))
+// });
 
-app.delete('/lists/:listId', (req, res) => {
-    const deleteTasks = (list) => {
-        Task.deleteMany({_listId: list._id})
-            .then(() => list)
-            .catch((error) => console.log(error))
+// app.delete('/lists/:listId', (req, res) => {
+//     const deleteTasks = (list) => {
+//         Task.deleteMany({_listId: list._id})
+//             .then(() => list)
+//             .catch((error) => console.log(error))
+
 
 const upload = multer({ storage });
 
@@ -163,7 +163,7 @@ app.use(function(req, res, next) {
 const port = process.env.PORT || 3000;
 const server = app.listen(port, () => {
   console.log('Connected to port ' + port)
-})
+});
 
 // error handler
 app.use((req, res, next) => {
@@ -185,29 +185,29 @@ app.post('/lists/:listId/tasks', (req, res) => {
         .save()
         .then((task) => res.send(task)) 
         .catch((error) => console.log(error))
-})
+});
 
 app.patch('/lists/:listId/tasks/:taskId', (req, res) => {
     Task.findOneAndUpdate({ _listId: req.params.listId, _id: req.params.taskId }, { $set: req.body })
         .then((task) => res.send(task)) 
         .catch((error) => console.log(error))
-})
+});
 
 app.delete('/lists/:listId/tasks/:taskId', (req, res) => {
     Task.findByIdAndDelete({ _listId: req.params.listId, _id: req.params.taskId })
         .then((task) => res.send(task)) 
         .catch((error) => console.log(error))
-})
+});
 
 // Setting up routes that live in different controllers
 
 const onlineGamesRoutes = require('./controllers/online-games.controller');
 const userRoutes = require('./controllers/mysql.user.controllers');
 const savedGameStateRoutes = require('./controllers/saved-game-state.controller');
-mysqlapp.use('/user', userRoutes)
+mysqlapp.use('/user', userRoutes);
 mysqlapp.use('/online-games', onlineGamesRoutes);
 app.use('/saved-game-state', savedGameStateRoutes);
 
  // port number to listen on, callback fxn for when it completes
-app.listen(3000, () => console.log("Server Connected on port 3000"))
+app.listen(3000, () => console.log("Server Connected on port 3000"));
 mysqlapp.listen(5000, () => console.log("Mysql Server Connected on port 5000"));
