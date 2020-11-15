@@ -5,31 +5,27 @@ import { NewListComponent } from './pages/new-list/new-list.component';
 import { NewTaskComponent } from './pages/new-task/new-task.component';
 import { PlayspaceComponent } from './playspace/playspace.component';
 import { DeckEditorComponent } from './deck-editor/deck-editor.component';
-<<<<<<< HEAD
-import { FileListComponent } from './file-list/file-list.component';
-
-
-const routes: Routes = [
-  { path: '', redirectTo: 'playspace', pathMatch: 'full' },
-  { path: 'playspace', component: PlayspaceComponent},
-  { path: 'deckeditor', component: DeckEditorComponent, 
-  children: [
-    { path: '', component: FileListComponent, outlet: 'secondary' }
-    ]
-  },
-=======
 import { GameBrowserComponent } from './game-browser/game-browser.component';
 import { DummyComponent } from './dummy/dummy.component';
 import { SignupComponent } from './signup/signup.component';
 import { LoginComponent } from './login/login.component';
 import { ChangepasswordComponent } from './changepassword/changepassword.component';
 import { JoinByCodeComponent } from './join-by-code/join-by-code.component';
+import { FileListComponent } from './file-list/file-list.component';
+import {DeckFinderComponent} from './deck-finder/deck-finder.component';
+
 
 
 const routes: Routes = [
   { path: '', redirectTo: 'joinByCode', pathMatch: 'full' },
   { path: 'playspace', component: PlayspaceComponent },
-  { path: 'deckEditor', component: DeckEditorComponent },
+
+  { path: 'deckFinder', component: DeckFinderComponent },
+  { path: 'deckEditor', component: DeckEditorComponent, 
+  children: [
+    { path: '', component: FileListComponent, outlet: 'secondary' }
+    ]
+  },
   { path: 'gameBrowser', component: GameBrowserComponent },
   { path: 'joinByCode', component: JoinByCodeComponent },
   
@@ -38,7 +34,6 @@ const routes: Routes = [
   { path: 'login', component: LoginComponent},
   { path: 'changepassword', component: ChangepasswordComponent },
 
->>>>>>> develop
   { path: 'lists', component: TaskViewComponent },
   { path: 'lists/:listId', component: TaskViewComponent },
   { path: 'new-list', component: NewListComponent },

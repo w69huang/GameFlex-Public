@@ -17,10 +17,8 @@ import { MatIconModule } from '@angular/material/icon';
 import { MatCardModule } from '@angular/material/card';
 import { MatButtonModule } from '@angular/material/button';
 import { MatProgressBarModule } from '@angular/material/progress-bar';
-<<<<<<< HEAD
 import { FileListComponent } from './file-list/file-list.component';
 import { FileUploaderComponent } from './file-uploader/file-uploader.component';
-=======
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatSelectModule} from '@angular/material/select';
 import { GameBrowserPopupComponent } from './popups/game-browser-password-popup/game-browser-password-popup.component';
@@ -36,7 +34,7 @@ import { SaveGameStatePopupComponent } from './popups/save-game-state-popup/save
 import { RetrieveGameStatePopupComponent } from './popups/retrieve-game-state-popup/retrieve-game-state-popup.component';
 import { NgxMatSelectSearchModule } from 'ngx-mat-select-search';
 import { JoinByCodeComponent } from './join-by-code/join-by-code.component';
->>>>>>> develop
+import { DeckFinderComponent } from './deck-finder/deck-finder.component';
 
 @NgModule({
   declarations: [
@@ -46,10 +44,8 @@ import { JoinByCodeComponent } from './join-by-code/join-by-code.component';
     NewTaskComponent,
     PlayspaceComponent,
     DeckEditorComponent,
-<<<<<<< HEAD
     FileListComponent,
-    FileUploaderComponent
-=======
+    FileUploaderComponent,
     GameBrowserComponent,
     GameBrowserPopupComponent,
     GameSetupPopupComponent,
@@ -61,7 +57,7 @@ import { JoinByCodeComponent } from './join-by-code/join-by-code.component';
     SaveGameStatePopupComponent,
     RetrieveGameStatePopupComponent,
     JoinByCodeComponent,
->>>>>>> develop
+    DeckFinderComponent,
   ],
   imports: [
     BrowserModule,

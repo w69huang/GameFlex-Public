@@ -1,0 +1,15 @@
+<mat-card>
+    <h1 class="center">Create New Deck:</h1>
+    <div>
+        <input matInput #onlineGameCodeInput id="onlineGameCode-input" placeholder="deck name" required>
+    </div>
+    <button mat-button (click)="go(onlineGameCodeInput.value, nameInput.value)">Go!</button>
+    <h1 class="center">Find Exisiting Deck:</h1>
+    <div>
+        <input matInput #nameInput placeholder="deck name" required>
+    </div>
+    <div>
+        <button mat-button (click)="go(onlineGameCodeInput.value, nameInput.value)">Go!</button>
+    </div>
+    <div #errorsDiv id="errorsDiv"></div>
+</mat-card>
