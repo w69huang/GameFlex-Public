@@ -74,7 +74,7 @@ export class PlayspaceComponent implements OnInit {
   public checkIfCanOpenConnectionInterval: any;
   public openConnectionInterval: any;
 
-  // NOTE: In the future, this should be populated by a DB call for a specific game
+  // TODO: SHOULD BE POPULATED AT CREATION TIME -- MAKE IT A QUERY PARAMETER
   public amHost: boolean = false;
   
   constructor(

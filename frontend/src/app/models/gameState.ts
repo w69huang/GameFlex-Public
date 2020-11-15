@@ -11,6 +11,26 @@ import * as DeckActions from '../actions/deckActions';
 import { PlayspaceComponent } from '../playspace/playspace.component';
 
 /**
+ * An enum representing the types of all game objects
+ * TODO: Move over all references to types to this enum
+ */
+export enum GameObjectType {
+    CARD = "Card",
+    DECK = "Deck",
+    HAND = "Hand"
+}
+
+/**
+ * A class representing all extra data that COULD (NOT "will") be used to form a request to another peer, such as the location of a card
+ * The reason this class is being used is strictly to make it easier to visualize what is usually passed as data
+ */
+export class GameObjectProperties {
+    x?: number;
+    y?: number;
+    // TODO: add rest of potential properties
+}
+
+/**
  * Used when getting a card by ID to grab both the card and the location it was grabbed from
  */
 export class CardLocationObject {
@@ -538,5 +558,36 @@ export default class GameState {
         });
         this._hands = [];
         this.myHand.cards = [];
+    }
+
+    // TODO: HOW IS THE GAME STATE GETTING REFERENCE TO A PLAYER'S CONNECTIONS?
+    // --> Passed in at creation time? General reference to the playspace component (not great)? Passed in at function time (preferable maybe)?
+
+    /**
+     * Used to handle data received from P2P connections
+     */
+    public handleData() {
+        // TODO
+    }
+
+    /**
+     * Used to send data to peer(s)
+     * @param action - The name of the action to be sent
+     * @param peerID - The peer ID of the sender
+     * @param playerID - The player ID of the sender
+     * @param gameObjectType - The type of the object that the action is being carried out onn
+     * @param properties - Any extra properties being sent as part of the data
+     */
+    public sendPeerData(action: string, peerID: string, playerID: number, gameObjectType: GameObjectType, properties: GameObjectProperties) {
+        // TODO
+    }
+
+    /**
+     * Used to very quickly and easily send the current game state to all peers
+     */
+    public sendGameStateToPeers() {
+        if (this.amHost) {
+            // TODO: Make sentGameState from current gameState and send to all peers
+        }
     }
 }
