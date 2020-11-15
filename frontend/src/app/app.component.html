@@ -5,15 +5,16 @@
         <h1>
             GameFlex
         </h1>
-        <a class="headerButtons" mat-button routerLink="/playspace">Play Space</a>
-        <button mat-button routerLink="/deckEditor">Deck Editor</button>
-        <button mat-button routerLink="/configeditor">Config Editor</button>
-        <button mat-button routerLink="/gameBrowser">Game Browser</button>
+        <a mat-button routerLink="/gameInstance">Game Instance</a>
+        <a mat-button routerLink="/deckEditor">Deck Editor</a>
+        <a mat-button routerLink="/configeditor">Config Editor</a>
+        <a mat-button routerLink="/gameBrowser">Game Browser</a>
+        <a mat-button routerLink="/joinByCode">Join By Code</a>
         <span class="spacer"></span>
-        <a *ngIf="!isLoggedIn" class="headerButtons" mat-button routerLink="/signup">Sign up</a>
-        <a *ngIf="!isLoggedIn" class="headerButtons" mat-button routerLink="/login">Login</a>
-        <a *ngIf="isLoggedIn" class="headerButtons" mat-button routerLink="/changepassword">Change Password</a>
-        <a *ngIf="isLoggedIn" class="headerButtons" mat-button (click)="signOut()">Logout</a>
+        <a *ngIf="!isLoggedIn" mat-button routerLink="/signup">Sign up</a>
+        <a *ngIf="!isLoggedIn" mat-button routerLink="/login">Login</a>
+        <a *ngIf="isLoggedIn" mat-button routerLink="/changepassword">Change Password</a>
+        <a *ngIf="isLoggedIn" mat-button (click)="signOut()">Logout</a>
     </mat-toolbar-row>
 </mat-toolbar>
 <router-outlet></router-outlet>

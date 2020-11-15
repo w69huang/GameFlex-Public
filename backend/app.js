@@ -16,7 +16,8 @@ app.use(bodyParser.json()); // Send JSON responses
 
 // Allows use to parse application/json type post data
 mysqlapp.use(bodyParser.json());
-mysqlapp.use(bodyParser.urlencoded({ extended: true }));
+mysqlapp.use(bodyParser.urlencoded({extended:true}));
+mysqlapp.use(cors());
 
 // instantiate our database that was set up and connected in mongoose.js
 const mongoose = require('./database/mongoose')

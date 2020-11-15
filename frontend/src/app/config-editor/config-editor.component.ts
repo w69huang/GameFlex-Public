@@ -80,7 +80,7 @@ export class ConfigEditorComponent implements OnInit {
   }
 
   initialize() {
-    this.gameState = new GameState([], [], [], new Hand(this.playerID, []));
+    this.gameState = new GameState([], [], [], new Hand(this.playerID, []), []);
 
     this.phaserGame = new Phaser.Game(this.config);
 
@@ -130,12 +130,7 @@ export class ConfigEditorComponent implements OnInit {
     // saveConfig()
 
     // delete all current decks and counters
-    this.gameState.decks?.forEach(deck => deck.gameObject.destroy());
-    this.gameState.decks = [];
-
-    this.gameState.counters?.forEach(deck => deck.gameObject.destroy());
-    this.gameState.counters = [];
-
+    this.gameState.cleanUp();
 
     this.configurationService.getConfiguration(configurationId)
       .subscribe((configuration: Configuration) => {
@@ -151,7 +146,7 @@ export class ConfigEditorComponent implements OnInit {
   initDeck() {
     // Just for the create deck button
     let deck: Deck = new Deck(this.highestID++, "assets/images/playing-cards/deck.png", [], 400, 250);
-    HelperFunctions.createDeck(deck, this, SharedActions.onDragMove, DeckActions.deckRightClick, deck.x, deck.y);
+    HelperFunctions.createDeck(deck, this, SharedActions.onDragMove, SharedActions.onDragEnd, DeckActions.deckRightClick, deck.x, deck.y);
   }
 
   initCounter() {
@@ -167,7 +162,7 @@ export class ConfigEditorComponent implements OnInit {
       //deck.id = null;
       deck.type = "deck"; //TODO This is probably not needed later
       deck.imagePath = "assets/images/playing-cards/deck.png";
-      HelperFunctions.createDeck(deck, this, SharedActions.onDragMove, DeckActions.deckRightClick, deck.x, deck.y)
+      HelperFunctions.createDeck(deck, this, SharedActions.onDragMove, SharedActions.onDragEnd, DeckActions.deckRightClick, deck.x, deck.y)
     });
     // configuration.counters.forEach(counter => {
     //   //deck.id = null;

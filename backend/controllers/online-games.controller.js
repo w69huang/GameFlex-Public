@@ -8,10 +8,10 @@ router.get('/get', get);
 router.get('/getAll', getAll);
 router.get('/getIDAndCode', getIDAndCode);
 router.post('/post', create);
-router.post('/verifyGamePassword', verifyGamePassword);
+router.post('/verify', verify);
+router.post('/joinByCode', joinByCode);
 router.delete('/delete', deleteAll);
-router.patch('/confirmActive', confirmActive);
-router.patch('/updateHostID', updateHostID);
+router.patch('/update', update);
 
 deleteOfflineGames(); // Do a delete upon initialization to clear out old games
 setInterval(deleteOfflineGames, 60000);
@@ -23,7 +23,6 @@ function get(request, result) {
             console.log("Error in get for online games: ", err);
             result.send(err);
         } else {
-            console.log("Successfully retrieved online game.");
             result.send(res);
         }
     });
@@ -35,12 +34,13 @@ function getAll(request, result) {
             console.log("Error in getAll for online games: ", err);
             result.send(err);
         } else {
-            console.log("Successfully retrieved all online games.");
-            res.forEach((onlineGame) => {
+            let onlineGames = res.filter(onlineGame => !onlineGame.privateGame); // Private games will have a game code and should not appear in the game browser
+            onlineGames.forEach((onlineGame) => {
                 onlineGame.hostID = ""; // Do not send Host IDs to the frontend
                 onlineGame.encryptedPassword = ""; // No need to send encrypted passwords either
+                onlineGame.onlineGameCode = ""; // Also no need for online game codes in the game browser list
             });
-            result.send(res);
+            result.send(onlineGames);
         }
     });
 }
@@ -55,8 +55,32 @@ function generateRandomString (length) {
     return result;
 }
 
+function joinByCode(request, result) {
+    mysql_connection.query(`SELECT * FROM OnlineGameMySQL WHERE onlineGameCode='${request.body.onlineGameCode}'`, function (err, res) {
+        if (err) {
+            console.log("Error in joinByCode for online games: ", err);
+            result.send(err);
+        } else {
+            if (res.length != 1) {
+                if (res.length === 0) {
+                    result.send({ message: "No active game with that code." });
+                } else {
+                    result.send({ message: "Error: More than one matching game with that code." });
+                }
+            } else {
+                const onlineGame = res[0];
+
+                if (onlineGame.numPlayers < onlineGame.maxPlayers) {
+                    result.send(onlineGame);
+                } else {
+                    result.send({ message: "Room is full." });
+                }
+            }
+        }
+    });
+}
+
 function getIDAndCode(request, result) {
-    console.log("In getIDAndCode!");
     mysql_connection.query("SELECT * FROM OnlineGameMySQL", function(err, res) {
         if (err) {
             console.log("Error in getIDAndCode for online games: ", err);
@@ -87,7 +111,7 @@ function getIDAndCode(request, result) {
                     object.onlineGameCode = code;
                 }
             }
-            console.log("Successfully generated new ID and code");
+            console.log("Successfully generated new ID and code.");
             console.log(object);
             result.send(object);
         }
@@ -114,28 +138,36 @@ function create(request, result) {
     });
 }
 
-function verifyGamePassword(request, result) {
-    const onlineGameID = request.body.onlineGame.id;
-    mysql_connection.query("SELECT * FROM OnlineGameMySQL WHERE id=" + onlineGameID, function(err, res) {
+function verify(request, result) {
+    const reqOnlineGame = request.body.onlineGame;
+    const reqOnlineGameID = reqOnlineGame.id;
+    mysql_connection.query("SELECT * FROM OnlineGameMySQL WHERE id=" + reqOnlineGameID, function(err, res) {
         if (err) {
             console.log("Error in verifyGamePassword for online games: ", err);
             result.send(err);
         } else {
-            let hashedPassword = "";
-            if (request.body.password != "") {
-                const hash = crypto.createHash('sha256');
-                hashedPassword = hash.update(request.body.password).digest('hex');
-            } 
             if (res.length != 1) {
-                console.log("Error in verifyGamePassword for online games: No matching game/more than one matching game.");
-            } else {
-                console.log(`Hashed PW: ${hashedPassword}, Encrypted PW: ${res[0].encryptedPassword}`);
-                if (hashedPassword === res[0].encryptedPassword) {
-                    console.log(`Verification of game password successful. HostID: ${res[0].hostID}.`);
-                    result.send({ hostID: res[0].hostID })
+                if (res.length === 0) {
+                    result.send({ message: "Error: game does not exist." });
                 } else {
-                    console.log("Verification of game password failed.");
-                    result.send(false);
+                    result.send({ message: "Error: more than one matching game." });
+                }
+            } else {
+                const onlineGame = res[0];
+
+                if (onlineGame.numPlayers >= onlineGame.maxPlayers) {
+                    result.send({ message: "Room is full."});
+                } else {
+                    let hashedPassword = "";
+                    if (request.body.password != "") {
+                        const hash = crypto.createHash('sha256');
+                        hashedPassword = hash.update(request.body.password).digest('hex');
+                    } 
+                    if (hashedPassword === onlineGame.encryptedPassword) {
+                        result.send({ hostID: onlineGame.hostID })
+                    } else {
+                        result.send({ message: "Password incorrect." });
+                    }
                 }
             }
         }
@@ -154,22 +186,7 @@ function deleteAll(request, result) {
     });
 }
 
-function confirmActive(request, result) {
-    var onlineGame = request.body;  
-    console.log(onlineGame);
-    onlineGame.lastUpdated = Date.now();
-    mysql_connection.query("UPDATE OnlineGameMySQL SET ? WHERE id=" + onlineGame.id, onlineGame, function (err, res) {
-        if (err) {
-            console.log("Error in update of online games: ", err);
-            result.send(err);
-        } else {
-            console.log("Successfully updated online game's lastUpdated date.");
-            result.send(res);
-        }
-    });
-}
-
-function updateHostID(request, result) {
+function update(request, result) {
     const onlineGame = request.body.onlineGame;
     const accountUsername = request.body.accountUsername;
     const accountPassword = request.body.accountPassword;
@@ -180,10 +197,9 @@ function updateHostID(request, result) {
             if (user[0] != undefined && accountPassword === user[0].password && accountUsername === onlineGame.username) {
                 mysql_connection.query("UPDATE OnlineGameMySQL SET ? WHERE id=" + onlineGame.id, onlineGame, function (err, res) {
                     if (err) {
-                        console.log("Error in updateHostID of online games: ", err);
+                        console.log("Error in update of online game: ", err);
                         result.send(err);
                     } else {
-                        console.log("Successfully updated online game's hostID.");
                         result.send(res);
                     }
                 });
@@ -197,8 +213,6 @@ function deleteOfflineGames() {
     mysql_connection.query("DELETE FROM OnlineGameMySQL WHERE lastUpdated<" + (Date.now() - 600000), function(err, res) {
         if (err) {
             console.log("Error in deleteOfflineGames for online games: ", err);
-        } else {
-            console.log("Successfully deleted inactive online games.");
         }
     });
 }
