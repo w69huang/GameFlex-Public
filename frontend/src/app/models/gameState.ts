@@ -52,12 +52,6 @@ export enum EOverlapType {
  * The game state class, which is responsible for holding the current state of the game
  */
 export default class GameState {
-
-    /**
-     * Whether caching of the game state is enabled
-     */
-    private cachingEnabled: boolean = true;
-
     /**
      * Holds all cards on the table
      */
@@ -82,6 +76,11 @@ export default class GameState {
      * A boolean representing whether this player is the host, used to control branching paths
      */
     public amHost: boolean = false;
+
+    /* 
+    * An array of CachedGameStates with at most 30 moves. 
+    */
+    private gameStateHistory: CachedGameState[];
 
     /**
      * A public accessor to get all cards, should not be used outside of other game state classes
@@ -110,12 +109,14 @@ export default class GameState {
      * @param decks - The decks to add to the table at initialization time
      * @param hands - The hand information to record at initialization time
      * @param myHand - The player's hand information to record at initialization time
+     * @param gameStateHistory
      */
     constructor(cards: Card[], decks: Deck[], hands: Hand[], myHand: Hand) {
         this._cards = cards;
         this._decks = decks;
         this._hands = hands;
         this.myHand = myHand;
+        this.gameStateHistory 
     }
 
     /**
@@ -128,7 +129,10 @@ export default class GameState {
             return object.id !== refObject.id;
         });
 
-        this.saveToCache();
+        if (this.amHost) {
+            this.saveToCache();
+        }
+
         return objectListToFilter;
     }
 
@@ -167,65 +171,95 @@ export default class GameState {
      * Used to save the current game state to the user's local storage
      */
     public saveToCache(): void {
-        if (this.cachingEnabled && this.amHost) {
-            localStorage.setItem('cachedGameState', JSON.stringify(new CachedGameState(this)));
+        localStorage.setItem('cachedGameState', JSON.stringify(new CachedGameState(this)));
+    }
+
+    public saveToHistory(): void {
+        if (this.amHost) {
+            var newState = new CachedGameState(this);
+
+            if (this.gameStateHistory.length >= 30) {
+                this.gameStateHistory = this.gameStateHistory.slice(1)
+            } 
+
+            this.gameStateHistory.push(newState);
         }
+        localStorage.setItem('gameHistory', JSON.stringify(this.gameStateHistory));
+    }
+
+    /**
+    * Used to get the last loadable gamestate. Max 30 states stored.
+    */
+    public getUndo(playspaceComponent: PlayspaceComponent): void { 
+
+        if (this.amHost) {
+            history = JSON.parse(localStorage.getItem('gameHistory'));
+            const cachedGameState: CachedGameState = history[history.length - 1];
+
+            this.cleanUp();
+      
+            cachedGameState.cardMins.forEach((cardMin: CardMin) => {
+                let card: Card = new Card(cardMin.id, cardMin.imagePath, cardMin.x, cardMin.y);
+                HelperFunctions.createCard(card, playspaceComponent, SharedActions.onDragMove, SharedActions.onDragEnd, HelperFunctions.DestinationEnum.TABLE, card.x, card.y);
+            });
+            cachedGameState.deckMins.forEach((deckMin: DeckMin) => {
+                let deck: Deck = new Deck(deckMin.id, deckMin.imagePath, [], deckMin.x, deckMin.y);
+                HelperFunctions.createDeck(deck, playspaceComponent, SharedActions.onDragMove, SharedActions.onDragEnd, DeckActions.deckRightClick, deck.x, deck.y);
+            });
+            for (let i = 0; i < cachedGameState.handMins.length; i++) {
+                cachedGameState.handMins[i].cardMins.forEach((cardMin: CardMin) => {
+                    if (cachedGameState.handMins[i].playerID === playspaceComponent.playerID) {
+                        const card: Card = new Card(cardMin.id, cardMin.imagePath, cardMin.x, cardMin.y);
+                        this.addCardToOwnHand(card, cachedGameState.handMins[i].playerID);
+                        HelperFunctions.createCard(card, playspaceComponent, SharedActions.onDragMove, SharedActions.onDragEnd, HelperFunctions.DestinationEnum.HAND, card.x, card.y);
+                    } else {
+                        this.addCardToPlayerHand(new Card(cardMin.id, cardMin.imagePath, cardMin.x, cardMin.y), cachedGameState.handMins[i].playerID);
+                    }
+                });
+            } 
+        }  
+
+
     }
 
     public buildGameFromCache(playspaceComponent: PlayspaceComponent): void {
         if (this.amHost) {
             const cachedGameState: CachedGameState = JSON.parse(localStorage.getItem('cachedGameState'));
 
-            if (cachedGameState) {
-                this.cachingEnabled = false;
-
-                this.cleanUp();
+            this.cleanUp();
       
-                cachedGameState.cardMins.forEach((cardMin: CardMin) => {
-                    const card: Card = new Card(cardMin.id, cardMin.imagePath, cardMin.x, cardMin.y);
-                    HelperFunctions.createCard(card, playspaceComponent, SharedActions.onDragMove, SharedActions.onDragEnd, HelperFunctions.DestinationEnum.TABLE, card.x, card.y);
+            cachedGameState.cardMins.forEach((cardMin: CardMin) => {
+                let card: Card = new Card(cardMin.id, cardMin.imagePath, cardMin.x, cardMin.y);
+                HelperFunctions.createCard(card, playspaceComponent, SharedActions.onDragMove, SharedActions.onDragEnd, HelperFunctions.DestinationEnum.TABLE, card.x, card.y);
+            });
+            cachedGameState.deckMins.forEach((deckMin: DeckMin) => {
+                let deck: Deck = new Deck(deckMin.id, deckMin.imagePath, [], deckMin.x, deckMin.y);
+                HelperFunctions.createDeck(deck, playspaceComponent, SharedActions.onDragMove, SharedActions.onDragEnd, DeckActions.deckRightClick, deck.x, deck.y);
+            });
+            for (let i = 0; i < cachedGameState.handMins.length; i++) {
+                cachedGameState.handMins[i].cardMins.forEach((cardMin: CardMin) => {
+                    if (cachedGameState.handMins[i].playerID === playspaceComponent.playerID) {
+                        const card: Card = new Card(cardMin.id, cardMin.imagePath, cardMin.x, cardMin.y);
+                        this.addCardToOwnHand(card, cachedGameState.handMins[i].playerID);
+                        HelperFunctions.createCard(card, playspaceComponent, SharedActions.onDragMove, SharedActions.onDragEnd, HelperFunctions.DestinationEnum.HAND, card.x, card.y);
+                    } else {
+                        this.addCardToPlayerHand(new Card(cardMin.id, cardMin.imagePath, cardMin.x, cardMin.y), cachedGameState.handMins[i].playerID);
+                    }
                 });
-                cachedGameState.deckMins.forEach((deckMin: DeckMin) => {
-                    let cardList: Card[] = [];
-                    deckMin.cardMins.forEach((cardMin: CardMin) => {
-                        cardList.push(new Card(cardMin.id, cardMin.imagePath, cardMin.x, cardMin.y));
-                    });
-                    const deck: Deck = new Deck(deckMin.id, deckMin.imagePath, cardList, deckMin.x, deckMin.y);
-                    HelperFunctions.createDeck(deck, playspaceComponent, SharedActions.onDragMove, SharedActions.onDragEnd, DeckActions.deckRightClick, deck.x, deck.y);
-                });
-                for (let i = 0; i < cachedGameState.handMins.length; i++) {
-                    cachedGameState.handMins[i].cardMins.forEach((cardMin: CardMin) => {
-                        if (cachedGameState.handMins[i].playerID === playspaceComponent.playerID) {
-                            const card: Card = new Card(cardMin.id, cardMin.imagePath, cardMin.x, cardMin.y);
-                            this.addCardToOwnHand(card, cachedGameState.handMins[i].playerID);
-                            HelperFunctions.createCard(card, playspaceComponent, SharedActions.onDragMove, SharedActions.onDragEnd, HelperFunctions.DestinationEnum.HAND, card.x, card.y);
-                        } else {
-                            this.addCardToPlayerHand(new Card(cardMin.id, cardMin.imagePath, cardMin.x, cardMin.y), cachedGameState.handMins[i].playerID);
-                        }
-                    });
-                }
-
-                this.cachingEnabled = true; 
-            }            
+            } 
         }        
     }
 
     public buildGameStateFromSavedState(savedGameState: SavedGameState, playspaceComponent: PlayspaceComponent): void {
         if (this.amHost) {
-            this.cachingEnabled = false;
-
             this.cleanUp();
       
             savedGameState.cardMins.forEach((cardMin: CardMin) => {
-                const card: Card = new Card(cardMin.id, cardMin.imagePath, cardMin.x, cardMin.y);
+                let card: Card = new Card(cardMin.id, cardMin.imagePath, cardMin.x, cardMin.y);
                 HelperFunctions.createCard(card, playspaceComponent, SharedActions.onDragMove, SharedActions.onDragEnd, HelperFunctions.DestinationEnum.TABLE, card.x, card.y);
             });
             savedGameState.deckMins.forEach((deckMin: DeckMin) => {
-                let cardList: Card[] = [];
-                deckMin.cardMins.forEach((cardMin: CardMin) => {
-                    cardList.push(new Card(cardMin.id, cardMin.imagePath, cardMin.x, cardMin.y));
-                });
-                const deck: Deck = new Deck(deckMin.id, deckMin.imagePath, cardList, deckMin.x, deckMin.y);
+                let deck: Deck = new Deck(deckMin.id, deckMin.imagePath, [], deckMin.x, deckMin.y);
                 HelperFunctions.createDeck(deck, playspaceComponent, SharedActions.onDragMove, SharedActions.onDragEnd, DeckActions.deckRightClick, deck.x, deck.y);
             });
             for (let i = 0; i < savedGameState.handMins.length; i++) {
@@ -238,9 +272,7 @@ export default class GameState {
                         this.addCardToPlayerHand(new Card(cardMin.id, cardMin.imagePath, cardMin.x, cardMin.y), savedGameState.handMins[i].playerID);
                     }
                 });
-            }
-            
-            this.cachingEnabled = true;
+            }        
         }
     }
 
@@ -250,7 +282,10 @@ export default class GameState {
      */
     public addCardToTable(card: Card): void {
         this._cards.push(card);
-        this.saveToCache();
+
+        if (this.amHost) {
+            this.saveToCache();
+        }
     }
 
     /**
@@ -266,7 +301,9 @@ export default class GameState {
             deck.cards.push(card);
         }
 
-        this.saveToCache();
+        if (this.amHost) {
+            this.saveToCache();
+        }
     }
 
     /**
@@ -275,7 +312,10 @@ export default class GameState {
      */
     public addDeckToTable(deck: Deck): void {
         this._decks.push(deck);
-        this.saveToCache();
+
+        if (this.amHost) {
+            this.saveToCache();
+        }
     }
 
     /**
@@ -394,6 +434,7 @@ export default class GameState {
         
         if (deck) {
             deck.cards = cardList;
+
             this.saveToCache();
         }
     }

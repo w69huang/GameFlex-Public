@@ -79,6 +79,10 @@ export class GameInstanceComponent implements OnInit {
     });
   }
 
+  undo(){
+    
+  }
+
   deleteAllSaves() {
     this.savedGameStateService.deleteAll().subscribe();
   }

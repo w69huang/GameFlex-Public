@@ -503,6 +503,7 @@ export class PlayspaceComponent implements OnInit {
 
         if (data['finishedMoving']) { // If they have finished moving a card/deck, save to cache
           this.gameState.saveToCache();
+          this.gameState.saveToHistory();
         }
         break;
 
