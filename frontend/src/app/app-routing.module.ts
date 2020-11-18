@@ -20,10 +20,11 @@ const routes: Routes = [
   { path: '', redirectTo: 'joinByCode', pathMatch: 'full' },
   { path: 'playspace', component: PlayspaceComponent },
 
-  { path: 'deckFinder', component: DeckFinderComponent },
+  //{ path: 'deckFinder', component: DeckFinderComponent },
   { path: 'deckEditor', component: DeckEditorComponent, 
   children: [
-    { path: '', component: FileListComponent, outlet: 'secondary' }
+    { path: '', component: FileListComponent, outlet: 'secondary' },
+    { path: '', component: DeckFinderComponent, outlet: 'deckFinder' }
     ]
   },
   { path: 'gameBrowser', component: GameBrowserComponent },

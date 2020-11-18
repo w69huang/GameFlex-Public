@@ -1,4 +1,5 @@
 import { Component, OnInit } from '@angular/core';
+import { DeckService } from '../services/deck.service';
 
 @Component({
   selector: 'app-deck-finder',
@@ -7,7 +8,14 @@ import { Component, OnInit } from '@angular/core';
 })
 export class DeckFinderComponent implements OnInit {
 
-  constructor() { }
+  constructor(private DeckService: DeckService) { }
+
+  createDeck(name: string ) {
+    const tempID = 'abcde';
+    this.DeckService.createDeck(tempID, name);
+   }
+
+  findExistingDeck(name: string) { }
 
   ngOnInit(): void {
   }
