@@ -4,6 +4,7 @@ import Card from '../models/card';
 import Deck from '../models/deck';
 import OptionObject from '../models/optionObject';
 import PopupScene from '../models/phaser-scenes/popupScene';
+import { EGameObjectType, GameObjectProperties } from '../models/gameState';
 
 import * as HelperFunctions from '../helper-functions';
 import * as SharedActions from '../actions/sharedActions';
@@ -53,35 +54,40 @@ export function retrieveTopCard(popupScene: PopupScene, deck: Deck, playspaceCom
                 HelperFunctions.createCard(card, playspaceComponent, SharedActions.onDragMove, SharedActions.onDragEnd, DestinationEnum.TABLE, deck.gameObject.x, deck.gameObject.y);
 
                 if (playspaceComponent.connections) {
-                    playspaceComponent.connections.forEach((connection: DataConnection) => {
-                        connection.send({
-                            'action': 'sendTopCard',
-                            'type': 'card',
-                            'cardID': card.id,
-                            'imagePath': card.imagePath,
-                            'deckID': deck.id,
-                            'x': deck.gameObject.x,
-                            'y': deck.gameObject.y,
-                            'amHost': playspaceComponent.amHost,
-                            'playerID': playspaceComponent.playerID,
-                            'peerID': playspaceComponent.myPeerID
-                        });
-                    });
- 
+                    playspaceComponent.gameState.sendPeerData(
+                        new GameObjectProperties(
+                          playspaceComponent.amHost,
+                          'sendTopCard',
+                          playspaceComponent.myPeerID,
+                          playspaceComponent.playerID,
+                          {
+                            cardID: card.id,
+                            deckID: deck.id,
+                            imagePath: card.imagePath,
+                            type: EGameObjectType.CARD,
+                            x: deck.x,
+                            y: deck.y
+                          }
+                        ),
+                        playspaceComponent.connections
+                    );
                 }
             }
         }
     } else if (playspaceComponent.connections) {
-        playspaceComponent.connections.forEach((connection: DataConnection) => {
-            connection.send({
-                    'action': 'retrieveTopCard',
-                    'type': 'card',
-                    'deckID': deck.id,
-                    'amHost': playspaceComponent.amHost,
-                    'playerID': playspaceComponent.playerID,
-                    'peerID': playspaceComponent.myPeerID
-                });
-        });
+        playspaceComponent.gameState.sendPeerData(
+            new GameObjectProperties(
+              playspaceComponent.amHost,
+              'retrieveTopCard',
+              playspaceComponent.myPeerID,
+              playspaceComponent.playerID,
+              {
+                deckID: deck.id,
+                type: EGameObjectType.CARD,
+              }
+            ),
+            playspaceComponent.connections
+        );
     }
 
     popupClose(popupScene, deck, playspaceComponent);
@@ -108,18 +114,21 @@ export function importDeck(popupScene: PopupScene, deck: Deck, playspaceComponen
         });
     }
 
-    if (playspaceComponent.connections && !playspaceComponent.amHost) { // If the host imports a deck, the other players don't need that info
-        playspaceComponent.connections.forEach((connection: DataConnection) => {
-            connection.send({
-                'action': 'importDeck',
-                'type': 'deck',
-                'imagePaths': imagePaths,
-                'deckID': deck.id,
-                'amHost': playspaceComponent.amHost,
-                'playerID': playspaceComponent.playerID,
-                'peerID': playspaceComponent.myPeerID
-                });
-        });
+    if (playspaceComponent.connections && !playspaceComponent.amHost) {
+        playspaceComponent.gameState.sendPeerData(
+            new GameObjectProperties(
+              playspaceComponent.amHost,
+              'importDeck',
+              playspaceComponent.myPeerID,
+              playspaceComponent.playerID,
+              {
+                deckID: deck.id,
+                type: EGameObjectType.DECK,
+                imagePaths: imagePaths,
+              }
+            ),
+            playspaceComponent.connections
+        );
     }
 
    popupClose(popupScene, deck, playspaceComponent);
