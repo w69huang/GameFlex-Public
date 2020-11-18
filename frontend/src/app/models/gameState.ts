@@ -9,6 +9,71 @@ import * as HelperFunctions from '../helper-functions';
 import * as SharedActions from '../actions/sharedActions';
 import * as DeckActions from '../actions/deckActions';
 import { PlayspaceComponent } from '../playspace/playspace.component';
+import { DataConnection } from 'peerjs';
+import SentGameState from './sentGameState';
+import PlayerData from './playerData';
+
+/**
+ * An enum representing all types of actions
+ * TODO: Move all references to these strings over to enums
+ */
+export enum EActionTypes {
+    REPLICATESTATE = "replicateState",
+    SENDSTATE = "sendState",
+    MOVE = "move",
+    INSERTINTODECK = "insertIntoDeck",
+    INSERTINTOHAND = "insertIntoHand",
+    RETRIEVETOPCARD = "retrieveTopCard",
+    SENDTOPCARD = "sendTopCard",
+    REMOVEFROMHAND = "removeFromHand",
+    IMPORTDECK = "importDeck"
+}
+
+/**
+ * An enum representing the types of all game objects
+ */
+export enum EGameObjectType {
+    CARD = "Card",
+    DECK = "Deck",
+    HAND = "Hand"
+}
+
+/**
+ * A class representing all the required and extra data be used to form a request to another peer, such as the action being taken
+ */
+export class GameObjectProperties {
+    amHost: boolean;
+    action: string;
+    peerID: string;
+    playerID: number;
+    extras: GameObjectExtraProperties;
+
+    constructor(amHost: boolean, action: string, peerID: string, playerID: number, extras: GameObjectExtraProperties) {
+        this.amHost = amHost;
+        this.action = action;
+        this.peerID = peerID;
+        this.playerID = playerID;
+        this.extras = extras;
+    }
+}
+
+/**
+ * A class representing all extra data that COULD (NOT "will") be used to form a request to another peer, such as the location of a card
+ * The reason this class is being used is strictly to make it easier to visualize what is usually passed as data
+ */
+export class GameObjectExtraProperties {
+    state?: SentGameState;
+    type?: string;
+    id?: number;
+    cardID?: number;
+    deckID?: number;
+    x?: number;
+    y?: number;
+    imagePath?: string;
+    imagePaths? : string[];
+    finishedMoving?: boolean;
+    // TODO: add rest of potential properties
+}
 
 /**
  * Used when getting a card by ID to grab both the card and the location it was grabbed from
@@ -50,6 +115,13 @@ export enum EOverlapType {
 
 /**
  * The game state class, which is responsible for holding the current state of the game
+ * 
+ * 
+ * ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ 
+ * 
+ * TODO: Include local peerID, playerID and connections variables so that you don't need to put so many params into the peer methods
+ * 
+ * ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
  */
 export default class GameState {
     /**
@@ -579,5 +651,56 @@ export default class GameState {
         });
         this._hands = [];
         this.myHand.cards = [];
+    }
+
+    // TODO: HOW IS THE GAME STATE GETTING REFERENCE TO A PLAYER'S CONNECTIONS?
+    // --> Passed in at creation time? General reference to the playspace component (not great)? Passed in at function time (preferable maybe)?
+
+    /**
+     * Used to handle data received from P2P connections
+     */
+    public handleData() {
+        // TODO
+    }
+
+    /**
+     * Used to send data to peer(s)
+     * @param gameObjectProperties - The data object to send
+     * @param connections - An array of data connection objects used by PeerJS to send data to other peers
+     * @param doNotSendTo - a list of peerIDs not to send the data to
+     */
+    public sendPeerData(gameObjectProperties: GameObjectProperties, connections: DataConnection[], doNotSendTo: string[] = []) {
+        connections.forEach((connection: DataConnection) => {
+            if (!doNotSendTo.includes(connection.peer)) {
+                connection.send(gameObjectProperties);
+            }
+        });
+    }
+
+    /**
+     * Used to very quickly and easily send the current game state to all peers
+     * @param myPeerID - The peerID of the player sending the state
+     * @param myPlayerID - The playerID of the player sending the state
+     * @param playerData - An array of data that links playerIDs to peerIDs
+     * @param connections - An array of data connection objects used by PeerJS to send data to other peers
+     * @param onlySendTo - An optional var specifying to only send data to a specific peer
+     * @param doNotSendTo - An optional var specfying not to send data to a specific peer
+     */
+    public sendGameStateToPeers(myPeerID: string, myPlayerID: number, playerData: PlayerData[], connections: DataConnection[], onlySendTo: string = "", doNotSendTo: string = "") {
+        if (this.amHost) {
+            // TODO: Make sentGameState from current gameState and send to all peers
+            let sentGameState: SentGameState = new SentGameState(this, 0);
+            playerData.forEach((data: PlayerData) => {
+                for (let i: number = 0; i < connections.length; i++) {
+                    if (data.peerID === connections[i].peer) {
+                        if (((onlySendTo !== "" && onlySendTo === data.peerID) || onlySendTo === "") && (doNotSendTo === "" || (doNotSendTo !== data.peerID))) {
+                            sentGameState.playerID = data.id;
+                            connections[i].send(new GameObjectProperties(this.amHost, 'replicateState', myPeerID, myPlayerID, { 'state': sentGameState }));
+                            break; 
+                        }
+                    }
+                }
+            });
+        }
     }
 }
