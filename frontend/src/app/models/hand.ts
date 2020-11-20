@@ -1,4 +1,5 @@
 import Card from './card';
+import { EGameObjectType } from '../models/gameState'
 
 export default class Hand {
     /**
@@ -19,7 +20,7 @@ export default class Hand {
     /**
      * The hand's type in string form
      */
-    type: string = "hand";
+    type: string = EGameObjectType.HAND;
 
     /**
      * Used to create a hand

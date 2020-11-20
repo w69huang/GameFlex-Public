@@ -12,6 +12,7 @@ import { PlayspaceComponent } from '../playspace/playspace.component';
 import { DataConnection } from 'peerjs';
 import SentGameState from './sentGameState';
 import PlayerData from './playerData';
+import { EventEmitter } from '@angular/core';
 
 /**
  * An enum representing all types of actions
@@ -33,15 +34,15 @@ export enum EActionTypes {
  * An enum representing the types of all game objects
  */
 export enum EGameObjectType {
-    CARD = "Card",
-    DECK = "Deck",
-    HAND = "Hand"
+    CARD = "card",
+    DECK = "deck",
+    HAND = "hand"
 }
 
 /**
  * A class representing all the required and extra data be used to form a request to another peer, such as the action being taken
  */
-export class GameObjectProperties {
+class GameObjectProperties {
     amHost: boolean;
     action: string;
     peerID: string;
@@ -72,7 +73,6 @@ export class GameObjectExtraProperties {
     imagePath?: string;
     imagePaths? : string[];
     finishedMoving?: boolean;
-    // TODO: add rest of potential properties
 }
 
 /**
@@ -115,13 +115,6 @@ export enum EOverlapType {
 
 /**
  * The game state class, which is responsible for holding the current state of the game
- * 
- * 
- * ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ 
- * 
- * TODO: Include local peerID, playerID and connections variables so that you don't need to put so many params into the peer methods
- * 
- * ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
  */
 export default class GameState {
 
@@ -153,7 +146,7 @@ export default class GameState {
     /**
      * A boolean representing whether this player is the host, used to control branching paths
      */
-    public amHost: boolean = false;
+    private amHost: boolean = false;
 
     /**
      * A public accessor to get all cards, should not be used outside of other game state classes
@@ -177,17 +170,37 @@ export default class GameState {
     }
 
     /**
+     * My player ID
+     */
+    public playerID: number = null;
+
+    /**
+     * My peer ID
+     */
+    public myPeerID: string;
+
+    /**
+     * A list of player data objects that links peer IDs to player IDs to usernames
+     */
+    public playerDataObjects: PlayerData[] = [];
+
+    /**
+     * A list of connections that all game information will be sent to
+     */
+    public connections: DataConnection[] = [];
+
+    /**
      * The constructor for the game state
      * @param cards - The cards to add to the table at initialization time
      * @param decks - The decks to add to the table at initialization time
      * @param hands - The hand information to record at initialization time
      * @param myHand - The player's hand information to record at initialization time
      */
-    constructor(cards: Card[], decks: Deck[], hands: Hand[], myHand: Hand) {
+    constructor(cards: Card[], decks: Deck[], hands: Hand[]) {
         this._cards = cards;
         this._decks = decks;
         this._hands = hands;
-        this.myHand = myHand;
+        this.myHand = new Hand(null, []);
     }
 
     /**
@@ -236,6 +249,28 @@ export default class GameState {
     }
 
     /**
+     * A method used to set yourself as the host, taking care of anything required to make this happen
+     * @param amHost - Whether or not I am the host
+     */
+    public setAmHost(amHost: boolean, amHostEmitter: EventEmitter<boolean>, username: string = null): void {
+        if (amHost) {
+            this.amHost = true;
+            this.playerID = 1;
+            this.playerDataObjects.push(new PlayerData(this.playerID, this.myPeerID, username));
+            amHostEmitter.emit(true);
+        } else {
+
+        }
+    }
+
+    /**
+     * A method used to check whether or not you are the host
+     */
+    public getAmHost(): boolean {
+        return this.amHost;
+    }
+
+    /**
      * Used to save the current game state to the user's local storage
      */
     public saveToCache(): void {
@@ -267,9 +302,9 @@ export default class GameState {
                 });
                 for (let i = 0; i < cachedGameState.handMins.length; i++) {
                     cachedGameState.handMins[i].cardMins.forEach((cardMin: CardMin) => {
-                        if (cachedGameState.handMins[i].playerID === playspaceComponent.playerID) {
+                        if (cachedGameState.handMins[i].playerID === this.playerID) {
                             const card: Card = new Card(cardMin.id, cardMin.imagePath, cardMin.x, cardMin.y);
-                            this.addCardToOwnHand(card, cachedGameState.handMins[i].playerID);
+                            this.addCardToOwnHand(card);
                             HelperFunctions.createCard(card, playspaceComponent, SharedActions.onDragMove, SharedActions.onDragEnd, HelperFunctions.DestinationEnum.HAND, card.x, card.y);
                         } else {
                             this.addCardToPlayerHand(new Card(cardMin.id, cardMin.imagePath, cardMin.x, cardMin.y), cachedGameState.handMins[i].playerID);
@@ -302,9 +337,9 @@ export default class GameState {
             });
             for (let i = 0; i < savedGameState.handMins.length; i++) {
                 savedGameState.handMins[i].cardMins.forEach((cardMin: CardMin) => {
-                    if (savedGameState.handMins[i].playerID === playspaceComponent.playerID) {
+                    if (savedGameState.handMins[i].playerID === this.playerID) {
                         const card: Card = new Card(cardMin.id, cardMin.imagePath, cardMin.x, cardMin.y);
-                        this.addCardToOwnHand(card, savedGameState.handMins[i].playerID);
+                        this.addCardToOwnHand(card);
                         HelperFunctions.createCard(card, playspaceComponent, SharedActions.onDragMove, SharedActions.onDragEnd, HelperFunctions.DestinationEnum.HAND, card.x, card.y);
                     } else {
                         this.addCardToPlayerHand(new Card(cardMin.id, cardMin.imagePath, cardMin.x, cardMin.y), savedGameState.handMins[i].playerID);
@@ -355,12 +390,12 @@ export default class GameState {
      * @param card - The card to add
      * @param playerID - The ID of the player adding it
      */
-    public addCardToOwnHand(card: Card, playerID: number): void {
+    public addCardToOwnHand(card: Card): void {
         card.inHand = true;
         this.myHand.cards.push(card);
 
         if (this.amHost) {
-            this.addCardToPlayerHand(card, playerID);
+            this.addCardToPlayerHand(card, this.playerID);
         }
     }
 
@@ -369,15 +404,15 @@ export default class GameState {
      * @param cardID - The ID of the card to remove
      * @param playerID - The ID of the player removing it
      */
-    public removeCardFromOwnHand(cardID: number, playerID: number): void {
-        const card: Card = this.getCardByID(cardID, playerID).card;
+    public removeCardFromOwnHand(cardID: number): void {
+        const card: Card = this.getCardByID(cardID, this.playerID).card;
 
         if (card) {
             card.inHand = false;
             this.myHand.cards = this.filterOutID(this.myHand.cards, card);
 
             if (this.amHost) {
-                this.removeCardFromPlayerHand(cardID, playerID);
+                this.removeCardFromPlayerHand(cardID, this.playerID);
             }
         }
     }
@@ -475,8 +510,8 @@ export default class GameState {
      * @param id - The id of the object overlap is being checked for (card/deck)
      * @param playerID - The id of the player responsible for firing this check
      */
-    public checkForOverlap(id: number, playerID: number): OverlapObject {
-        const cardLocationObject: CardLocationObject = this.getCardByID(id, playerID);
+    public checkForOverlap(id: number): OverlapObject {
+        const cardLocationObject: CardLocationObject = this.getCardByID(id, this.playerID);
         const card: Card = cardLocationObject?.card;
         const cardLocation: ECardLocation = cardLocationObject?.location;
         let image: Phaser.GameObjects.Image = this.myHand.gameObject;
@@ -488,7 +523,7 @@ export default class GameState {
             if (myCenterX > image.x && myCenterX < image.x + image.displayWidth && myCenterY > image.y && myCenterY < image.y + image.displayHeight) {
                 if (cardLocation !== ECardLocation.MYHAND) {
                     this._cards = this.filterOutID(this._cards, card);
-                    this.addCardToOwnHand(card, playerID);
+                    this.addCardToOwnHand(card);
                     return { overlapType: EOverlapType.HAND };
                 }
                 return { overlapType: EOverlapType.ALREADYINHAND };
@@ -506,7 +541,7 @@ export default class GameState {
 
             if (cardLocation === ECardLocation.MYHAND) {
                 this.addCardToTable(card);
-                this.removeCardFromOwnHand(card.id, playerID);
+                this.removeCardFromOwnHand(card.id);
                 return { overlapType: EOverlapType.TABLE, wasInHand: true };
             } else {
                 this.saveToCache();
@@ -612,49 +647,34 @@ export default class GameState {
         this.myHand.cards = [];
     }
 
-    // TODO: HOW IS THE GAME STATE GETTING REFERENCE TO A PLAYER'S CONNECTIONS?
-    // --> Passed in at creation time? General reference to the playspace component (not great)? Passed in at function time (preferable maybe)?
-
-    /**
-     * Used to handle data received from P2P connections
-     */
-    public handleData() {
-        // TODO
-    }
-
     /**
      * Used to send data to peer(s)
-     * @param gameObjectProperties - The data object to send
-     * @param connections - An array of data connection objects used by PeerJS to send data to other peers
+     * @param action - The action to perform
+     * @param extras - An array of extra game object properties that the user wants to include
      * @param doNotSendTo - a list of peerIDs not to send the data to
      */
-    public sendPeerData(gameObjectProperties: GameObjectProperties, connections: DataConnection[], doNotSendTo: string[] = []) {
-        connections.forEach((connection: DataConnection) => {
+    public sendPeerData(action: string, extras: GameObjectExtraProperties, doNotSendTo: string[] = []) {
+        this.connections.forEach((connection: DataConnection) => {
             if (!doNotSendTo.includes(connection.peer)) {
-                connection.send(gameObjectProperties);
+                connection.send(new GameObjectProperties(this.amHost, action, this.myPeerID, this.playerID, extras));
             }
         });
     }
 
     /**
      * Used to very quickly and easily send the current game state to all peers
-     * @param myPeerID - The peerID of the player sending the state
-     * @param myPlayerID - The playerID of the player sending the state
-     * @param playerData - An array of data that links playerIDs to peerIDs
-     * @param connections - An array of data connection objects used by PeerJS to send data to other peers
      * @param onlySendTo - An optional var specifying to only send data to a specific peer
      * @param doNotSendTo - An optional var specfying not to send data to a specific peer
      */
-    public sendGameStateToPeers(myPeerID: string, myPlayerID: number, playerData: PlayerData[], connections: DataConnection[], onlySendTo: string = "", doNotSendTo: string = "") {
+    public sendGameStateToPeers(onlySendTo: string = "", doNotSendTo: string = "") {
         if (this.amHost) {
             // TODO: Make sentGameState from current gameState and send to all peers
-            let sentGameState: SentGameState = new SentGameState(this, 0);
-            playerData.forEach((data: PlayerData) => {
-                for (let i: number = 0; i < connections.length; i++) {
-                    if (data.peerID === connections[i].peer) {
-                        if (((onlySendTo !== "" && onlySendTo === data.peerID) || onlySendTo === "") && (doNotSendTo === "" || (doNotSendTo !== data.peerID))) {
-                            sentGameState.playerID = data.id;
-                            connections[i].send(new GameObjectProperties(this.amHost, 'replicateState', myPeerID, myPlayerID, { 'state': sentGameState }));
+            this.playerDataObjects.forEach((playerData: PlayerData) => {
+                for (let i: number = 0; i < this.connections.length; i++) {
+                    if (playerData.peerID === this.connections[i].peer) {
+                        if (((onlySendTo !== "" && onlySendTo === playerData.peerID) || onlySendTo === "") && (doNotSendTo === "" || (doNotSendTo !== playerData.peerID))) {
+                            let sentGameState: SentGameState = new SentGameState(this, playerData.id);
+                            this.connections[i].send(new GameObjectProperties(this.amHost, 'replicateState', this.myPeerID, this.playerID, { 'state': sentGameState }));
                             break; 
                         }
                     }
@@ -662,4 +682,268 @@ export default class GameState {
             });
         }
     }
+
+    /**
+     * Used to handle data received from P2P connections
+     */
+    handleData(data: GameObjectProperties, playspaceComponent: PlayspaceComponent) {
+        if (this.amHost && data.amHost) {
+          // Error! Both parties claim to the be the host! Abort!
+          console.log("Fatal error: both parties claim to be the host.");
+          return;
+        }
+    
+        switch(data.action) {
+    
+          // Received by the host after being sent by the player upon connection to the host, in which the player asks for the game state
+          case EActionTypes.SENDSTATE:
+            let playerID = data.playerID;
+            if (!playerID) {
+              // They are new, generate a new ID for them
+              let playerIDArray: number[] = [];
+    
+              this.playerDataObjects.forEach((playerData) => {
+                playerIDArray.push(playerData.id);
+              });
+    
+              let i: number = 1;
+              while (playerIDArray.includes(i)) {
+                i++; 
+              }
+              playerID = i; // Assign the player the first playerID that is not taken already
+            }
+    
+            this.playerDataObjects.push(new PlayerData(playerID, data.peerID));
+            playspaceComponent.playerDataEmitter.emit(this.playerDataObjects);
+    
+            console.log("Sending state.");
+            this.sendGameStateToPeers(data.peerID);
+    
+            break;
+    
+          case EActionTypes.REPLICATESTATE:
+            console.log("Received state.");
+            const receivedGameState: SentGameState = data.extras.state;
+            this.playerID = receivedGameState.playerID;
+    
+            this.cleanUp();
+    
+            receivedGameState.cardMins.forEach((cardMin: CardMin) => {
+              let card: Card = new Card(cardMin.id, cardMin.imagePath, cardMin.x, cardMin.y);
+              HelperFunctions.createCard(card, playspaceComponent, SharedActions.onDragMove, SharedActions.onDragEnd, HelperFunctions.DestinationEnum.TABLE, card.x, card.y);
+            });
+            receivedGameState.deckMins.forEach((deckMin: DeckMin) => {
+              let deck: Deck = new Deck(deckMin.id, deckMin.imagePath, [], deckMin.x, deckMin.y);
+              HelperFunctions.createDeck(deck, playspaceComponent, SharedActions.onDragMove, SharedActions.onDragEnd, DeckActions.deckRightClick, deck.x, deck.y);
+            });
+            receivedGameState.handMin.cardMins.forEach((cardMin: CardMin) => {
+              let card: Card = new Card(cardMin.id, cardMin.imagePath, cardMin.x, cardMin.y, true);
+              HelperFunctions.createCard(card, playspaceComponent, SharedActions.onDragMove, SharedActions.onDragEnd, HelperFunctions.DestinationEnum.HAND, card.x, card.y);
+            });
+    
+            document.getElementById('loading').style.display = "none";
+            document.getElementById('loadingText').style.display = "none";
+            break;
+    
+          case EActionTypes.MOVE:
+            if (data.extras.type === EGameObjectType.CARD) {
+              
+              let card: Card = this.getCardByID(data.extras.id, data.playerID).card;
+    
+              if (card) {
+                card.x = data.extras.x;
+                card.y = data.extras.y;
+                if (card.gameObject) { 
+                  card.gameObject.setX(data.extras.x);
+                  card.gameObject.setY(data.extras.y);
+    
+                  this.sendPeerData(
+                    EActionTypes.MOVE,
+                      {
+                        id: card.id,
+                        type: card.type,
+                        x: data.extras.x,
+                        y: data.extras.y
+                      },
+                      [data.peerID]
+                    );
+                }
+              }
+            } else if (data.extras.type === EGameObjectType.DECK) {
+              let deck: Deck = this.getDeckByID(data.extras.id);
+    
+              if (deck) {
+                deck.x = data.extras.x;
+                deck.y = data.extras.y;
+                deck.gameObject.setX(data.extras.x);
+                deck.gameObject.setY(data.extras.y);
+    
+                this.sendPeerData(
+                  EActionTypes.MOVE,
+                  {
+                    id: deck.id,
+                    type: deck.type,
+                    x: data.extras.x,
+                    y: data.extras.y
+                  },
+                  [data.peerID]
+                );
+              }
+            }
+    
+            if (data.extras.finishedMoving) { // If they have finished moving a card/deck, save to cache
+              this.saveToCache();
+            }
+            break;
+    
+          // The host receives this action, which was sent by a non-host requesting the top card of the deck
+          case EActionTypes.RETRIEVETOPCARD:
+            if (data.extras.type === EGameObjectType.CARD && this.amHost) {
+              let deck: Deck = this.getDeckByID(data.extras.deckID);
+    
+              if (deck && deck.cards.length > 0) {
+                let card: Card = this.getCardFromDeck(deck.cards.length - 1, deck.id, true);
+    
+                HelperFunctions.createCard(card, playspaceComponent, SharedActions.onDragMove, SharedActions.onDragEnd, HelperFunctions.DestinationEnum.TABLE, deck.gameObject.x, deck.gameObject.y);
+    
+                this.sendPeerData(
+                    EActionTypes.SENDTOPCARD,
+                    {
+                      cardID: card.id,
+                      deckID: deck.id,
+                      type: EGameObjectType.CARD,
+                      x: deck.x,
+                      y: deck.y,
+                      imagePath: card.imagePath
+                    }
+                );
+              }
+            }
+            break;
+    
+          // The non-host receives this action, which was sent by the host after the non-host requested the top card from a deck
+          case EActionTypes.SENDTOPCARD:
+            if (data.extras.type === EGameObjectType.CARD && !this.amHost) {
+              let deck: Deck = this.getDeckByID(data.extras.deckID);
+    
+              if (deck) {
+    
+                let card: Card = new Card(data.extras.cardID, data.extras.imagePath, data.extras.x, data.extras.y);
+                card.inDeck = false;
+    
+                HelperFunctions.createCard(card, playspaceComponent, SharedActions.onDragMove, SharedActions.onDragEnd, HelperFunctions.DestinationEnum.TABLE, deck.gameObject.x, deck.gameObject.y);
+              }
+            }
+            break;
+    
+          // Received by the host when a player inserts a card into the deck or by the player when the host inserts a card into the deck
+          case EActionTypes.INSERTINTODECK:
+            if (data.extras.type === EGameObjectType.CARD && this.amHost) {
+              let card: Card = this.getCardByID(data.extras.cardID, data.playerID, true, true).card;
+              let deck: Deck = this.getDeckByID(data.extras.deckID);
+    
+              if (card && deck) {
+                if (this.amHost) {
+                  // If I am the host, tell everyone else that this card was inserted
+                  // Assuming they can actually see the card all ready -- if it was in the person's hand, no point in telling them
+    
+                  this.sendPeerData(
+                    EActionTypes.INSERTINTODECK,
+                    {
+                      cardID: card.id,
+                      deckID: deck.id,
+                      type: EGameObjectType.CARD,
+                      x: card.x,
+                      y: card.y,
+                      imagePath: card.imagePath
+                    },
+                    [data.peerID]
+                  );
+                }
+    
+                this.addCardToDeck(card, deck.id);
+              }
+            } else if (data.extras.type === EGameObjectType.CARD && !this.amHost) {
+              // If I am not the host and someone inserts a card into the deck, completely remove all reference to it
+              // Passing in true, true means that even though the card object is returned, it is destroyed
+              this.getCardByID(data.extras.cardID, data.playerID, true, true);
+            }
+            break;
+    
+          // Anyone can receive this action, which is sent by someone who inserts a card into their hand
+          case EActionTypes.INSERTINTOHAND:
+            // If someone else inserts a card into their hand, we need to delete that card from everyone else's screen
+            if (data.extras.type === EGameObjectType.CARD) {
+              let card: Card = this.getCardByID(data.extras.cardID, data.playerID, true, true).card;
+    
+              if (card) {
+                if (this.amHost) {
+                  // If I am the host, first we will tell any other players that the action occured
+    
+                  this.sendPeerData(
+                    EActionTypes.INSERTINTOHAND,
+                    {
+                      cardID: card.id,
+                      type: EGameObjectType.CARD,
+                    }
+                    [data.peerID]
+                  );
+    
+                  // Then, add it to the appropriate player's hand in the game state (will only actually take effect if host)
+                  this.addCardToPlayerHand(card, data.playerID);
+                }
+              }
+            }
+    
+            break;        
+    
+          // Anyone can receive this action, and it is sent by someone who places a card from their hand on the table (NOT inserting it into a deck)
+          case EActionTypes.REMOVEFROMHAND:
+            if (data.extras.type === EGameObjectType.CARD) {
+              let card: Card = null;
+              if (this.amHost) {
+                // Card already exists if I'm the host, since I know everyone's hands
+                card = this.getCardByID(data.extras.cardID, data.playerID, true, true).card;
+    
+                HelperFunctions.createCard(card, playspaceComponent, SharedActions.onDragMove, SharedActions.onDragEnd, HelperFunctions.DestinationEnum.TABLE, data.extras.x, data.extras.y)
+    
+                // Tell other possible peers that this card was removed from a hand
+                this.sendPeerData(
+                  EActionTypes.REMOVEFROMHAND,
+                  {
+                    cardID: card.id,
+                    type: EGameObjectType.CARD,
+                    imagePath: card.imagePath,
+                    x: card.x,
+                    y: card.y,
+                  }
+                  [data.peerID]
+                );        
+              } else {
+                card = new Card(data.extras.cardID, data.extras.imagePath, data.extras.x, data.extras.y);
+                HelperFunctions.createCard(card, playspaceComponent, SharedActions.onDragMove, SharedActions.onDragEnd, HelperFunctions.DestinationEnum.TABLE, data.extras.x, data.extras.y);
+              }
+            }
+    
+            break;
+    
+          case EActionTypes.IMPORTDECK:
+            if (data.extras.type === EGameObjectType.DECK && this.amHost) {
+              let deck: Deck = this.getDeckByID(data.extras.deckID);
+    
+              if (deck) {
+                let imagePaths: string[] = data.extras.imagePaths;
+    
+                imagePaths.forEach((imagePath: string) => {
+                  this.addCardToDeck(new Card(playspaceComponent.highestID++, imagePath, deck.gameObject.x, deck.gameObject.y), deck.id);
+                });
+              }
+            }
+            break;
+    
+          default:
+            console.log('Received action did not match any existing action.');
+            break;
+        }
+      }
 }
