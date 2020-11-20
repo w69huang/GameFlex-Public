@@ -34,6 +34,7 @@ import { NgxMatSelectSearchModule } from 'ngx-mat-select-search';
 import { JoinByCodeComponent } from './join-by-code/join-by-code.component';
 import { GameInstanceComponent } from './game-instance/game-instance.component';
 import { LoadGameStatePopupComponent } from './popups/load-game-state-popup/load-game-state-popup.component';
+import { UndoGameStatePopupComponent } from './popups/popups/undo-game-state-popup.component';
 
 @NgModule({
   declarations: [
@@ -56,6 +57,7 @@ import { LoadGameStatePopupComponent } from './popups/load-game-state-popup/load
     JoinByCodeComponent,
     GameInstanceComponent,
     LoadGameStatePopupComponent,
+    UndoGameStatePopupComponent,
   ],
   imports: [
     BrowserModule,

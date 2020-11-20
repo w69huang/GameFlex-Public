@@ -267,7 +267,9 @@ export default class GameState {
         if (this.amHost) {
             history = JSON.parse(localStorage.getItem('gameHistory'));
             const cachedGameState: CachedGameState = history[history.length - 1];
-
+            if (cachedGameState == null) {
+                return;
+            }
             this.cleanUp();
       
             cachedGameState.cardMins.forEach((cardMin: CardMin) => {
@@ -297,7 +299,9 @@ export default class GameState {
     public buildGameFromCache(playspaceComponent: PlayspaceComponent): void {
         if (this.amHost) {
             const cachedGameState: CachedGameState = JSON.parse(localStorage.getItem('cachedGameState'));
-
+            if (cachedGameState == null) {
+                return;
+            }
             this.cleanUp();
       
             cachedGameState.cardMins.forEach((cardMin: CardMin) => {
