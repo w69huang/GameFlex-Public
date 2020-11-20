@@ -1,10 +1,9 @@
 import { PlayspaceComponent } from '../playspace/playspace.component';
-import { DataConnection } from 'peerjs';
 import Card from '../models/card';
 import Deck from '../models/deck';
 import OptionObject from '../models/optionObject';
 import PopupScene from '../models/phaser-scenes/popupScene';
-import { EGameObjectType, GameObjectProperties } from '../models/gameState';
+import { EGameObjectType, EActionTypes } from '../models/gameState';
 
 import * as HelperFunctions from '../helper-functions';
 import * as SharedActions from '../actions/sharedActions';
@@ -44,7 +43,7 @@ export function deckRightClick(deck: Deck, component: any, pointer: Phaser.Input
 
 export function retrieveTopCard(popupScene: PopupScene, deck: Deck, playspaceComponent: PlayspaceComponent, pointer: Phaser.Input.Pointer) {
 
-    if (playspaceComponent.amHost) {
+    if (playspaceComponent.gameState.getAmHost()) {
         const card: Card = playspaceComponent.gameState.getCardFromDeck(deck.cards.length - 1, deck.id, true);
 
         if (card) {
@@ -53,40 +52,26 @@ export function retrieveTopCard(popupScene: PopupScene, deck: Deck, playspaceCom
 
                 HelperFunctions.createCard(card, playspaceComponent, SharedActions.onDragMove, SharedActions.onDragEnd, DestinationEnum.TABLE, deck.gameObject.x, deck.gameObject.y);
 
-                if (playspaceComponent.connections) {
-                    playspaceComponent.gameState.sendPeerData(
-                        new GameObjectProperties(
-                          playspaceComponent.amHost,
-                          'sendTopCard',
-                          playspaceComponent.myPeerID,
-                          playspaceComponent.playerID,
-                          {
-                            cardID: card.id,
-                            deckID: deck.id,
-                            imagePath: card.imagePath,
-                            type: EGameObjectType.CARD,
-                            x: deck.x,
-                            y: deck.y
-                          }
-                        ),
-                        playspaceComponent.connections
-                    );
-                }
+                playspaceComponent.gameState.sendPeerData(
+                    EActionTypes.SENDTOPCARD,
+                    {
+                        cardID: card.id,
+                        deckID: deck.id,
+                        imagePath: card.imagePath,
+                        type: EGameObjectType.CARD,
+                        x: deck.x,
+                        y: deck.y
+                    }                  
+                );
             }
         }
-    } else if (playspaceComponent.connections) {
+    } else {
         playspaceComponent.gameState.sendPeerData(
-            new GameObjectProperties(
-              playspaceComponent.amHost,
-              'retrieveTopCard',
-              playspaceComponent.myPeerID,
-              playspaceComponent.playerID,
-              {
+            EActionTypes.RETRIEVETOPCARD,
+            {
                 deckID: deck.id,
                 type: EGameObjectType.CARD,
-              }
-            ),
-            playspaceComponent.connections
+            }
         );
     }
 
@@ -94,7 +79,7 @@ export function retrieveTopCard(popupScene: PopupScene, deck: Deck, playspaceCom
 }
 
 export function shuffleDeck(popupScene: PopupScene, deck: Deck, playspaceComponent: PlayspaceComponent, pointer: Phaser.Input.Pointer) {
-    if (playspaceComponent.amHost) {
+    if (playspaceComponent.gameState.getAmHost()) {
         let shuffled = deck.cards.map((card) => ({randomVal: Math.random(), card: card}))
                                 .sort((object1, object2) => object1.randomVal - object2.randomVal)
                                 .map((object) => object.card);
@@ -108,26 +93,20 @@ export function shuffleDeck(popupScene: PopupScene, deck: Deck, playspaceCompone
 export function importDeck(popupScene: PopupScene, deck: Deck, playspaceComponent: PlayspaceComponent, pointer: Phaser.Input.Pointer) {
     let imagePaths: string[] = ["assets/images/playing-cards/king_of_hearts.png", "assets/images/playing-cards/king_of_hearts.png"];
 
-    if (playspaceComponent.amHost) {
+    if (playspaceComponent.gameState.getAmHost()) {
         imagePaths.forEach((imagePath: string) => {
             playspaceComponent.gameState.addCardToDeck(new Card(playspaceComponent.highestID++, imagePath, deck.gameObject.x, deck.gameObject.y), deck.id)
         });
     }
 
-    if (playspaceComponent.connections && !playspaceComponent.amHost) {
+    if (!playspaceComponent.gameState.getAmHost()) {
         playspaceComponent.gameState.sendPeerData(
-            new GameObjectProperties(
-              playspaceComponent.amHost,
-              'importDeck',
-              playspaceComponent.myPeerID,
-              playspaceComponent.playerID,
-              {
+            EActionTypes.IMPORTDECK,
+            {
                 deckID: deck.id,
                 type: EGameObjectType.DECK,
                 imagePaths: imagePaths,
-              }
-            ),
-            playspaceComponent.connections
+            }
         );
     }
 
