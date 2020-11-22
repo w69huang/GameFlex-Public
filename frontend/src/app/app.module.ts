@@ -55,7 +55,7 @@ import { LoadGameStatePopupComponent } from './popups/load-game-state-popup/load
     RetrieveGameStatePopupComponent,
     JoinByCodeComponent,
     GameInstanceComponent,
-    LoadGameStatePopupComponent,
+    LoadGameStatePopupComponent
   ],
   imports: [
     BrowserModule,
@@ -79,6 +79,7 @@ import { LoadGameStatePopupComponent } from './popups/load-game-state-popup/load
     GameSetupPopupComponent,
     SaveGameStatePopupComponent,
     RetrieveGameStatePopupComponent,
+    LoadGameStatePopupComponent,
     DialogForgotPassword
   ],
   providers: [

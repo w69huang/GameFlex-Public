@@ -1,5 +1,5 @@
 import Card from './card';
-import { EGameObjectType } from '../models/gameState'
+import { EGameObjectType } from '../models/gameState';
 
 export default class Hand {
     /**

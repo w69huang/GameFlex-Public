@@ -121,7 +121,7 @@ export default class GameState {
     /**
      * Whether caching of the game state is enabled
      */
-    private cachingEnabled: boolean = true;
+    private cachingEnabled: boolean = false;
 
     /**
      * Holds all cards on the table
@@ -271,6 +271,13 @@ export default class GameState {
     }
 
     /**
+     * A method used by the game state and external methods to enable/disable caching
+     */
+    public setCachingEnabled(enable: boolean) {
+        this.cachingEnabled = enable;
+    }
+
+    /**
      * Used to save the current game state to the user's local storage
      */
     public saveToCache(): void {
@@ -279,12 +286,16 @@ export default class GameState {
         }
     }
 
+    /**
+     * A method to build the game state from the cache
+     * @param playspaceComponent - A reference to the playspace component, needed to create the cards and decks
+     */
     public buildGameFromCache(playspaceComponent: PlayspaceComponent): void {
         if (this.amHost) {
             const cachedGameState: CachedGameState = JSON.parse(localStorage.getItem('cachedGameState'));
 
             if (cachedGameState) {
-                this.cachingEnabled = false;
+                this.setCachingEnabled(false);
 
                 this.cleanUp();
       
@@ -312,11 +323,23 @@ export default class GameState {
                     });
                 }
 
-                this.cachingEnabled = true; 
+                this.setCachingEnabled(true);
             }            
         }        
     }
 
+    /**
+     * A method to clear the cache of the cached game state
+     */
+    public clearCache(): void {
+        localStorage.removeItem('cachedGameState');
+    }
+
+    /**
+     * A method to build the game state from a saved game state
+     * @param savedGameState - The saved game state to build from
+     * @param playspaceComponent - A reference to the playspace component, needed to create cards and decks
+     */
     public buildGameStateFromSavedState(savedGameState: SavedGameState, playspaceComponent: PlayspaceComponent): void {
         if (this.amHost) {
             this.cachingEnabled = false;

@@ -1,21 +1,21 @@
 import { Component, EventEmitter, Input, OnInit, Output } from '@angular/core';
 import { DataConnection } from 'peerjs';
 import { Router } from '@angular/router';
+import Peer from 'peerjs';
+import Phaser from 'phaser';
 
 import { HostService } from '../services/host.service';
 import { OnlineGamesService } from '../services/online-games.service';
 import { SavedGameStateService } from '../services/saved-game-state.service';
 import { MiddleWare } from '../services/middleware';
+import { LoadGameStatePopupComponent } from '../popups/load-game-state-popup/load-game-state-popup.component';
 
-import Peer from 'peerjs';
-import Phaser from 'phaser';
-import Hand from '../models/hand';
 import GameState, { EActionTypes } from '../models/gameState';
 import PlayerData from '../models/playerData';
 import SavedGameState from '../models/savedGameState';
 import OnlineGame from '../models/onlineGame';
 import PlayspaceScene from '../models/phaser-scenes/playspaceScene';
-
+import { MatDialog } from '@angular/material/dialog';
 
 @Component({
   selector: 'app-playspace',
@@ -66,7 +66,8 @@ export class PlayspaceComponent implements OnInit {
     private onlineGamesService: OnlineGamesService, 
     private savedGameStateService: SavedGameStateService,
     private router: Router,
-    private middleware: MiddleWare
+    private middleware: MiddleWare,
+    private dialog: MatDialog
    ) {
     this.gameState = new GameState([], [], []);
     this.gameState.myPeerID = hostService.getHostID();
@@ -223,6 +224,24 @@ export class PlayspaceComponent implements OnInit {
     return newConnectionList;
   }
 
+  buildFromCacheDialog() {
+    let dialogRef = this.dialog.open(LoadGameStatePopupComponent, {
+      height: '290px',
+      width: '350px',
+    });
+
+    dialogRef.afterClosed().subscribe(object => {
+      if (object.loadFromCache === true) {
+        this.gameState.buildGameFromCache(this);
+      } else if (object.loadFromCache === false) {
+        this.gameState.clearCache();
+      } else {
+        console.log('Error loading game from cache.');
+      }
+      this.gameState.setCachingEnabled(true);
+    });
+  }
+
   finishConnectionProcess() {
     this.openConnectionAttempts = 0;
 
@@ -267,7 +286,7 @@ export class PlayspaceComponent implements OnInit {
             this.gameState.setAmHost(true, this.amHostEmitter, this.middleware.getUsername());
             this.onlineGame.hostID = this.gameState.myPeerID;
             this.onlineGamesService.update(this.onlineGame).subscribe((data) => {
-              this.gameState.buildGameFromCache(this);
+              this.buildFromCacheDialog();
               this.updateOnlineGameInterval = setInterval(this.updateOnlineGame.bind(this), 300000); // Tell the backend that this game still exists every 5 mins
               this.finishConnectionProcess();
             });
@@ -282,7 +301,7 @@ export class PlayspaceComponent implements OnInit {
           }
         } else { // I am the host
           this.gameState.setAmHost(true, this.amHostEmitter, this.middleware.getUsername());
-          this.gameState.buildGameFromCache(this);
+          this.buildFromCacheDialog();
           this.updateOnlineGameInterval = setInterval(this.updateOnlineGame.bind(this), 300000); // Tell the backend that this game still exists every 5 mins
           this.finishConnectionProcess();
         }
