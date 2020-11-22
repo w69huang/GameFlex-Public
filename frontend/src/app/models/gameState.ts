@@ -124,6 +124,13 @@ export default class GameState {
     private cachingEnabled: boolean = true;
 
     /**
+     * Contains a history of savedGameStates for undo purposes.
+     */
+
+    private gameStateHistory: CachedGameState[] = [];
+    private previousMove: CachedGameState;
+    private currentMove: CachedGameState;
+    /**
      * Holds all cards on the table
      */
     private _cards: Card[];
@@ -201,6 +208,8 @@ export default class GameState {
         this._decks = decks;
         this._hands = hands;
         this.myHand = new Hand(null, []);
+        setInterval( () => {this.currentMove = new CachedGameState(this)}, 100);
+        // this.currentMove = new CachedGameState(this);
     }
 
     /**
@@ -274,27 +283,80 @@ export default class GameState {
      * Used to save the current game state to the user's local storage
      */
 
-     // Add the undoHistory to Save toCache.
+    // ISSUE 1: When the deck is rightclicked, and closed, it saved the state twice.
+    /* ISSUE 2: When the other player (Not the host) makes a move, the save seems weird. 
+            Its like the host saved the state between the desitnation and the origin of where the other player moved it 
+            since when it's the host's actions, they save properly.
+            Possibly has something to do with how currentMove is initialized in the constructor? Or just the delay of the 
+            data being sent between the host and the user? 
+    */
     public saveToCache(): void {
         if (this.cachingEnabled && this.amHost) {
-            localStorage.setItem('cachedGameState', JSON.stringify(new CachedGameState(this)));
+            const cachedGameState = new CachedGameState(this)
+            localStorage.setItem('cachedGameState', JSON.stringify(cachedGameState));
+
+            // Works well.
+            this.previousMove = this.currentMove;
+            this.currentMove = cachedGameState;
+            // var cacheHistory = JSON.parse(localStorage.getItem('gameStateHistory'));
+            // console.log("Look At cache", cacheHistory);
+            // if(cacheHistory != null) {
+            // }
+            if(this.gameStateHistory.length == 0) {
+                this.gameStateHistory.push(this.previousMove);
+                localStorage.setItem('gameStateHistory', JSON.stringify(this.gameStateHistory));
+
+            }
+            else if(this.gameStateHistory.length > 0 && this.gameStateHistory[this.gameStateHistory.length-1] != this.previousMove){
+                this.gameStateHistory.push(this.previousMove);
+                
+                console.log(this.gameStateHistory);
+                if (this.gameStateHistory.length >= 10) {
+                    console.log("Sliced")
+                    var index = this.gameStateHistory.length - 9
+                    this.gameStateHistory = this.gameStateHistory.slice(index);
+                    // localStorage.setItem('gameStateHistory', JSON.stringify(this.gameStateHistory));
+                }
+                localStorage.setItem('gameStateHistory', JSON.stringify(this.gameStateHistory));
+            }
+
         }
     }
 
-    public buildGameFromCache(playspaceComponent: PlayspaceComponent): void {
+    public buildGameFromCache(playspaceComponent: PlayspaceComponent, undo = 0): void {
         if (this.amHost) {
-            const cachedGameState: CachedGameState = JSON.parse(localStorage.getItem('cachedGameState'));
-
-            if (cachedGameState) {
+            const cache = {gamestate: null};
+            if (undo > 0) {
+                this.gameStateHistory = JSON.parse(localStorage.getItem('gameStateHistory'));
+                console.log("Before undos")
+                console.log(this.gameStateHistory);
+                // if(this.gameStateHistory.length > 1) {
+                    // this.gameStateHistory = this.gameStateHistory.slice(0, this.gameStateHistory.length - (undo-1));
+                // }
+                var i;
+                console.log("See me")
+                for(i = 0; i < undo; i++) {
+                    cache.gamestate = this.gameStateHistory.pop()
+                }
+                console.log("After undos")
+                console.log(this.gameStateHistory)
+                localStorage.setItem('gameStateHistory', JSON.stringify(this.gameStateHistory));
+                // console.log(cache.gamestate)
+                // const cachedGameState: CachedGameState = this.gameStateHistory.pop()
+            } else {
+                cache.gamestate = JSON.parse(localStorage.getItem('cachedGameState'));
+                // const cachedGameState: CachedGameState = JSON.parse(localStorage.getItem('cachedGameState'));
+            }
+            if (cache.gamestate != null) {
                 this.cachingEnabled = false;
-
+                // console.log("Worked?")
                 this.cleanUp();
       
-                cachedGameState.cardMins.forEach((cardMin: CardMin) => {
+                cache.gamestate.cardMins.forEach((cardMin: CardMin) => {
                     const card: Card = new Card(cardMin.id, cardMin.imagePath, cardMin.x, cardMin.y);
                     HelperFunctions.createCard(card, playspaceComponent, SharedActions.onDragMove, SharedActions.onDragEnd, HelperFunctions.DestinationEnum.TABLE, card.x, card.y);
                 });
-                cachedGameState.deckMins.forEach((deckMin: DeckMin) => {
+                cache.gamestate.deckMins.forEach((deckMin: DeckMin) => {
                     let cardList: Card[] = [];
                     deckMin.cardMins.forEach((cardMin: CardMin) => {
                         cardList.push(new Card(cardMin.id, cardMin.imagePath, cardMin.x, cardMin.y));
@@ -302,20 +364,26 @@ export default class GameState {
                     const deck: Deck = new Deck(deckMin.id, deckMin.imagePath, cardList, deckMin.x, deckMin.y);
                     HelperFunctions.createDeck(deck, playspaceComponent, SharedActions.onDragMove, SharedActions.onDragEnd, DeckActions.deckRightClick, deck.x, deck.y);
                 });
-                for (let i = 0; i < cachedGameState.handMins.length; i++) {
-                    cachedGameState.handMins[i].cardMins.forEach((cardMin: CardMin) => {
-                        if (cachedGameState.handMins[i].playerID === this.playerID) {
+                for (let i = 0; i < cache.gamestate.handMins.length; i++) {
+                    cache.gamestate.handMins[i].cardMins.forEach((cardMin: CardMin) => {
+                        if (cache.gamestate.handMins[i].playerID === this.playerID) {
                             const card: Card = new Card(cardMin.id, cardMin.imagePath, cardMin.x, cardMin.y);
                             this.addCardToOwnHand(card);
                             HelperFunctions.createCard(card, playspaceComponent, SharedActions.onDragMove, SharedActions.onDragEnd, HelperFunctions.DestinationEnum.HAND, card.x, card.y);
                         } else {
-                            this.addCardToPlayerHand(new Card(cardMin.id, cardMin.imagePath, cardMin.x, cardMin.y), cachedGameState.handMins[i].playerID);
+                            this.addCardToPlayerHand(new Card(cardMin.id, cardMin.imagePath, cardMin.x, cardMin.y), cache.gamestate.handMins[i].playerID);
                         }
                     });
                 }
 
                 this.cachingEnabled = true; 
-            }            
+
+            }
+            
+            // Just a temporary thing for now. Ask Zach where the host sends the game state on load.
+            if (undo >0) {
+                this.sendGameStateToPeers();
+            }        
         }        
     }
 
