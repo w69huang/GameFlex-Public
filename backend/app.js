@@ -11,15 +11,16 @@ const multer = require('multer');
 const GridFsStorage = require('multer-gridfs-storage');
 const crypto = require('crypto');
 const cors = require('cors');
-const bodyparser = require('body-parser');
+
+// The body parser will simplify the request data for mysql
+const bodyParser = require('body-parser')
 
 //Routes to handle requests
 const router = require('../backend/routes/routes');
 
 //TODO: ADD CONFIG FILES. GET FILE UPLOADS WORKING
 
-// The body parser will simplify the request data for mysql
-const bodyParser = require('body-parser')
+
 
 // The express() library will be used to handle backend routing
 const app = express()
@@ -68,7 +69,6 @@ const storage = new GridFsStorage({
     localhost:3000 - back-end api (mongo)
     localhost:4200 - front-end
     localhost:5000 - back-end api (mysql)
-
     For our back-end, CORS will take any request that comes from ports other than 3000 and reject it
 */
 
@@ -90,7 +90,6 @@ mysqlapp.use((req, res, next) => {
 /*
     List: Create, Update, ReadOne, ReadAll, Delete
     Task: Create, Update, ReadOne, ReadAll, Delete
-
     We will create a RESTful API to carry these out.
     
     We will begin by creating the URL endpoints.
@@ -151,11 +150,6 @@ app.use('/', router(upload));
 // catch 404 and forward to error handler
 app.use(function(req, res, next) {
   next(createError(404));
-});
-
-const port = process.env.PORT || 3000;
-const server = app.listen(port, () => {
-  console.log('Connected to port ' + port)
 });
 
 // error handler
