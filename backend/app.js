@@ -40,14 +40,14 @@ const List = require('./database/models/list')
 const Task = require('./database/models/task')
 const user = require('./database/models/mysql.user.model')
 
-mongoose.Promise = require('bluebird');
+//mongoose.Promise = require('bluebird');
 
 const url = config.mongoURI;
-const connect = mongoose.connect(url, {useNewUrlParser: true, useUnifiedTopology: true });
+// const connect = mongoose.connect(url, {useNewUrlParser: true, useUnifiedTopology: true });
 
-connect.then(() => {
-    console.log('Connected to database: DeckStorage');
-}, (err) => console.log(err));
+// connect.then(() => {
+//     console.log('Connected to database: DeckStorage');
+// }, (err) => console.log(err));
 
 //GridFS config
 // create storage engine
@@ -158,11 +158,6 @@ app.use('/', router(upload));
 // catch 404 and forward to error handler
 app.use(function(req, res, next) {
   next(createError(404));
-});
-
-const port = process.env.PORT || 3000;
-const server = app.listen(port, () => {
-  console.log('Connected to port ' + port)
 });
 
 // error handler
