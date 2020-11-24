@@ -23,7 +23,15 @@ const SavedGameStateSchema = new mongoose.Schema({
             id: Number,
             imagePath: String,
             x: Number,
-            y: Number
+            y: Number,
+            cardMins: [
+                {
+                    id: Number,
+                    imagePath: String,
+                    x: Number,
+                    y: Number
+                }
+            ]
         }
     ],
     handMins: [
@@ -36,7 +44,7 @@ const SavedGameStateSchema = new mongoose.Schema({
                     x: Number,
                     y: Number
                 }
-            ], 
+            ]
         }
     ],
     savedPlayerData: [

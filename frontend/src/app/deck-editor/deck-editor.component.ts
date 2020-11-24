@@ -2,7 +2,6 @@ import { Component, OnInit, ViewChild, ElementRef  } from '@angular/core';
 import { HttpEventType, HttpErrorResponse } from '@angular/common/http';
 import { of } from 'rxjs';  
 import { catchError, map } from 'rxjs/operators';  
-import { UploadService } from  '../services/upload.service';
 import { FileService } from '../services/file.service';
 
 @Component({
@@ -12,7 +11,7 @@ import { FileService } from '../services/file.service';
 })
 export class DeckEditorComponent implements OnInit {
   @ViewChild("fileUpload", {static: false}) fileUpload: ElementRef; files = []
-  constructor(private uploadService: UploadService, private fileService: FileService) { }
+  constructor(private fileService: FileService) { }
 
   uploadFile(file) {  
     const formData = new FormData();  

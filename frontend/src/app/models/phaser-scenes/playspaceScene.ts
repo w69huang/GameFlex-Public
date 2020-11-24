@@ -5,7 +5,6 @@ import Deck from '../deck';
 import * as HelperFunctions from '../../helper-functions';
 import * as DeckActions from '../../actions/deckActions';
 import * as SharedActions from '../../actions/sharedActions';
-import GameState from '../gameState';
 
 export default class PlayspaceScene extends Phaser.Scene {
     playspaceComponent: PlayspaceComponent;
@@ -36,9 +35,9 @@ export default class PlayspaceScene extends Phaser.Scene {
       });
   
       this.initialDeckList.forEach(deck => {
-        HelperFunctions.createDeck(deck, this.playspaceComponent, SharedActions.onDragMove, DeckActions.deckRightClick, deck.x, deck.y);
+        HelperFunctions.createDeck(deck, this.playspaceComponent, SharedActions.onDragMove, SharedActions.onDragEnd, DeckActions.deckRightClick, deck.x, deck.y);
       });
-
+      
       this.events.once('update', () => {
         this.playspaceComponent.startConnectionProcess();
       });

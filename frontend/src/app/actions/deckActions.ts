@@ -1,9 +1,9 @@
 import { PlayspaceComponent } from '../playspace/playspace.component';
-import { DataConnection } from 'peerjs';
 import Card from '../models/card';
 import Deck from '../models/deck';
 import OptionObject from '../models/optionObject';
 import PopupScene from '../models/phaser-scenes/popupScene';
+import { EGameObjectType, EActionTypes } from '../models/gameState';
 
 import * as HelperFunctions from '../helper-functions';
 import * as SharedActions from '../actions/sharedActions';
@@ -43,8 +43,8 @@ export function deckRightClick(deck: Deck, component: any, pointer: Phaser.Input
 
 export function retrieveTopCard(popupScene: PopupScene, deck: Deck, playspaceComponent: PlayspaceComponent, pointer: Phaser.Input.Pointer) {
 
-    if (playspaceComponent.amHost) {
-        var card = deck.cards.pop();
+    if (playspaceComponent.gameState.getAmHost()) {
+        const card: Card = playspaceComponent.gameState.getCardFromDeck(deck.cards.length - 1, deck.id, true);
 
         if (card) {
             if (card.gameObject == null) {
@@ -52,69 +52,39 @@ export function retrieveTopCard(popupScene: PopupScene, deck: Deck, playspaceCom
 
                 HelperFunctions.createCard(card, playspaceComponent, SharedActions.onDragMove, SharedActions.onDragEnd, DestinationEnum.TABLE, deck.gameObject.x, deck.gameObject.y);
 
-                if (playspaceComponent.connections) {
-                    playspaceComponent.connections.forEach((connection: DataConnection) => {
-                        connection.send({
-                            'action': 'sendTopCard',
-                            'type': 'card',
-                            'cardID': card.id,
-                            'imagePath': card.imagePath,
-                            'deckID': deck.id,
-                            'x': deck.gameObject.x,
-                            'y': deck.gameObject.y,
-                            'amHost': playspaceComponent.amHost,
-                            'playerID': playspaceComponent.playerID,
-                            'peerID': playspaceComponent.myPeerID
-                        });
-                    });
- 
-                }
+                playspaceComponent.gameState.sendPeerData(
+                    EActionTypes.SENDTOPCARD,
+                    {
+                        cardID: card.id,
+                        deckID: deck.id,
+                        imagePath: card.imagePath,
+                        type: EGameObjectType.CARD,
+                        x: deck.x,
+                        y: deck.y
+                    }                  
+                );
             }
         }
-    } else if (playspaceComponent.connections) {
-        playspaceComponent.connections.forEach((connection: DataConnection) => {
-            connection.send({
-                'action': 'retrieveTopCard',
-                'type': 'card',
-                'deckID': deck.id,
-                'amHost': playspaceComponent.amHost,
-                'playerID': playspaceComponent.playerID,
-                'peerID': playspaceComponent.myPeerID
-                });
-        });
+    } else {
+        playspaceComponent.gameState.sendPeerData(
+            EActionTypes.RETRIEVETOPCARD,
+            {
+                deckID: deck.id,
+                type: EGameObjectType.CARD,
+            }
+        );
     }
 
     popupClose(popupScene, deck, playspaceComponent);
 }
 
 export function shuffleDeck(popupScene: PopupScene, deck: Deck, playspaceComponent: PlayspaceComponent, pointer: Phaser.Input.Pointer) {
-    if (playspaceComponent.amHost) {
+    if (playspaceComponent.gameState.getAmHost()) {
         let shuffled = deck.cards.map((card) => ({randomVal: Math.random(), card: card}))
                                 .sort((object1, object2) => object1.randomVal - object2.randomVal)
                                 .map((object) => object.card);
 
-        deck.cards = shuffled;
-
-        let shuffledCardIDs = [];
-
-        shuffled.forEach((card: Card) => {
-        shuffledCardIDs.push(card.id);
-        });
-
-        // TODO: Only host can shuffle, and host is not sending shuffled data to players
-        // Can change if necessary
-
-        //if (playspaceComponent.conn) {
-        //  playspaceComponent.conn.send({
-        //  'action': 'shuffle',
-        //  'type': 'deck',
-        //  'deckID': deck.id,
-        //  'shuffledCardIDs': shuffledCardIDs,
-        //  'amHost': playspaceComponent.amHost,
-        //  'playerID': playspaceComponent.playerID,
-        //  'peerID': playspaceComponent.peerID
-        //  });
-        //}
+        playspaceComponent.gameState.replaceCardsInDeck(shuffled, deck.id);
     }
 
     popupClose(popupScene, deck, playspaceComponent);
@@ -123,24 +93,21 @@ export function shuffleDeck(popupScene: PopupScene, deck: Deck, playspaceCompone
 export function importDeck(popupScene: PopupScene, deck: Deck, playspaceComponent: PlayspaceComponent, pointer: Phaser.Input.Pointer) {
     let imagePaths: string[] = ["assets/images/playing-cards/king_of_hearts.png", "assets/images/playing-cards/king_of_hearts.png"];
 
-    if (playspaceComponent.amHost) {
+    if (playspaceComponent.gameState.getAmHost()) {
         imagePaths.forEach((imagePath: string) => {
-        deck.cards.push(new Card(playspaceComponent.highestID++, imagePath, deck.gameObject.x, deck.gameObject.y));
+            playspaceComponent.gameState.addCardToDeck(new Card(playspaceComponent.highestID++, imagePath, deck.gameObject.x, deck.gameObject.y), deck.id)
         });
     }
 
-    if (playspaceComponent.connections && !playspaceComponent.amHost) { // If the host imports a deck, the other players don't need that info
-        playspaceComponent.connections.forEach((connection: DataConnection) => {
-            connection.send({
-                'action': 'importDeck',
-                'type': 'deck',
-                'imagePaths': imagePaths,
-                'deckID': deck.id,
-                'amHost': playspaceComponent.amHost,
-                'playerID': playspaceComponent.playerID,
-                'peerID': playspaceComponent.myPeerID
-                });
-        });
+    if (!playspaceComponent.gameState.getAmHost()) {
+        playspaceComponent.gameState.sendPeerData(
+            EActionTypes.IMPORTDECK,
+            {
+                deckID: deck.id,
+                type: EGameObjectType.DECK,
+                imagePaths: imagePaths,
+            }
+        );
     }
 
    popupClose(popupScene, deck, playspaceComponent);

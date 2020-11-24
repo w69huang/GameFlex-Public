@@ -35,7 +35,7 @@ export class LoginComponent implements OnInit {
 
   checkLoggedIn() {
     if ( this.middleware.isLoggedIn()) {
-      this.router.navigate(['/playspace']);
+      this.router.navigate(['/joinByCode']);
     }
   }
 
@@ -57,7 +57,7 @@ export class LoginComponent implements OnInit {
               this.middleware.setLoggedIn(true, obj.value.username, obj.value.password);
               console.log("Login Status: " + this.middleware.isLoggedIn());
               this.app.isLoggedIn = true;
-              this.router.navigate(['/playspace']);
+              this.router.navigate(['/joinByCode']);
             } else {
               // TO DO:
               // 1. Reject their login attempt and keep them on the login page (Done)
