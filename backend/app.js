@@ -1,6 +1,6 @@
 // ~~~~~~~ Use `nodemon app.js` to start the server ~~~~~~~~~ //
 
-const createError = require('http-errors'),
+const createError = require('http-errors');
 const express = require('express');
 const config = require('./config');
 const multer = require('multer');
@@ -8,7 +8,8 @@ const GridFsStorage = require('multer-gridfs-storage');
 const crypto = require('crypto');
 const cors = require('cors');
 const bodyParser = require('body-parser') // The body parser will simplify the request data for mysql
-const router = require('../backend/routes/routes');
+const mongoose = require('./database/mongoose')
+const mysql_connection = require('./database/mysql')
 
 // The express() library will be used to handle backend routing
 const app = express()
@@ -77,7 +78,7 @@ const storage = new GridFsStorage({
 });
 
 const upload = multer({ storage });
-app.use('/', router(upload));
+app.use('/', deckEditorRoutes(upload));
 
 // catch 404 and forward to error handler
 app.use(function(req, res, next) {

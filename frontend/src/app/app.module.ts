@@ -34,9 +34,9 @@ import { SaveGameStatePopupComponent } from './popups/save-game-state-popup/save
 import { RetrieveGameStatePopupComponent } from './popups/retrieve-game-state-popup/retrieve-game-state-popup.component';
 import { NgxMatSelectSearchModule } from 'ngx-mat-select-search';
 import { JoinByCodeComponent } from './join-by-code/join-by-code.component';
-import { DeckFinderComponent } from './deck-finder/deck-finder.component';
 import { GameInstanceComponent } from './game-instance/game-instance.component';
 import { LoadGameStatePopupComponent } from './popups/load-game-state-popup/load-game-state-popup.component';
+import { CreateDeckPopupComponent } from './popups/create-deck-popup/create-deck-popup.component';
 
 @NgModule({
   declarations: [
@@ -59,9 +59,9 @@ import { LoadGameStatePopupComponent } from './popups/load-game-state-popup/load
     SaveGameStatePopupComponent,
     RetrieveGameStatePopupComponent,
     JoinByCodeComponent,
-    DeckFinderComponent,
     GameInstanceComponent,
-    LoadGameStatePopupComponent
+    LoadGameStatePopupComponent,
+    CreateDeckPopupComponent
   ],
   imports: [
     BrowserModule,
@@ -86,6 +86,7 @@ import { LoadGameStatePopupComponent } from './popups/load-game-state-popup/load
     SaveGameStatePopupComponent,
     RetrieveGameStatePopupComponent,
     LoadGameStatePopupComponent,
+    CreateDeckPopupComponent,
     DialogForgotPassword
   ],
   providers: [

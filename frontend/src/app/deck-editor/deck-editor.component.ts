@@ -3,6 +3,10 @@ import { HttpEventType, HttpErrorResponse } from '@angular/common/http';
 import { of } from 'rxjs';  
 import { catchError, map } from 'rxjs/operators';  
 import { FileService } from '../services/file.service';
+import { DeckService } from '../services/deck.service';
+import { MatDialog } from '@angular/material/dialog';
+import { CreateDeckPopupComponent } from '../popups/create-deck-popup/create-deck-popup.component';
+import { MiddleWare } from '../services/middleware';
 
 @Component({
   selector: 'app-deck-editor',
@@ -11,8 +15,35 @@ import { FileService } from '../services/file.service';
 })
 export class DeckEditorComponent implements OnInit {
   @ViewChild("fileUpload", {static: false}) fileUpload: ElementRef; files = []
-  constructor(private fileService: FileService) { }
 
+  constructor(private deckService: DeckService, private fileService: FileService, private dialog: MatDialog, private middleWare: MiddleWare) { }
+
+  ngOnInit(): void {}
+
+  createDeck() {
+    //  const tempID = 'abcde';
+    //  this.deckService.createDeck(tempID, name);
+
+    let dialogRef = this.dialog.open(CreateDeckPopupComponent, {
+      height: '200px',
+      width: '400px',
+    });
+
+    dialogRef.afterClosed().subscribe(deckData => {
+      const deckName: string = deckData.name;
+      const username: string = this.middleWare.getUsername();
+
+      deckData.files?.forEach(file => {  
+        this.uploadFile(file);  
+      });
+    });
+   }
+
+  findExistingDeck(name: string) { }
+
+  // TODO: Take the deckName and pass it into the service call to the backend when we upload a file
+  // That way, we can associate the file with a name on the backend
+  // --> Also, we'll probably want to pass in the player's username
   uploadFile(file) {  
     const formData = new FormData();  
     formData.append('file', file.data);
@@ -42,29 +73,4 @@ export class DeckEditorComponent implements OnInit {
         }  
       });  
   }
-
-  private uploadFiles() { 
-    console.log(this.files); 
-    this.fileUpload.nativeElement.value = '';  
-    this.files.forEach(file => {  
-      this.uploadFile(file);  
-    });
-    this.files = []; 
-}
-
-  onClick() {  
-    const fileUpload = this.fileUpload.nativeElement;fileUpload.onchange = () => {  
-    for (let index = 0; index < fileUpload.files.length; index++)  
-    {  
-    const file = fileUpload.files[index];  
-    this.files.push({ data: file, inProgress: false, progress: 0});
-    }  
-      this.uploadFiles();  
-    };  
-    fileUpload.click();  
-  }
-
-  ngOnInit(): void {
-  }
-
 }

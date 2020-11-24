@@ -12,7 +12,6 @@ import { LoginComponent } from './login/login.component';
 import { ChangepasswordComponent } from './changepassword/changepassword.component';
 import { JoinByCodeComponent } from './join-by-code/join-by-code.component';
 import { FileListComponent } from './file-list/file-list.component';
-import { DeckFinderComponent } from './deck-finder/deck-finder.component';
 import { GameInstanceComponent } from './game-instance/game-instance.component';
 
 
@@ -20,12 +19,7 @@ const routes: Routes = [
   { path: '', redirectTo: 'joinByCode', pathMatch: 'full' },
   { path: 'playspace', component: PlayspaceComponent },
   //{ path: 'deckFinder', component: DeckFinderComponent },
-  { path: 'deckEditor', component: DeckEditorComponent, 
-  children: [
-    { path: '', component: FileListComponent, outlet: 'secondary' },
-    { path: '', component: DeckFinderComponent, outlet: 'deckFinder' }
-    ]
-  },
+  { path: 'deckEditor', component: DeckEditorComponent},
   { path: 'gameInstance', component: GameInstanceComponent },
   { path: 'deckEditor', component: DeckEditorComponent },
   { path: 'gameBrowser', component: GameBrowserComponent },

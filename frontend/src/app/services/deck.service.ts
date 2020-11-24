@@ -3,7 +3,7 @@ import { HttpClient, HttpEvent, HttpErrorResponse, HttpEventType } from '@angula
 import { map } from 'rxjs/operators';
 import { BehaviorSubject, Subject, Observable } from 'rxjs';
 import { finalize } from 'rxjs/operators';
-import { WebService } from '../web.service';
+import { WebService } from '../services/web.service';
 
 @Injectable({
   providedIn: 'root'

@@ -1,5 +1,15 @@
-<router-outlet name="deckFinder"></router-outlet>
-<router-outlet name="secondary"></router-outlet>
+<mat-card>
+    <button class="btn btn-primary center" mat-button (click)="createDeck()">Create Deck</button>
+    <h1 class="center">Find Exisiting Deck:</h1>
+    <div>
+        <input matInput #existingDeckName placeholder="deck name" required />
+    </div>
+    <div>
+        <button mat-button (click)="findExistingDeck(existingDeckName.value)">Go!</button>
+    </div>
+    <div #errorsDiv id="errorsDiv"></div>
+</mat-card>
+<app-file-list></app-file-list>
 <div style="text-align:center; margin-top: 100px; "><mat-card style="margin-top:10px; width: 50%;">  
     <mat-card-content>  
         <ul>  
@@ -11,10 +21,4 @@
             </li>  
         </ul>  
     </mat-card-content>  
-    <mat-card-actions>  
-        <button mat-button color="warn" (click)="onClick()">  
-            <mat-icon>file_upload</mat-icon>  
-            Upload  
-        </button>  
-    </mat-card-actions>  
-</mat-card><input type="file" #fileUpload id="fileUpload" name="fileUpload" multiple="multiple" accept="image/*" style="display:none;" /></div>
+</mat-card>
