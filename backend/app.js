@@ -42,13 +42,6 @@ const user = require('./database/models/mysql.user.model')
 
 mongoose.Promise = require('bluebird');
 
-const url = config.mongoURI;
-const connect = mongoose.connect(url, {useNewUrlParser: true, useUnifiedTopology: true });
-
-connect.then(() => {
-    console.log('Connected to database: DeckStorage');
-}, (err) => console.log(err));
-
 //GridFS config
 // create storage engine
 const storage = new GridFsStorage({

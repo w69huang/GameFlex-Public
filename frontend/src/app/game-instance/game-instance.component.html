@@ -1,0 +1,37 @@
+<h1 id="onlineGameCode">{{ onlineGame && onlineGame.privateGame ? 'Online Game Code: ' + onlineGame.onlineGameCode : '' }}</h1>
+<div class="columnContainer">
+    <div class="leftSidebar">
+        <div class="leftSidebarContent">
+            <mat-card class="playerList">
+                Player List:
+                <ul>
+                    <li *ngFor="let player of playerData">
+                        {{ player.id }}
+                    </li>
+                </ul>
+            </mat-card>
+            <mat-card class="saveButtonsContainer" *ngIf="middleware.isLoggedIn()">
+                <div class="btn btn-primary" (click)="getAllSavedGameStates()">Get Saved Games</div>
+                <div class="btn btn-primary" (click)="saveGameState()">Save Game</div>
+                <div class="btn btn-primary" (click)="deleteAllSaves()">Delete All Saves</div>
+                <div class="btn btn-primary" (click)="clearCachedSave()">Clear Cached Save</div>
+            </mat-card>
+        </div>
+    </div>
+    <app-playspace
+        (amHostEmitter)="receiveAmHost($event)"
+        (playerDataEmitter)="receivePlayerData($event)"
+        (onlineGameEmitter)="receiveOnlineGameData($event)"
+        [saveGameStateEmitter]="saveGameStateEmitter"
+        [getAllSavedGameStatesEmitter]="getAllSavedGameStatesEmitter"
+        [mainHostID]="mainHostID"
+        [onlineGameID]="onlineGameID"
+    ></app-playspace>
+    <div class="rightSidebar">
+        <div class="rightSidebarContent">
+            <mat-card class="chatContainer">
+                <p>Chat</p>
+            </mat-card>
+        </div>
+    </div>
+</div>

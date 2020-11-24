@@ -34,7 +34,6 @@ function getAll(request, result) {
             console.log("Error in getAll for online games: ", err);
             result.send(err);
         } else {
-            console.log
             let onlineGames = res.filter(onlineGame => !onlineGame.privateGame); // Private games will have a game code and should not appear in the game browser
             onlineGames.forEach((onlineGame) => {
                 onlineGame.hostID = ""; // Do not send Host IDs to the frontend

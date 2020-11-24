@@ -19,9 +19,9 @@ export function createCard(card: Card, playspaceComponent: PlayspaceComponent, d
         card.gameObject.displayWidth = 200;
         card.gameObject.displayHeight = 300;
         if (destination === DestinationEnum.TABLE) {
-        playspaceComponent.gameState.cards.push(card);
+            playspaceComponent.gameState.addCardToTable(card);
         } else {
-        playspaceComponent.gameState.myHand.cards.push(card);
+            playspaceComponent.gameState.addCardToOwnHand(card);
         }
     } else {
         // Otherwise, we have to dynamically load it
@@ -40,13 +40,13 @@ export function cardCreationCallback(card: Card, playspaceComponent: PlayspaceCo
     card.gameObject.displayWidth = 200;
     card.gameObject.displayHeight = 300;
     if (destination === DestinationEnum.TABLE) {
-        playspaceComponent.gameState.cards.push(card);
+        playspaceComponent.gameState.addCardToTable(card);
     } else {
-        playspaceComponent.gameState.myHand.cards.push(card);
+        playspaceComponent.gameState.addCardToOwnHand(card);
     }
 }
 
-export function createDeck(deck: Deck, playspaceComponent: PlayspaceComponent, dragMove: Function, rightClick: Function, x: number, y: number) {
+export function createDeck(deck: Deck, playspaceComponent: PlayspaceComponent, dragMove: Function, dragEnd: Function, rightClick: Function, x: number, y: number) {
     if (playspaceComponent.phaserScene.textures.exists(deck.imagePath)) {
         // If the image already exists in the texture manager's cache, we can create the object now
 
@@ -54,10 +54,11 @@ export function createDeck(deck: Deck, playspaceComponent: PlayspaceComponent, d
         deck.gameObject.setInteractive();
         playspaceComponent.phaserScene.input.setDraggable(deck.gameObject);
         deck.gameObject.on('drag', dragMove.bind(this, deck, playspaceComponent));
+        deck.gameObject.on('dragend', dragEnd.bind(this, deck, playspaceComponent));
         deck.gameObject.on('pointerdown', rightClick.bind(this, deck, playspaceComponent));
         deck.gameObject.displayWidth = 200;
         deck.gameObject.displayHeight = 300;
-        playspaceComponent.gameState.decks.push(deck);
+        playspaceComponent.gameState.addDeckToTable(deck);
     } else {
         // Otherwise, we have to dynamically load it
         playspaceComponent.phaserScene.load.image(deck.imagePath, deck.imagePath);
@@ -74,5 +75,5 @@ export function deckCreationCallback(deck: Deck, playspaceComponent: PlayspaceCo
     deck.gameObject.on('pointerdown', rightClick.bind(this, deck, playspaceComponent));
     deck.gameObject.displayWidth = 200;
     deck.gameObject.displayHeight = 300;
-    playspaceComponent.gameState.decks.push(deck);
+    playspaceComponent.gameState.addDeckToTable(deck);
 }
