@@ -1,6 +1,6 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 
-import { CreateDeckPopupComponent } from './create-deck-popup.component';
+import { CreateDeckPopupComponent } from './upload-cards-popup.component';
 
 describe('CreateDeckPopupComponent', () => {
   let component: CreateDeckPopupComponent;

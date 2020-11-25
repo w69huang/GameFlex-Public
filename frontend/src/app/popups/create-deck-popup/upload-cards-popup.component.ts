@@ -3,16 +3,16 @@ import { MatDialogRef } from '@angular/material/dialog';
 
 @Component({
   selector: 'app-create-deck-popup',
-  templateUrl: './create-deck-popup.component.html',
-  styleUrls: ['./create-deck-popup.component.scss']
+  templateUrl: './upload-cards-popup.component.html',
+  styleUrls: ['./upload-cards-popup.component.scss']
 })
-export class CreateDeckPopupComponent implements OnInit {
+export class UploadCardsPopupComponent implements OnInit {
   @ViewChild('errorsDiv') errorsDiv: ElementRef;
   @ViewChild("fileUpload", {static: false}) fileUpload: ElementRef; 
   private files: any[] = [];
 
   constructor(
-    private dialogRef: MatDialogRef<CreateDeckPopupComponent>
+    private dialogRef: MatDialogRef<UploadCardsPopupComponent>
   ) { }
 
   ngOnInit(): void {
