@@ -121,7 +121,7 @@ export default class GameState {
     /**
      * Whether caching of the game state is enabled
      */
-    private cachingEnabled: boolean = true;
+    private cachingEnabled: boolean = false;
 
     /**
      * Contains a history of savedGameStates for undo purposes.
@@ -224,7 +224,7 @@ export default class GameState {
             return object.id !== refObject.id;
         });
 
-        this.saveToCache();
+        this.delay(this.saveToCache())
         return objectListToFilter;
     }
 
@@ -282,6 +282,13 @@ export default class GameState {
     }
 
     /**
+     * A method used by the game state and external methods to enable/disable caching
+     */
+    public setCachingEnabled(enable: boolean) {
+        this.cachingEnabled = enable;
+    }
+
+    /**
      * Used to save the current game state to the user's local storage
      */
 
@@ -315,8 +322,31 @@ export default class GameState {
         }
     }
 
+    // public buildGameFromCache(playspaceComponent: PlayspaceComponent, undo = 0): void {
+    //     if (this.amHost) {
+    //         const cache = {gamestate: null};
+    //         if (undo > 0) {
+    //             this.gameStateHistory = JSON.parse(localStorage.getItem('gameStateHistory'));
+          
+    //             var i;
+    //             for(i = 0; i < undo; i++) {
+    //                 cache.gamestate = this.gameStateHistory.pop()
+    //                 // console.log("Undo Card Coordinates", cache.gamestate.cardMins[0].x, cache.gamestate.cardMins[0].y)
+    //             }
+    //             localStorage.setItem('gameStateHistory', JSON.stringify(this.gameStateHistory));
+    //         } else {
+    //             cache.gamestate = JSON.parse(localStorage.getItem('cachedGameState'));
+    //             // const cachedGameState: CachedGameState = JSON.parse(localStorage.getItem('cachedGameState'));
+    //         }
+    //         if (cache.gamestate != null) {
+    //             this.cachingEnabled = false;
+    /**
+     * A method to build the game state from the cache
+     * @param playspaceComponent - A reference to the playspace component, needed to create the cards and decks
+     */
     public buildGameFromCache(playspaceComponent: PlayspaceComponent, undo = 0): void {
         if (this.amHost) {
+            // const cachedGameState: CachedGameState = JSON.parse(localStorage.getItem('cachedGameState'));
             const cache = {gamestate: null};
             if (undo > 0) {
                 this.gameStateHistory = JSON.parse(localStorage.getItem('gameStateHistory'));
@@ -332,7 +362,8 @@ export default class GameState {
                 // const cachedGameState: CachedGameState = JSON.parse(localStorage.getItem('cachedGameState'));
             }
             if (cache.gamestate != null) {
-                this.cachingEnabled = false;
+                this.setCachingEnabled(false);
+
                 this.cleanUp();
       
                 cache.gamestate.cardMins.forEach((cardMin: CardMin) => {
@@ -358,18 +389,28 @@ export default class GameState {
                         }
                     });
                 }
-
-                this.cachingEnabled = true; 
-
-            }
             
             // Just a temporary thing for now. Ask Zach where the host sends the game state on load.
             if (undo >0) {
                 this.sendGameStateToPeers();
             }        
+                this.setCachingEnabled(true);
+            }            
         }        
     }
 
+    /**
+     * A method to clear the cache of the cached game state
+     */
+    public clearCache(): void {
+        localStorage.removeItem('cachedGameState');
+    }
+
+    /**
+     * A method to build the game state from a saved game state
+     * @param savedGameState - The saved game state to build from
+     * @param playspaceComponent - A reference to the playspace component, needed to create cards and decks
+     */
     public buildGameStateFromSavedState(savedGameState: SavedGameState, playspaceComponent: PlayspaceComponent): void {
         if (this.amHost) {
             this.cachingEnabled = false;
@@ -410,7 +451,7 @@ export default class GameState {
      */
     public addCardToTable(card: Card): void {
         this._cards.push(card);
-        this.saveToCache();
+        this.delay(this.saveToCache())
     }
 
     /**
@@ -426,7 +467,7 @@ export default class GameState {
             deck.cards.push(card);
         }
 
-        this.saveToCache();
+        this.delay(this.saveToCache())
     }
 
     /**
@@ -435,7 +476,7 @@ export default class GameState {
      */
     public addDeckToTable(deck: Deck): void {
         this._decks.push(deck);
-        this.saveToCache();
+        this.delay(this.saveToCache())
     }
 
     /**
@@ -493,7 +534,7 @@ export default class GameState {
 
             card.inHand = true;
     
-            this.saveToCache();
+            this.delay(this.saveToCache())
         }
     }
 
@@ -516,7 +557,7 @@ export default class GameState {
     
                 card.inHand = false;
         
-                this.saveToCache();
+                this.delay(this.saveToCache())
             }
         }
     }
@@ -536,7 +577,7 @@ export default class GameState {
                 deck.cards = this.filterOutID(deck.cards, card);
                 card.inDeck = false;
 
-                this.saveToCache();
+                this.delay(this.saveToCache())
             }
             return card;
         } else {
@@ -554,7 +595,7 @@ export default class GameState {
         
         if (deck) {
             deck.cards = cardList;
-            this.saveToCache();
+            this.delay(this.saveToCache())
         }
     }
 
@@ -597,18 +638,23 @@ export default class GameState {
                 this.removeCardFromOwnHand(card.id);
                 return { overlapType: EOverlapType.TABLE, wasInHand: true };
             } else {
-                this.saveToCache();
+                this.delay(this.saveToCache())
                 return { overlapType: EOverlapType.TABLE, wasInHand: false };
             }
         } else {
             const deck: Deck = this.getDeckByID(id);
-            this.saveToCache();
+            this.delay(this.saveToCache())
 
             return { overlapType: EOverlapType.TABLE };
         }
 
     }
 
+    public delay(func: void) {
+        setTimeout(function() { func}, 200);
+
+    }
+ 
     /**
      * Used to get a card (and its location) by ID
      * @param id - The ID of the card to get
@@ -845,7 +891,7 @@ export default class GameState {
             }
     
             if (data.extras.finishedMoving) { // If they have finished moving a card/deck, save to cache
-              this.saveToCache();
+                this.delay(this.saveToCache())
             }
             break;
     
@@ -1000,3 +1046,5 @@ export default class GameState {
         }
       }
 }
+
+

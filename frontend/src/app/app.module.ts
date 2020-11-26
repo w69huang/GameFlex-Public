@@ -57,7 +57,7 @@ import { UndoGameStatePopupComponent } from './popups/undo-game-state-popup/undo
     JoinByCodeComponent,
     GameInstanceComponent,
     LoadGameStatePopupComponent,
-    UndoGameStatePopupComponent,
+    UndoGameStatePopupComponent
   ],
   imports: [
     BrowserModule,
@@ -81,6 +81,7 @@ import { UndoGameStatePopupComponent } from './popups/undo-game-state-popup/undo
     GameSetupPopupComponent,
     SaveGameStatePopupComponent,
     RetrieveGameStatePopupComponent,
+    LoadGameStatePopupComponent,
     DialogForgotPassword
   ],
   providers: [
