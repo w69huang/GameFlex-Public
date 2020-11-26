@@ -1,29 +1,17 @@
 var mysql_connection = require('../database/mysql');
-
 var nodemailer = require('nodemailer');
 const express = require('express');
-
 const router = express.Router();
 
-
 router.post('/create', create);
-
 router.post('/get', findByID);
-
 router.get('/getall', findAll);
-
 router.put('/update', update);
-
 router.delete('/delete', deleteUser);
-
 router.post('/checkusername', checkUsername);
-
 router.post('/checkemail', checkEmail);
-
 router.post('/checklogin', checkLogin);
-
 router.put('/sendemail', sendEmail);
-
 router.post('/changepassword', changePassword);
 
 var user = function(user) {
@@ -57,7 +45,6 @@ function create (req, res) {
                 res.send(err);
             }
             else {
-                console.log(result);
                 res.send(result)
             }
         });
@@ -70,21 +57,17 @@ function findAll (req, res) {
           console.log("Error: ", err);
             res.send(err)
         } else {
-          console.log(res);
         res.send(result)
         }
       });
 };
 
 function findByID (req, res) {
-    console.log("Find user by Username")
-    console.log(req.body);
     mysql_connection.query("SELECT * FROM UserMySQL WHERE username=?", req.body.username, function(err, result) {
         if (err) {
           console.log("Error: ", err);
         res.send(err)
         } else {
-          console.log(res);
         res.send(result);
         }
       });
@@ -115,7 +98,7 @@ function deleteUser (req, res) {
     mysql_connection.query(
         "DELETE FROM UserMySQL WHERE userID =?", req.body.userID, function(err, result) {
           if (err) {
-            console.log("error: ", err);
+            console.log("Error: ", err);
             res.send(err)
           }
           else {
@@ -132,7 +115,6 @@ function checkUsername (req, res) {
             console.log("Error", err);
             res.send(err);
           } else {
-            console.log(res);
             res.json(result);
           }
         }
@@ -151,8 +133,6 @@ function checkEmail(req, res) {
             } else {
                 res.send(result)
             }
-            console.log("Check Email");
-            console.log(req.body);
         }
         }
       )
@@ -163,19 +143,15 @@ function checkLogin(req, res) {
 
         if(err) {
             res.send(err);
-            console.log("Check Login");
-            console.log(req.body);
+            console.log("Error", err);
         } else {
             if (result[0] != undefined) {
                 if(req.body.password == result[0].password){
-                    console.log("Check login: TRUE");
                     res.send(true);
                 } else {
-                    console.log("Check Login: False");
                     res.send(false);
                 }
             } else {
-                console.log("Check Login: No user");
                 res.send(false);
             }
         }
@@ -202,18 +178,16 @@ function sendEmail(req, res) {
   
       transporter.sendMail(mailOptions, function (error, info) {
         if (error) {
-          console.log(error);
+          console.log("Error", error);
           res.send(error, null);
         } else {
           mysql_connection.query(
             "UPDATE UserMySQL SET password=? WHERE email=?",
             [newPassword, req.body.email], function(err, result) {
                 if (err) {
+                  console.log("Error", err)
                     res.send(err);
-                    console.log("Send Email")
-                    console.log(req.body);
                 } else {
-                    console.log("Email Sent!");
                     res.send(info.response);
                 }
             });
@@ -227,11 +201,9 @@ function changePassword(req, res) {
         [req.body.newPassword, req.body.username],
         function(err, result) {
           if (err) {
+            console.log("Error", err)
             res.send(err);
-            console.log("Change Password");
-            console.log(req.body);
           } else {
-            console.log("Change Password");
             res.send(true);
           }
         }

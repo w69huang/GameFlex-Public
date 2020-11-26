@@ -19,7 +19,7 @@
                 <input required (ngModel)="password" name="password" #password="ngModel" id="password" class="form-control" type="password">
                 <div class="alert alert-danger" *ngIf="!password.valid && password.touched">Password Required!</div>
                 <div class="alert alert-danger" *ngIf="!passwordMatch" >Passwords Don't Match!</div>
-                <div class="alert alert-danger" *ngIf="invalidPwd"> Invalid Password! Please make sure passwords are at least 6 character.</div>
+                <div class="alert alert-danger" *ngIf="invalidPwd"> Invalid Password! Please make sure passwords are at least 8 characters.</div>
             </div>
             <br>
             <div>
@@ -27,7 +27,7 @@
                 <input required (ngModel)="confirmPassword" name="confirmPassword" #confirmedPassword="ngModel" id="confirmPassword" class="form-control" type="password">
                 <div class="alert alert-danger" *ngIf="!confirmedPassword.valid && confirmedPassword.touched">Confirm Password!</div>
                 <div class="alert alert-danger" *ngIf="!passwordMatch" >Passwords Don't Match!!</div>
-                <div class="alert alert-danger" *ngIf="invalidPwd"> Invalid Password! Please make sure passwords are at least 6 character.</div>
+                <div class="alert alert-danger" *ngIf="invalidPwd"> Invalid Password! Please make sure passwords are at least 8 characters.</div>
             </div>
             <br>
             <div>

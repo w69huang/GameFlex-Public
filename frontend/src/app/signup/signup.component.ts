@@ -45,7 +45,7 @@ export class SignupComponent implements OnInit {
       this.passwordMissing = false;
     }
 
-    if (obj.value.password.length < 6) {
+    if (obj.value.password.length < 8) {
       this.invalidPwd = true;
       return null;
     } else {
