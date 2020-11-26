@@ -31,6 +31,7 @@ export function onDragEnd(object: any, playspaceComponent: PlayspaceComponent, p
     const card: Card = playspaceComponent.gameState.getCardByID(object.id, playspaceComponent.gameState.playerID)?.card;
     const overlapObject: OverlapObject = playspaceComponent.gameState.checkForOverlap(object.id);
 
+    console.log(object.x, ",",object.y)
     if (overlapObject.overlapType === EOverlapType.HAND) {
       playspaceComponent.gameState.sendPeerData(
         EActionTypes.INSERTINTOHAND,

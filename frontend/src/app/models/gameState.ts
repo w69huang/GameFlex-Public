@@ -12,7 +12,7 @@ import { PlayspaceComponent } from '../playspace/playspace.component';
 import { DataConnection } from 'peerjs';
 import SentGameState from './sentGameState';
 import PlayerData from './playerData';
-import { EventEmitter } from '@angular/core';
+import { EventEmitter, OnInit } from '@angular/core';
 
 /**
  * An enum representing all types of actions
@@ -130,6 +130,7 @@ export default class GameState {
     private gameStateHistory: CachedGameState[] = [];
     private previousMove: CachedGameState;
     private currentMove: CachedGameState;
+    private gameStateHistorySize: integer;
     /**
      * Holds all cards on the table
      */
@@ -208,8 +209,9 @@ export default class GameState {
         this._decks = decks;
         this._hands = hands;
         this.myHand = new Hand(null, []);
-        setInterval( () => {this.currentMove = new CachedGameState(this)}, 100);
+        // setInterval( () => {this.currentMove = new CachedGameState(this)}, 100);
         // this.currentMove = new CachedGameState(this);
+        this.gameStateHistorySize = this.gameStateHistory.length;
     }
 
     /**
@@ -296,29 +298,19 @@ export default class GameState {
             localStorage.setItem('cachedGameState', JSON.stringify(cachedGameState));
 
             // Works well.
-            this.previousMove = this.currentMove;
-            this.currentMove = cachedGameState;
-            // var cacheHistory = JSON.parse(localStorage.getItem('gameStateHistory'));
-            // console.log("Look At cache", cacheHistory);
-            // if(cacheHistory != null) {
-            // }
-            if(this.gameStateHistory.length == 0) {
+            if (this.currentMove != null || this.currentMove != undefined){
+                this.previousMove = this.currentMove;
                 this.gameStateHistory.push(this.previousMove);
-                localStorage.setItem('gameStateHistory', JSON.stringify(this.gameStateHistory));
-
-            }
-            else if(this.gameStateHistory.length > 0 && this.gameStateHistory[this.gameStateHistory.length-1] != this.previousMove){
-                this.gameStateHistory.push(this.previousMove);
-                
+                // console.log("Card Coordinates", this.previousMove.cardMins[0].x,this.previousMove.cardMins[0].y)
                 console.log(this.gameStateHistory);
                 if (this.gameStateHistory.length >= 10) {
-                    console.log("Sliced")
                     var index = this.gameStateHistory.length - 9
                     this.gameStateHistory = this.gameStateHistory.slice(index);
-                    // localStorage.setItem('gameStateHistory', JSON.stringify(this.gameStateHistory));
                 }
                 localStorage.setItem('gameStateHistory', JSON.stringify(this.gameStateHistory));
             }
+            this.currentMove = cachedGameState;
+           
 
         }
     }
@@ -328,28 +320,19 @@ export default class GameState {
             const cache = {gamestate: null};
             if (undo > 0) {
                 this.gameStateHistory = JSON.parse(localStorage.getItem('gameStateHistory'));
-                console.log("Before undos")
-                console.log(this.gameStateHistory);
-                // if(this.gameStateHistory.length > 1) {
-                    // this.gameStateHistory = this.gameStateHistory.slice(0, this.gameStateHistory.length - (undo-1));
-                // }
+          
                 var i;
-                console.log("See me")
                 for(i = 0; i < undo; i++) {
                     cache.gamestate = this.gameStateHistory.pop()
+                    // console.log("Undo Card Coordinates", cache.gamestate.cardMins[0].x, cache.gamestate.cardMins[0].y)
                 }
-                console.log("After undos")
-                console.log(this.gameStateHistory)
                 localStorage.setItem('gameStateHistory', JSON.stringify(this.gameStateHistory));
-                // console.log(cache.gamestate)
-                // const cachedGameState: CachedGameState = this.gameStateHistory.pop()
             } else {
                 cache.gamestate = JSON.parse(localStorage.getItem('cachedGameState'));
                 // const cachedGameState: CachedGameState = JSON.parse(localStorage.getItem('cachedGameState'));
             }
             if (cache.gamestate != null) {
                 this.cachingEnabled = false;
-                // console.log("Worked?")
                 this.cleanUp();
       
                 cache.gamestate.cardMins.forEach((cardMin: CardMin) => {

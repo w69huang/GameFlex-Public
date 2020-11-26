@@ -84,40 +84,20 @@ export class GameInstanceComponent implements OnInit {
   }
 
   clearCache(){
-    localStorage.clear();
+    // localStorage.clear();
+    localStorage.removeItem('gameStateHistory');
     console.log("Cleared")
   }
 
   undo(){
-    // if (!this.timer) {
     clearTimeout(this.timerFunc);
     this.undoCounter +=1;
     console.log(this.undoCounter);
     this.timerFunc = setTimeout((count) => {
-      // console.log(count);
       this.undoGameStateEmitter.emit(count);
       this.timer = false;
       this.undoCounter = 0;
     }, 2000, this.undoCounter);
-    // } else {
-
-    // }
-    // if (!this.timer) {
-    //   this.timer = true;
-    //   this.undoCounter = 1;
-    //   console.log(this.undoCounter);
-    //   var t = setTimeout(function() {
-    //     if (this.undoCounter == 0) {
-    //       this.undoCounter = 1
-    //     } 
-    //     console.log(this.undoCounter)
-    //     this.undoGameStateEmitter.emit(this.undoCounter)
-    //     this.timer = false;
-    //   }, 5000);
-    // } else {
-    //   this.undoCounter ++;
-    //   clearTimeout(t);
-    // }
   }
 
   deleteAllSaves() {

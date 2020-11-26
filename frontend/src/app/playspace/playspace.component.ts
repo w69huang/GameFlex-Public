@@ -148,6 +148,7 @@ export class PlayspaceComponent implements OnInit {
       console.log("Undo??")
       this.gameState.buildGameFromCache(this, count);
     })
+    
   }
   
   ngOnDestroy() {
