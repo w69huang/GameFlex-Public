@@ -193,11 +193,11 @@ export class ConfigEditorComponent implements OnInit {
 
     dialogRef.afterClosed().subscribe(createCounterData => {
       if (createCounterData) {
-        console.log(createCounterData);
+        console.log(createCounterData); 
 
         // Just for the create counter button
-        // this.highestID++;
-        // let counter: Counter = new Counter(this.highestID, "counter" + this.highestID, 80, 80); //TODO: Take in meaningful names
+        let counter: Counter = new Counter(this.highestID++, createCounterData.name, parseFloat(createCounterData.defaultValue)); //TODO: Take in meaningful names
+        this.configuration.counters.push(counter);
         // HelperFunctions.createCounter(this, counter, SharedActions.onDragMove);
       }
     });

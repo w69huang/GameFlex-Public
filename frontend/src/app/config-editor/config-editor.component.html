@@ -13,7 +13,7 @@
             <div *ngFor="let counter of configuration.counters">
                 <label for="nameField">{{ counter.name }}</label>
                 <input (change)="counterText(counter.id, this)" type="text" id="counter.id" name="nameField"
-                placeholder="##" style="font-size: 24px">
+                placeholder="##" value="{{counter.value}}" style="font-size: 24px">
              </div>
         </mat-card>
     </div>
