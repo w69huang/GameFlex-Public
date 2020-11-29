@@ -13,7 +13,7 @@ import { ChangepasswordComponent } from './changepassword/changepassword.compone
 import { JoinByCodeComponent } from './join-by-code/join-by-code.component';
 import { FileListComponent } from './file-list/file-list.component';
 import { GameInstanceComponent } from './game-instance/game-instance.component';
-
+import { DeckListComponent } from './deck-list/deck-list.component';
 
 const routes: Routes = [
   { path: '', redirectTo: 'joinByCode', pathMatch: 'full' },
@@ -21,7 +21,10 @@ const routes: Routes = [
   //{ path: 'deckFinder', component: DeckFinderComponent },
   { path: 'deckEditor', component: DeckEditorComponent},
   { path: 'gameInstance', component: GameInstanceComponent },
+
   { path: 'deckEditor', component: DeckEditorComponent },
+  { path: 'deck-list', component: DeckListComponent},
+
   { path: 'gameBrowser', component: GameBrowserComponent },
   { path: 'joinByCode', component: JoinByCodeComponent },
   

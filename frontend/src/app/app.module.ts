@@ -36,7 +36,8 @@ import { NgxMatSelectSearchModule } from 'ngx-mat-select-search';
 import { JoinByCodeComponent } from './join-by-code/join-by-code.component';
 import { GameInstanceComponent } from './game-instance/game-instance.component';
 import { LoadGameStatePopupComponent } from './popups/load-game-state-popup/load-game-state-popup.component';
-import { CreateDeckPopupComponent } from './popups/create-deck-popup/create-deck-popup.component';
+import { UploadCardsPopupComponent } from './popups/create-deck-popup/upload-cards-popup.component';
+import { DeckListComponent } from './deck-list/deck-list.component';
 
 @NgModule({
   declarations: [
@@ -61,7 +62,8 @@ import { CreateDeckPopupComponent } from './popups/create-deck-popup/create-deck
     JoinByCodeComponent,
     GameInstanceComponent,
     LoadGameStatePopupComponent,
-    CreateDeckPopupComponent
+    UploadCardsPopupComponent,
+    DeckListComponent
   ],
   imports: [
     BrowserModule,
@@ -86,7 +88,7 @@ import { CreateDeckPopupComponent } from './popups/create-deck-popup/create-deck
     SaveGameStatePopupComponent,
     RetrieveGameStatePopupComponent,
     LoadGameStatePopupComponent,
-    CreateDeckPopupComponent,
+    UploadCardsPopupComponent,
     DialogForgotPassword
   ],
   providers: [

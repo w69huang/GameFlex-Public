@@ -5,8 +5,13 @@ import { catchError, map } from 'rxjs/operators';
 import { FileService } from '../services/file.service';
 import { DeckService } from '../services/deck.service';
 import { MatDialog } from '@angular/material/dialog';
-import { CreateDeckPopupComponent } from '../popups/create-deck-popup/create-deck-popup.component';
+import { UploadCardsPopupComponent } from '../popups/create-deck-popup/upload-cards-popup.component';
 import { MiddleWare } from '../services/middleware';
+
+class deckObject {
+  deckName: string;
+  deckID: string;
+}
 
 @Component({
   selector: 'app-deck-editor',
@@ -16,15 +21,34 @@ import { MiddleWare } from '../services/middleware';
 export class DeckEditorComponent implements OnInit {
   @ViewChild("fileUpload", {static: false}) fileUpload: ElementRef; files = []
 
-  constructor(private deckService: DeckService, private fileService: FileService, private dialog: MatDialog, private middleWare: MiddleWare) { }
+  public deckList$: deckObject[] = [];
+
+  constructor(private deckService: DeckService, private fileService: FileService, private dialog: MatDialog, private middleWare: MiddleWare) {
+    const username: string = this.middleWare.getUsername();
+    this.deckService.list(username).subscribe((data) => {
+      console.log(data[0]);
+      for (var i = 0; i < data.length; i++) {
+        var deckName = data[i];
+        console.log(deckName);
+        // this.fileList$.push(fileName.filename);
+        this.deckList$.push({deckID: deckName._id, deckName: deckName.deckName});
+        console.log(this.deckList$);
+      }
+     });
+   }
 
   ngOnInit(): void {}
 
-  createDeck() {
+  createDeck(deckName: string) {
+    const username: string = this.middleWare.getUsername();
+    this.deckService.createDeck(username, deckName);
+  }
+
+  uploadCards() {
     //  const tempID = 'abcde';
     //  this.deckService.createDeck(tempID, name);
 
-    let dialogRef = this.dialog.open(CreateDeckPopupComponent, {
+    let dialogRef = this.dialog.open(UploadCardsPopupComponent, {
       height: '200px',
       width: '400px',
     });
@@ -34,26 +58,48 @@ export class DeckEditorComponent implements OnInit {
       const username: string = this.middleWare.getUsername();
 
       deckData.files?.forEach(file => {  
-        this.uploadFile(file);  
+        this.uploadFile(file, deckName, username);  
       });
     });
    }
 
   findExistingDeck(name: string) { }
 
+  public download(fileName: string):  void {
+    //TODO: Dont have this hard coded! File names and ID's should be accesible
+    fileName = fileName;
+    this.fileService.download(fileName).subscribe((data) => {
+      
+     //render base64 image to screen
+      console.log(data);
+      var outputImage: HTMLImageElement = document.createElement('img');
+      outputImage.height = 200;
+      outputImage.width = 200; 
+      outputImage.src = 'data:image/jpg;base64,'+data;
+      document.body.appendChild(outputImage);
+    });
+  }
+ 
+  public remove(fileName: string):  void {
+    this.fileService.remove(fileName);
+  }
+ 
+
   // TODO: Take the deckName and pass it into the service call to the backend when we upload a file
   // That way, we can associate the file with a name on the backend
   // --> Also, we'll probably want to pass in the player's username
-  uploadFile(file) {  
+  uploadFile(file, deckName: string, username: string) {  
     const formData = new FormData();  
     formData.append('file', file.data);
+    formData.append('deckName', deckName);
+    formData.append('username', username);
 
     //Using the "new" fileService
     //this.fileService.upload(file.data.name, formData)
     
 
     file.inProgress = true;
-    console.log("uploading now")  
+    console.log("uploading now...")  
     this.fileService.upload(file.data, formData).pipe(  
       // map(event => {  
       //   switch (event.type) {  

@@ -1,5 +1,17 @@
 <mat-card>
-    <button class="btn btn-primary center" mat-button (click)="createDeck()">Create Deck</button>
+    <h1 class="center">Create New Deck:</h1>
+    <div>
+        <input matInput #newDeckName placeholder="deck name" required />
+    </div>
+    <div>
+        <button mat-button (click)="createDeck(newDeckName.value)">Go!</button>
+    </div>
+
+
+    <!--<button class="btn btn-primary center" mat-button (click)="createDeck()">Create Deck</button>
+    -->
+
+
     <h1 class="center">Find Exisiting Deck:</h1>
     <div>
         <input matInput #existingDeckName placeholder="deck name" required />
@@ -9,7 +21,17 @@
     </div>
     <div #errorsDiv id="errorsDiv"></div>
 </mat-card>
-<app-file-list></app-file-list>
+
+<!-- <app-deck-list></app-deck-list> -->
+    <h1>Your Decks</h1>
+        <ul>
+            <li *ngFor="let fileObject of deckList$" >
+                {{fileObject.deckName}}&nbsp;&nbsp;
+                <span (click)="download(fileObject.fileName)">download</span>&nbsp;
+                <span (click)="remove(fileObject.fileName)">remove</span>
+            </li>
+        </ul>  
+
 <div style="text-align:center; margin-top: 100px; "><mat-card style="margin-top:10px; width: 50%;">  
     <mat-card-content>  
         <ul>  
@@ -19,6 +41,6 @@
                       
                 </span>  
             </li>  
-        </ul>  
+        </ul>
     </mat-card-content>  
 </mat-card>

@@ -14,8 +14,8 @@ export class FileService {
 
   constructor(private httpClient: HttpClient, private webService: WebService) { }
 
-  public upload(fileName: string, fileContent: FormData) {
-    this.fileList.push(fileName);
+  public upload(fileData: any, fileContent: FormData) {
+    this.fileList.push(fileData);
     this.fileList$.next(this.fileList);
     console.log(fileContent);
     return this.webService.post('upload', fileContent, true);
