@@ -128,9 +128,11 @@ export default class GameState {
      */
 
     private gameStateHistory: CachedGameState[] = [];
+    private batchStateHistory: CachedGameState[] = [];
     private previousMove: CachedGameState;
     private currentMove: CachedGameState;
     private gameStateHistorySize: integer;
+    private timerFunc: NodeJS.Timer;
     /**
      * Holds all cards on the table
      */
@@ -302,24 +304,36 @@ export default class GameState {
     public saveToCache(): void {
         if (this.cachingEnabled && this.amHost) {
             const cachedGameState = new CachedGameState(this);
-            localStorage.setItem('cachedGameState', JSON.stringify(cachedGameState));
-
-            // Works well.
-            if (this.currentMove != null || this.currentMove != undefined){
-                this.previousMove = this.currentMove;
-                this.gameStateHistory.push(this.previousMove);
-                // console.log("Card Coordinates", this.previousMove.cardMins[0].x,this.previousMove.cardMins[0].y)
-                console.log(this.gameStateHistory);
-                if (this.gameStateHistory.length >= 10) {
-                    var index = this.gameStateHistory.length - 9
-                    this.gameStateHistory = this.gameStateHistory.slice(index);
-                }
-                localStorage.setItem('gameStateHistory', JSON.stringify(this.gameStateHistory));
-            }
-            this.currentMove = cachedGameState;
-           
-
+            localStorage.setItem('cachedGameState', JSON.stringify(cachedGameState)); 
+            this.batchStateHistory.push(cachedGameState);
+            // this.timerFunc = setTimeout(function(batchStateHistory) {
+            //     console.log(batchStateHistory);
+            //     if (batchStateHistory)
+            //     let state = this.batchStateHistory.pop();
+            //     this.saveGameHistory(state);
+            //     this.batchStateHistory = []
+            // }, 200)
+            clearTimeout(this.timerFunc);
+            this.timerFunc = setTimeout(this.saveGameHistory.bind(null, this), 200)
         }
+    }
+
+    private saveGameHistory(gameState): void  {
+        // Works well.
+        if (gameState.currentMove != null || gameState.currentMove != undefined){
+            gameState.previousMove = gameState.currentMove;
+            gameState.gameStateHistory.push(gameState.previousMove);
+            // console.log("Card Coordinates", this.previousMove.cardMins[0].x,this.previousMove.cardMins[0].y)
+            // console.log(gameState.gameStateHistory);
+            // console.log(gameState.batchStateHistory);
+            if (gameState.gameStateHistory.length >= 10) {
+                var index = gameState.gameStateHistory.length - 9
+                gameState.gameStateHistory = gameState.gameStateHistory.slice(index);
+            }
+            localStorage.setItem('gameStateHistory', JSON.stringify(gameState.gameStateHistory));
+        }
+        gameState.currentMove = gameState.batchStateHistory.pop();
+        gameState.batchStateHistory = []
     }
 
     // public buildGameFromCache(playspaceComponent: PlayspaceComponent, undo = 0): void {
@@ -392,6 +406,11 @@ export default class GameState {
             // Just a temporary thing for now. Ask Zach where the host sends the game state on load.
             if (undo >0) {
                 this.sendGameStateToPeers();
+                console.log("After Undo:")
+                console.log(this.gameStateHistory)
+                this.currentMove = new CachedGameState(this); 
+                this.previousMove = this.currentMove
+
             }        
                 this.setCachingEnabled(true);
             }            
