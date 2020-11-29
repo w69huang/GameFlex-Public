@@ -14,9 +14,8 @@
                 <div class="btn btn-primary" (click)="getAllSavedGameStates()">Get Saved Games</div>
                 <div class="btn btn-primary" (click)="saveGameState()">Save Game</div>
                 <div class="btn btn-primary" (click)="deleteAllSaves()">Delete All Saves</div>
+                <div class="btn btn-primary" (click)="undo()">Undo Move</div>
                 <div class="btn btn-primary" (click)="clearCachedSave()">Clear Cached Save</div>
-                <div *ngIf="amHost" class="btn btn-primary" (click)="undo()">Undo Move</div>
-                <div class="btn btn-primary" (click)="clearCache()">Clear Cache</div>
             </mat-card>
         </div>
     </div>

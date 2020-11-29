@@ -10,6 +10,7 @@ import { DummyComponent } from './dummy/dummy.component';
 import { SignupComponent } from './signup/signup.component';
 import { LoginComponent } from './login/login.component';
 import { ChangepasswordComponent } from './changepassword/changepassword.component';
+import { AuthGuard } from './services/auth-guard';
 import { JoinByCodeComponent } from './join-by-code/join-by-code.component';
 import { GameInstanceComponent } from './game-instance/game-instance.component';
 
@@ -22,9 +23,9 @@ const routes: Routes = [
   { path: 'joinByCode', component: JoinByCodeComponent },
   
   { path: 'dummy', component: DummyComponent},
-  { path: 'signup', component: SignupComponent},
-  { path: 'login', component: LoginComponent},
-  { path: 'changepassword', component: ChangepasswordComponent },
+  { path: 'signup', component: SignupComponent,canActivate:[AuthGuard] },
+  { path: 'login', component: LoginComponent,canActivate:[AuthGuard] },
+  { path: 'changepassword', component: ChangepasswordComponent,canActivate:[AuthGuard] },
 
   { path: 'lists', component: TaskViewComponent },
   { path: 'lists/:listId', component: TaskViewComponent },

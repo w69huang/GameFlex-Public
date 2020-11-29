@@ -1,43 +1,76 @@
-const user = require('../database/models/mysql.user.model');
+var mysql_connection = require('../database/mysql');
+var nodemailer = require('nodemailer');
+const express = require('express');
+const router = express.Router();
+
+router.post('/create', create);
+router.post('/get', findByID);
+router.get('/getall', findAll);
+router.put('/update', update);
+router.delete('/delete', deleteUser);
+router.post('/checkusername', checkUsername);
+router.post('/checkemail', checkEmail);
+router.post('/checklogin', checkLogin);
+router.put('/sendemail', sendEmail);
+router.post('/changepassword', changePassword);
+
+var user = function(user) {
+    this.userID = user.userID;
+    this.username = user.username;
+    this.password = user.password;
+    this.email = user.email;
+}
+
+function makeid(length) {
+  var result           = '';
+  var characters       = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
+  var charactersLength = characters.length;
+  for ( var i = 0; i < length; i++ ) {
+     result += characters.charAt(Math.floor(Math.random() * charactersLength));
+  }
+  return result;
+}
+
 
 function create (req, res) {
     const new_user = new user(req.body);
     
     if(req.body.constructor === Object && Object.keys(req.body).length ===0) {
-        res.status(400)
+        res.sendStatus(400)
             .send({error:true, message:'Please Provide all required fields'});
     } else {
-        user.create(new_user, function(err, user){
+        mysql_connection.query("INSERT INTO UserMySQL set ?", new_user, function (err, result) {
             if (err) {
+                console.log("Error: ", err);
                 res.send(err);
-            } else {
-                res.json({error: false, message: "user Created Successfully!", data:user});
+            }
+            else {
+                res.send(result)
             }
         });
     }
 };
 
 function findAll (req, res) {
-    user.getAllUsers( function(err, user) {
-        console.log("Get all Users");
+    mysql_connection.query("SELECT * FROM UserMySQL", function(err, result) {
         if (err) {
-            res.send(err);
+          console.log("Error: ", err);
+            res.send(err)
         } else {
-            res.send(user);
+        res.send(result)
         }
-    });
+      });
 };
 
 function findByID (req, res) {
-    console.log("Find user by Username")
-    console.log(req.body);
-    user.getUser(req.body.username, function(err, user) {
+    mysql_connection.query("SELECT * FROM UserMySQL WHERE username=?", req.body.username, function(err, result) {
         if (err) {
-            res.send(err);
+          console.log("Error: ", err);
+        res.send(err)
         } else {
-            res.json(user);
+        res.send(result);
         }
-    });
+      });
 };
 
 function update (req, res) {
@@ -46,141 +79,135 @@ function update (req, res) {
         res.status(400).send({error:true, message: 'Missing Fields'});
 
     } else {
-        user.update(new_user, function(err, user) {
-            if (err) {
-                console.log("Update");
-                console.log(err)
-                res.send(err);
-
-            } else {
-                console.log("Update");
-                console.log(user);
-                res.json({error:false, message: "Successfully Updated"});
-            };
-        })
+        mysql_connection.query(
+            "UPDATE UserMySQL SET username=?, password=?, email=? WHERE userID=?",
+            [new_user.username, new_user.password, new_user.email, new_user.userID],
+            function(err, result) {
+              if (err) {
+                console.log("Error: ", err);
+                res.send(err)
+              } else {
+                res.json({error:false, message: "Successfully Updated"})
+              }
+            }
+          );
     }
 };
 
 function deleteUser (req, res) {
-    user.delete(req.body.userID, function(err, user) {
-        if (err) {
-            res.send(err);
-            console.log('Delete User')
-            console.log(req.body);
-        } else{
+    mysql_connection.query(
+        "DELETE FROM UserMySQL WHERE userID =?", req.body.userID, function(err, result) {
+          if (err) {
+            console.log("Error: ", err);
+            res.send(err)
+          }
+          else {
             res.json({error: false, message: req.body})
-            console.log("Delete User")
-            console.log(req.body);
+          }
         }
-    });
+      );
 };
 
 function checkUsername (req, res) {
-    user.checkUsername(req.body.username, function(err, user) {
-        if (err) {
+    mysql_connection.query(
+        "SELECT * FROM UserMySQL WHERE username=?", req.body.username, function(err, result) {
+          if (err) {
+            console.log("Error", err);
             res.send(err);
-            console.log("Check Username");
-            console.log(req.body);
-        } else {
-            res.json(user);
-            console.log("Check Username");
-            console.log(req.body);
+          } else {
+            res.json(result);
+          }
         }
-    })
+      )
 }
 
 function checkEmail(req, res) {
-    user.checkEmail(req.body.email, function(err, user){
-        if(err) {
+    mysql_connection.query(
+        "SELECT * FROM UserMySQL WHERE email=?", req.body.email, function(err, result) {
+          if (err) {
+            console.log("Error", err);
             res.send(err);
-            console.log("Check Email")
-            console.log(req.body);
-        } else {
-            if (user[0] != undefined) {
-                res.send(user);
+          } else {
+            if (result[0] != undefined) {
+                    res.send(result);
             } else {
-                res.send(user)
+                res.send(result)
             }
-            console.log("Check Email");
-            console.log(req.body);
         }
-    })
+        }
+      )
 }
 
 function checkLogin(req, res) {
-    user.getUser(req.body.username, function(err, user) {
+    mysql_connection.query("SELECT * FROM UserMySQL WHERE username=?", req.body.username, function(err, result) {
+
         if(err) {
             res.send(err);
-            console.log("Check Login");
-            console.log(req.body);
+            console.log("Error", err);
         } else {
-            if (user[0] != undefined) {
-                if(req.body.password == user[0].password){
-                    console.log("Check login: TRUE");
+            if (result[0] != undefined) {
+                if(req.body.password == result[0].password){
                     res.send(true);
                 } else {
-                    console.log("Check Login: False");
                     res.send(false);
                 }
             } else {
-                console.log("Check Login: No user");
                 res.send(false);
             }
         }
-    })
+      })
 }
 
 function sendEmail(req, res) {
-    user.sendEmail(req.body.email, function(err, user) {
-        if (err) {
-            res.send(err);
-            console.log("Send Email")
-            console.log(req.body);
-        } else {
-            console.log("Send Email")
-            res.send(true);
+    var transporter = nodemailer.createTransport({
+        service: 'gmail',
+        auth: {
+          user: 'gameflextesting@gmail.com',
+          pass: 'gameflex123'
         }
-    })
+      });
+  
+      var newPassword = makeid(5);
+  
+      var mailOptions = {
+        from: 'gameflextesting@gmail.com',
+        to: email.toString(),
+        subject: 'Reset Password',
+        text: 'Your new password is: ' + newPassword
+      }
+  
+      transporter.sendMail(mailOptions, function (error, info) {
+        if (error) {
+          console.log("Error", error);
+          res.send(error, null);
+        } else {
+          mysql_connection.query(
+            "UPDATE UserMySQL SET password=? WHERE email=?",
+            [newPassword, req.body.email], function(err, result) {
+                if (err) {
+                  console.log("Error", err)
+                    res.send(err);
+                } else {
+                    res.send(info.response);
+                }
+            });
+        }
+      })
 }
 
 function changePassword(req, res) {
-    user.changePassword(req.body.newPassword, req.body.username, function(err, user) {
-        if (err) {
+    mysql_connection.query(
+        "UPDATE UserMySQL SET password=? WHERE username=?",
+        [req.body.newPassword, req.body.username],
+        function(err, result) {
+          if (err) {
+            console.log("Error", err)
             res.send(err);
-            console.log("Change Password");
-            console.log(req.body);
-        } else {
-            console.log("Change Password");
+          } else {
             res.send(true);
+          }
         }
-    })
+      );
 }
-
-// Router Code:
-
-const express = require('express');
-
-const router = express.Router();
-
-
-router.post('/create', create);
-
-router.post('/get', findByID);
-
-router.get('/getall', findAll);
-
-router.put('/update', update);
-
-router.delete('/delete', deleteUser);
-
-router.post('/checkusername', checkUsername);
-
-router.post('/checkemail', checkEmail);
-
-router.post('/checklogin', checkLogin);
-
-router.put('/sendemail', sendEmail);
-
-router.post('/changepassword', changePassword);
 
 module.exports = router

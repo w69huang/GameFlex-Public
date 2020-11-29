@@ -301,7 +301,7 @@ export default class GameState {
     */
     public saveToCache(): void {
         if (this.cachingEnabled && this.amHost) {
-            const cachedGameState = new CachedGameState(this)
+            const cachedGameState = new CachedGameState(this);
             localStorage.setItem('cachedGameState', JSON.stringify(cachedGameState));
 
             // Works well.
@@ -351,8 +351,7 @@ export default class GameState {
             if (undo > 0) {
                 this.gameStateHistory = JSON.parse(localStorage.getItem('gameStateHistory'));
           
-                var i;
-                for(i = 0; i < undo; i++) {
+                for(let i: number = 0; i < undo; i++) {
                     cache.gamestate = this.gameStateHistory.pop()
                     // console.log("Undo Card Coordinates", cache.gamestate.cardMins[0].x, cache.gamestate.cardMins[0].y)
                 }

@@ -77,8 +77,8 @@ export class PlayspaceComponent implements OnInit {
     // 1. npm install -g peer
     // 2. peerjs --port 9000 --key peerjs --path /peerserver
     this.peer = new Peer(this.gameState.myPeerID, { // You can pass in a specific ID as the first argument if you want to hardcode the peer ID
-      // host: 'localhost',
-      host: '35.215.71.108', // This is reserved for the external IP of the mongo DB instance. Replace this IP with the new IP generated when starting up the 
+      host: 'localhost',
+      // host: '35.215.71.108', // This is reserved for the external IP of the mongo DB instance. Replace this IP with the new IP generated when starting up the 
       port: 9000,
       path: '/peerserver' // Make sure this path matches the path you used to launch it
     }); 
@@ -145,11 +145,7 @@ export class PlayspaceComponent implements OnInit {
     this.checkIfCanOpenConnectionInterval = setInterval(this.checkIfCanOpenConnection.bind(this), 5000);
     this.getAllSavedGameStates();
     this.saveGameState();
-    this.undoGameStateEmitter.subscribe((count: integer) => {
-      console.log("Undo??")
-      this.gameState.buildGameFromCache(this, count);
-    })
-    
+    this.undoGameState();
   }
   
   ngOnDestroy() {
