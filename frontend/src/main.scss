@@ -1,5 +1,12 @@
 @import url('https://fonts.googleapis.com/css?family=Lato:400,700|Nunito:400,700&display=swap');
 
+$themePurple: #883988;
+$themeLightGray: lightgrey;
+$themeGray: gray;
+$themeKindOfDarkGray: #4b4a4a;
+$themeDarkGray: #363636;
+$themeDarkestGray: #1f1f1f;
+
 $turquoise: #44ddd0;
 $blue: #276dd7;
 $dark-blue: #1985e4;
@@ -15,7 +22,7 @@ $input-border-color: transparent;
 $input-shadow: none;
 
 html, body {
-    background-color: #a6a6a6;
+    background-color: $themeDarkestGray;
     font-family: 'Nunito';
 }
 

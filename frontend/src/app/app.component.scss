@@ -1,0 +1,16 @@
+@import '../main.scss';
+
+h1 {
+    margin-right: 10px;
+}
+
+mat-toolbar {
+    background-color: $themePurple;
+    color: white;
+}
+
+a:hover {
+    color: white;
+    background-color: $themeDarkGray;
+    text-decoration: none;
+}
