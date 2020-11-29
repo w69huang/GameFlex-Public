@@ -21,7 +21,7 @@ export default class DeckMin {
        this.y = deck.y;
        this.cardMins = [];
 
-       deck.cards.forEach((card: Card) => {
+       deck.cards?.forEach((card: Card) => {
         this.cardMins.push(new CardMin(card));
        });
     }

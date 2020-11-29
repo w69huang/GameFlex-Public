@@ -63,7 +63,7 @@ export class ConfigEditorComponent implements OnInit {
     private dialog: MatDialog,
     private middleware: MiddleWare
   ) {
-    this.configuration = new Configuration(this.middleware.getUsername(), "", 1, true, [], []);
+    this.initConfig();
   }
 
   ngOnInit(): void {
@@ -90,6 +90,10 @@ export class ConfigEditorComponent implements OnInit {
 
   }
 
+  //
+  // API CALLS
+  //
+
   saveConfig() {
     // if(configurationId){ this.configurationService.updateConfiguration(........)} else {}
     
@@ -102,19 +106,11 @@ export class ConfigEditorComponent implements OnInit {
       if (saveConfigData) {
         this.configuration.name = saveConfigData.name;
         
-        // Convert Decks to Deck model
-        let decks = [];
-        this.configuration.decks?.forEach(deck => decks.push(new DeckMin(deck))) //TODO: This does nothing rn. Is the reason it's not saving because of the backend model not matching up maybe?
-        this.configuration.decks = decks;
-        console.log('Saving: ');
-        console.log(this.configuration);
-        // Convert Counters to Counter model
-        // TODO To be implemented 
+        let processedConfiguration = this.processConfigurationForBackend(this.configuration)
 
-        this.configurationService.createConfiguration(this.configuration)
+        this.configurationService.createConfiguration(processedConfiguration)
           .subscribe((configuration: Configuration) => {
             this.configuration._id = configuration._id;
-
           });
 
       }
@@ -124,27 +120,26 @@ export class ConfigEditorComponent implements OnInit {
 /**
  * Get:
  * - Figure out backend bug with SavedConfigurations still existing, why can't we get it?
- * - Actually Render each thing 
- * - Assign the proper objects so they get all the parameters
+ * - Actually Render each thing  ***DONE***
+ * - Assign the proper objects so they get all the parameters  ***DONE***
  * Save/Update:
  * - Strip out the _id and add it too ****DONE****
  * - Add _id to the model ***DONE***
  */
 
   updateConfig() {
-    this.configuration.decks = [];
-    // this.gameState.decks?.forEach(deck => this.configuration.decks.push(deck));
-    this.configurationService.updateConfiguration(this.configuration)
+    let processedConfiguration = this.processConfigurationForBackend(this.configuration)
+    this.configurationService.updateConfiguration(processedConfiguration)
       .subscribe((configuration: Configuration) => {
         console.log("Updated to... ", configuration);
       })
   }
 
-  deleteConfig(configurationId: string = this?.configuration._id) {
+  deleteConfig(configurationId: string = this?.configuration._id) { //TODO: Should this attempt to grad from the input box first?
     this.configurationService.deleteConfiguration(configurationId)
       .subscribe(() => {
         console.log('Deletion has returned.');
-        this.configuration = new Configuration(this.middleware.getUsername(), '', 0, false, [], []);
+        this.clearConfig();
       })
   }
 
@@ -154,11 +149,33 @@ export class ConfigEditorComponent implements OnInit {
 
     this.configurationService.getConfiguration(configurationId)
       .subscribe((configuration: Configuration) => {
+        console.log('get: ', configuration);
         let newConfiguration = this.processConfigurationFromBackend(configuration);
         this.renderConfiguration(newConfiguration);
         this.configuration = newConfiguration;
       })
 
+  }
+
+  //
+  // HELPER FUNCTIONS
+  //
+
+  /**
+   * Remove any config that is on the screen and set a fresh empty one.
+   */
+  clearConfig() {
+    if(this.configuration) {
+      this.configuration.decks.forEach(deck => deck.gameObject.destroy()) // TODO: Remove the shit that's there already if needed
+    }
+    this.initConfig()
+  }
+
+  /**
+   * Set a blank config.
+   */
+  initConfig() {
+    this.configuration = new Configuration(this.middleware.getUsername(), "", 1, true, [], []);
   }
 
   initDeck() {
@@ -192,6 +209,10 @@ export class ConfigEditorComponent implements OnInit {
    * @param configurationObj a configuration as an object, usually as returned from the backend.
    */
   processConfigurationFromBackend(configurationObj: Configuration) {
+      //TODO: Delete this line
+      console.log('Before', configurationObj);
+
+  
     // Object.setPrototypeOf(configurationObj, Configuration.prototype)
     Object.assign(configurationObj, Configuration);
 
@@ -217,15 +238,34 @@ export class ConfigEditorComponent implements OnInit {
 
     return configurationObj
   }
-  
+
+  /**
+   * Strips out additional data, so that we do not transmit unneeded information ot the backend.
+   * @param configuration any Configuration type. Usually this.configuration.
+   */
+  processConfigurationForBackend(configuration: Configuration){
+    // Convert Decks to Deck model
+    let decks = [];
+    configuration.decks?.forEach(deck => decks.push(new DeckMin(deck))) //TODO: This does nothing rn. Is the reason it's not saving because of the backend model not matching up maybe?
+    let processedConfiguration = Object.assign({}, this.configuration);
+    processedConfiguration.decks = decks;
+    console.log('Saving: ');
+    console.log(configuration);
+    console.log('OG: ');
+    console.log(configuration);
+    // Convert Counters to Counter model
+    // TODO To be implemented 
+    
+    return processedConfiguration
+  }
+
   /**
    * Removes on screen elements and renders passed in configuration
    * @param configuration 
    */
   renderConfiguration(configuration: Configuration) {
-    // if(this.configuration) {
-    //   this.phaserScene. // TODO: Remove the shit that's there already if needed
-    // }
+   this.clearConfig();
+
 
     configuration.decks.forEach(deck => {
       HelperFunctions.createDeck(deck, this, SharedActions.onDragMove, SharedActions.onDragEnd, DeckActions.deckRightClick, deck.x, deck.y)

@@ -15,9 +15,17 @@ function getById(req, res) {
     // note: `_id` is the auto-generated id for the task
     Configuration.findOne({ _id: req.params.configurationId })
         .then((configuration) => {
-            res.send(configuration)
+            if(configuration === null) {
+                res.status(404).send('Not Found: Valid query but not value found.');
+            }
+
+            console.log(configuration)
+            res.send(configuration);
         })
-        .catch((error) => console.log(error))
+        .catch((error) => {
+            console.log(error);
+            res.status(404).send('Not Found: Invalid query.');
+        })
     console.log('Config Get Backend has run!', req.params.configurationId);
 }
 
@@ -36,7 +44,8 @@ function create(req, res) {
 }
 
 function update(req, res) {
-    Configuration.findOneAndUpdate({ _id: req.params.configurationId }, { $set: req.body.configuration })
+    newConfig = new Configuration(req.body.configuration);
+    Configuration.findOneAndUpdate({ _id: req.params.configurationId }, { $set: newConfig })
         .then((configuration) => res.send(configuration))
         .catch((error) => console.log(error))
     console.log('Config Patch/Update Backend has run!');
