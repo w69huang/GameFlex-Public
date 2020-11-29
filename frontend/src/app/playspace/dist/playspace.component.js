@@ -146,9 +146,7 @@ var PlayspaceComponent = /** @class */ (function () {
     };
     PlayspaceComponent.prototype.undoGameState = function () {
         var _this = this;
-        console.log("Hello??");
         this.undoGameStateEmitter.subscribe(function (count) {
-            console.log("Undo Count= ", count);
             _this.gameState.buildGameFromCache(_this, count);
         });
     };

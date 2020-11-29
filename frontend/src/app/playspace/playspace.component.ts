@@ -190,9 +190,7 @@ export class PlayspaceComponent implements OnInit {
   }
 
   undoGameState() {
-    console.log("Hello??")
     this.undoGameStateEmitter.subscribe((count: integer) => {
-      console.log("Undo Count= ", count);
       this.gameState.buildGameFromCache(this, count);
     })
   }

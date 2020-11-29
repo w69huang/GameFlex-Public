@@ -64,7 +64,6 @@ var GameInstanceComponent = /** @class */ (function () {
         });
     };
     GameInstanceComponent.prototype.clearCache = function () {
-        // localStorage.clear();
         localStorage.removeItem('gameStateHistory');
         console.log("Cleared");
     };
@@ -72,7 +71,6 @@ var GameInstanceComponent = /** @class */ (function () {
         var _this = this;
         clearTimeout(this.timerFunc);
         this.undoCounter += 1;
-        console.log(this.undoCounter);
         this.timerFunc = setTimeout(function (count) {
             _this.undoGameStateEmitter.emit(count);
             _this.timer = false;

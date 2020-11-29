@@ -256,13 +256,6 @@ var GameState = /** @class */ (function () {
             var cachedGameState = new cachedGameState_1["default"](this);
             localStorage.setItem('cachedGameState', JSON.stringify(cachedGameState));
             this.batchStateHistory.push(cachedGameState);
-            // this.timerFunc = setTimeout(function(batchStateHistory) {
-            //     console.log(batchStateHistory);
-            //     if (batchStateHistory)
-            //     let state = this.batchStateHistory.pop();
-            //     this.saveGameHistory(state);
-            //     this.batchStateHistory = []
-            // }, 200)
             clearTimeout(this.timerFunc);
             this.timerFunc = setTimeout(this.saveGameHistory.bind(null, this), 200);
         }
@@ -272,9 +265,6 @@ var GameState = /** @class */ (function () {
         if (gameState.currentMove != null || gameState.currentMove != undefined) {
             gameState.previousMove = gameState.currentMove;
             gameState.gameStateHistory.push(gameState.previousMove);
-            // console.log("Card Coordinates", this.previousMove.cardMins[0].x,this.previousMove.cardMins[0].y)
-            // console.log(gameState.gameStateHistory);
-            // console.log(gameState.batchStateHistory);
             if (gameState.gameStateHistory.length >= 10) {
                 var index = gameState.gameStateHistory.length - 9;
                 gameState.gameStateHistory = gameState.gameStateHistory.slice(index);
@@ -284,23 +274,6 @@ var GameState = /** @class */ (function () {
         gameState.currentMove = gameState.batchStateHistory.pop();
         gameState.batchStateHistory = [];
     };
-    // public buildGameFromCache(playspaceComponent: PlayspaceComponent, undo = 0): void {
-    //     if (this.amHost) {
-    //         const cache = {gamestate: null};
-    //         if (undo > 0) {
-    //             this.gameStateHistory = JSON.parse(localStorage.getItem('gameStateHistory'));
-    //             var i;
-    //             for(i = 0; i < undo; i++) {
-    //                 cache.gamestate = this.gameStateHistory.pop()
-    //                 // console.log("Undo Card Coordinates", cache.gamestate.cardMins[0].x, cache.gamestate.cardMins[0].y)
-    //             }
-    //             localStorage.setItem('gameStateHistory', JSON.stringify(this.gameStateHistory));
-    //         } else {
-    //             cache.gamestate = JSON.parse(localStorage.getItem('cachedGameState'));
-    //             // const cachedGameState: CachedGameState = JSON.parse(localStorage.getItem('cachedGameState'));
-    //         }
-    //         if (cache.gamestate != null) {
-    //             this.cachingEnabled = false;
     /**
      * A method to build the game state from the cache
      * @param playspaceComponent - A reference to the playspace component, needed to create the cards and decks
@@ -309,19 +282,16 @@ var GameState = /** @class */ (function () {
         var _this = this;
         if (undo === void 0) { undo = 0; }
         if (this.amHost) {
-            // const cachedGameState: CachedGameState = JSON.parse(localStorage.getItem('cachedGameState'));
             var cache_1 = { gamestate: null };
             if (undo > 0) {
                 this.gameStateHistory = JSON.parse(localStorage.getItem('gameStateHistory'));
                 for (var i = 0; i < undo; i++) {
                     cache_1.gamestate = this.gameStateHistory.pop();
-                    // console.log("Undo Card Coordinates", cache.gamestate.cardMins[0].x, cache.gamestate.cardMins[0].y)
                 }
                 localStorage.setItem('gameStateHistory', JSON.stringify(this.gameStateHistory));
             }
             else {
                 cache_1.gamestate = JSON.parse(localStorage.getItem('cachedGameState'));
-                // const cachedGameState: CachedGameState = JSON.parse(localStorage.getItem('cachedGameState'));
             }
             if (cache_1.gamestate != null) {
                 this.setCachingEnabled(false);
@@ -356,8 +326,6 @@ var GameState = /** @class */ (function () {
                 // Just a temporary thing for now. Ask Zach where the host sends the game state on load.
                 if (undo > 0) {
                     this.sendGameStateToPeers();
-                    console.log("After Undo:");
-                    console.log(this.gameStateHistory);
                     this.currentMove = new cachedGameState_1["default"](this);
                     this.previousMove = this.currentMove;
                 }

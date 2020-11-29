@@ -84,7 +84,6 @@ export class GameInstanceComponent implements OnInit {
   }
 
   clearCache(){
-    // localStorage.clear();
     localStorage.removeItem('gameStateHistory');
     console.log("Cleared")
   }
@@ -92,7 +91,6 @@ export class GameInstanceComponent implements OnInit {
   undo(){
     clearTimeout(this.timerFunc);
     this.undoCounter +=1;
-    console.log(this.undoCounter);
     this.timerFunc = setTimeout((count) => {
       this.undoGameStateEmitter.emit(count);
       this.timer = false;
