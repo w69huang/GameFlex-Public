@@ -85,31 +85,3 @@ export function deckCreationCallback(deck: Deck, component: any, dragMove: Funct
         component.configuration.decks.push(deck);
     }
 }
-
-export function createCounter(component: any, counter: Counter, dragMove: Function) {
-    const counterImagePath = 'assets/images/playing-cards/counter.png';
-
-    if (component.phaserScene.textures.exists('assets/images/playing-cards/counter.png')) {
-        // If the image already exists in the texture manager's cache, we can create the object now
-        counterCreationCallback(component, counter, dragMove, counterImagePath)
-    } else {
-        // Otherwise, we have to dynamically load it
-        component.phaserScene.load.image(counterImagePath, counterImagePath);
-        component.phaserScene.load.once("complete", counterCreationCallback.bind(this, component, counter, dragMove, counterImagePath));
-        component.phaserScene.load.start();
-    }
-}
-
-export function counterCreationCallback(component: any, counter: Counter, dragMove: Function, counterImagePath: String) {
-    counter.gameObject = component.phaserScene.add.image(counter.x, counter.y, counterImagePath);
-    counter.gameObject.setInteractive();
-    component.phaserScene.input.setDraggable(counter.gameObject);
-    counter.gameObject.on('drag', dragMove.bind(this, counter, component));
-    counter.gameObject.displayWidth = counter.width;
-    counter.gameObject.displayHeight = counter.height;
-    if (component.gameState) {
-        // component.gameState.addCounter(counter);
-    } else if (component.configuration) {
-        component.configuration.counters.push(counter);
-    }
-}

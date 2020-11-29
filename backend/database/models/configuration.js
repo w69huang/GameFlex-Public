@@ -6,9 +6,13 @@ const Deck = require('./deck').schema;
 
 // Takes in an object equal to the def of our schema
 const ConfigurationSchema = new mongoose.Schema({
-    userId: {
-        type: String
+    username: {
+        type: String,
     },
+    name: {
+        type: String,
+    },
+    date: Date,
     numPlayers: {
         type: Number,
         default: 0

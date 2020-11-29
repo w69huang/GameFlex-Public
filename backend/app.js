@@ -25,7 +25,6 @@ const mysql_connection = require('./database/mysql')
 
 const List = require('./database/models/list')
 const Task = require('./database/models/task')
-const Configuration = require('./database/models/configuration')
 const Deck = require('./database/models/deck')
 const Counter = require('./database/models/counter')
 const user = require('./database/models/mysql.user.model')
@@ -154,47 +153,6 @@ app.delete('/lists/:listId/tasks/:taskId', (req, res) => {
         .catch((error) => console.log(error))
 })
 
-// Configuration Routes //
-
-app.get('/configeditor/:configurationId', (req, res) => {
-    // note: `_id` is the auto-generated id for the task
-    Configuration.findOne({ _id: req.params.configurationId })
-        .then((configuration) => {
-            res.send(configuration)
-            console.log('the config is: ', configuration, ' end test') //TODO remove console log
-        })
-        .catch((error) => console.log(error))
-    console.log('Config Get Backend has run!', req.params.configurationId);
-})
-
-app.post('/configeditor', (req, res) => {
-    console.log('The req.body line: ', req.body);
-    newConfig = new Configuration({ 'userId': req.body.configuration.userId, 'numPlayers': req.body.configuration.numPlayers, handsVisibleOnInsert: req.body.configuration.handsVisibleOnInsert, 'decks': req.body.configuration.decks, 'counters': [] });
-    console.log('The new config line: ', newConfig);
-    (newConfig)
-        .save()
-        .then((configuration) => {
-            res.send(configuration);
-            console.log('The then line: ', configuration);
-        })
-        .catch((error) => console.log(error))
-    console.log('Config Post Backend has run!');
-})
-
-app.patch('/configeditor/:configurationId', (req, res) => {
-    Configuration.findOneAndUpdate({ _id: req.params.configurationId }, { $set: req.body.configuration })
-        .then((configuration) => res.send(configuration))
-        .catch((error) => console.log(error))
-    console.log('Config Patch/Update Backend has run!');
-})
-
-app.delete('/configeditor/:configurationId', (req, res) => {
-    Configuration.findByIdAndDelete({ _id: req.params.configurationId })
-        .then((configuration) => res.send(configuration))
-        .catch((error) => console.log(error))
-    console.log('Config Delete Backend has run!');
-})
-
 // MY SQL:
 mysqlapp.get('/', (req, res) => {
     res.send("Hello World");
@@ -205,9 +163,11 @@ mysqlapp.get('/', (req, res) => {
 const onlineGamesRoutes = require('./controllers/online-games.controller');
 const userRoutes = require('./controllers/mysql.user.controllers');
 const savedGameStateRoutes = require('./controllers/saved-game-state.controller');
+const configurationRoutes = require('./controllers/configuration.controller');
 mysqlapp.use('/user', userRoutes)
 mysqlapp.use('/online-games', onlineGamesRoutes);
 app.use('/saved-game-state', savedGameStateRoutes);
+app.use('/configuration', configurationRoutes);
 
 // port number to listen on, callback fxn for when it completes
 app.listen(3000, () => console.log("Server Connected on port 3000"));

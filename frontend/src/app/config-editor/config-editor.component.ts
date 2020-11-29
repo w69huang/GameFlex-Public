@@ -4,9 +4,9 @@ import { catchError, map } from 'rxjs/operators';
 
 import { ConfigurationService } from 'src/app/services/configuration.service';
 import { Router, ActivatedRoute, Params } from '@angular/router';
-
-
+import { MatDialog } from '@angular/material/dialog';
 import { Component, OnInit } from '@angular/core';
+
 import { DataConnection } from 'peerjs';
 import Phaser from 'phaser';
 import Card from '../models/card';
@@ -27,6 +27,9 @@ import * as HelperFunctions from '../helper-functions';
 import * as SharedActions from '../actions/sharedActions';
 import * as DeckActions from '../actions/deckActions';
 import { NewTaskComponent } from '../pages/new-task/new-task.component';
+import { CreateCounterPopupComponent } from '../popups/create-counter-popup/create-counter-popup.component';
+import { SaveConfigurationPopupComponent } from '../popups/save-configuration-popup/save-configuration-popup.component';
+import { MiddleWare } from '../services/middleware';
 
 
 @Component({
@@ -49,24 +52,18 @@ export class ConfigEditorComponent implements OnInit {
 
   // State
   public playerID: number = 1;
-  public gameState: GameState;
+  // public gameState: GameState;
 
   configuration: Configuration;
-  configurationId: string;
 
   constructor(
     private configurationService: ConfigurationService,
     private route: ActivatedRoute,
-    private router: Router
+    private router: Router,
+    private dialog: MatDialog,
+    private middleware: MiddleWare
   ) {
-    this.phaserScene = new ConfigScene(this, this.sceneWidth, this.sceneHeight, this.handBeginY);
-    this.config = {
-      type: Phaser.AUTO,
-      height: this.sceneHeight,
-      width: this.sceneWidth,
-      scene: [this.phaserScene],
-      parent: 'configEditorContainer',
-    };
+    this.configuration = new Configuration(this.middleware.getUsername(), "", 1, true, [], []);
   }
 
   ngOnInit(): void {
@@ -80,38 +77,65 @@ export class ConfigEditorComponent implements OnInit {
   }
 
   initialize() {
-    this.gameState = new GameState([], [], [], new Hand(this.playerID, []), []);
+    this.phaserScene = new ConfigScene(this, this.sceneWidth, this.sceneHeight, this.handBeginY);
 
+    this.config = {
+      type: Phaser.AUTO,
+      height: this.sceneHeight,
+      width: this.sceneWidth,
+      scene: [this.phaserScene],
+      parent: 'configEditorContainer',
+    };
     this.phaserGame = new Phaser.Game(this.config);
 
   }
 
   saveConfig() {
     // if(configurationId){ this.configurationService.updateConfiguration(........)} else {}
+    
+    let dialogRef = this.dialog.open(SaveConfigurationPopupComponent, {
+      height: '500px',
+      width: '500px',
+    });
 
-    // Convert Decks to Deck model
-    let decks = [];
-    this.gameState.decks?.forEach(deck => decks.push(new DeckMin(deck))) //TODO: This does nothing rn. Is the reason it's not saving because of the backend model not matching up maybe?
+    dialogRef.afterClosed().subscribe(saveConfigData => {
+      if (saveConfigData) {
+        this.configuration.name = saveConfigData.name;
+        
+        // Convert Decks to Deck model
+        let decks = [];
+        this.configuration.decks?.forEach(deck => decks.push(new DeckMin(deck))) //TODO: This does nothing rn. Is the reason it's not saving because of the backend model not matching up maybe?
+        this.configuration.decks = decks;
+        console.log('Saving: ');
+        console.log(this.configuration);
+        // Convert Counters to Counter model
+        // TODO To be implemented 
 
-    // Convert Counters to Counter model
-    // TODO To be implemented 
+        this.configurationService.createConfiguration(this.configuration)
+          .subscribe((configuration: Configuration) => {
+            this.configuration._id = configuration._id;
 
-    this.configuration = new Configuration(1, "_RiskLife_", 3, true, decks, []);
-    this.configurationService.createConfiguration(this.configuration)
-      .subscribe((configuration: Configuration) => {
-        this.configuration = configuration;
-        this.configurationId = configuration._id;
-      })
+          });
+
+      }
+    });
 
   }
+/**
+ * Get:
+ * - Figure out backend bug with SavedConfigurations still existing, why can't we get it?
+ * - Actually Render each thing 
+ * - Assign the proper objects so they get all the parameters
+ * Save/Update:
+ * - Strip out the _id and add it too ****DONE****
+ * - Add _id to the model ***DONE***
+ */
 
   updateConfig() {
     this.configuration.decks = [];
-    this.gameState.decks?.forEach(deck => this.configuration.decks.push(deck));
+    // this.gameState.decks?.forEach(deck => this.configuration.decks.push(deck));
     this.configurationService.updateConfiguration(this.configuration)
       .subscribe((configuration: Configuration) => {
-        this.configuration = configuration;
-        this.configurationId = configuration._id;
         console.log("Updated to... ", configuration);
       })
   }
@@ -120,8 +144,7 @@ export class ConfigEditorComponent implements OnInit {
     this.configurationService.deleteConfiguration(configurationId)
       .subscribe(() => {
         console.log('Deletion has returned.');
-        this.configurationId = null;
-        this.configuration = new Configuration(0, '', 0, false, [], []);
+        this.configuration = new Configuration(this.middleware.getUsername(), '', 0, false, [], []);
       })
   }
 
@@ -129,16 +152,11 @@ export class ConfigEditorComponent implements OnInit {
     // TODO: auto save before get (maybe)
     // saveConfig()
 
-    // delete all current decks and counters
-    this.gameState.cleanUp();
-
     this.configurationService.getConfiguration(configurationId)
       .subscribe((configuration: Configuration) => {
-        this.configuration = configuration;
-        this.configurationId = configuration._id; //TODO Figure out how to do this properly we should be able to just reference if it exists
-        this.renderConfiguration(configuration);
-        // render all the new decks and counters
-        console.log(this.configuration);
+        let newConfiguration = this.processConfigurationFromBackend(configuration);
+        this.renderConfiguration(newConfiguration);
+        this.configuration = newConfiguration;
       })
 
   }
@@ -150,18 +168,66 @@ export class ConfigEditorComponent implements OnInit {
   }
 
   initCounter() {
-    // Just for the create counter button
-    this.highestID++;
-    let counter: Counter = new Counter(this.highestID, "counter" + this.highestID, 80, 80); //TODO: Take in meaningful names
-    HelperFunctions.createCounter(this, counter, SharedActions.onDragMove);
+
+    let dialogRef = this.dialog.open(CreateCounterPopupComponent, {
+      height: '500px',
+      width: '500px',
+    });
+
+    dialogRef.afterClosed().subscribe(createCounterData => {
+      if (createCounterData) {
+        console.log(createCounterData);
+
+        // Just for the create counter button
+        // this.highestID++;
+        // let counter: Counter = new Counter(this.highestID, "counter" + this.highestID, 80, 80); //TODO: Take in meaningful names
+        // HelperFunctions.createCounter(this, counter, SharedActions.onDragMove);
+      }
+    });
+
   }
 
+  /**
+   * Set's the prototypes and parameters that are necessary but not included in the backend 
+   * @param configurationObj a configuration as an object, usually as returned from the backend.
+   */
+  processConfigurationFromBackend(configurationObj: Configuration) {
+    // Object.setPrototypeOf(configurationObj, Configuration.prototype)
+    Object.assign(configurationObj, Configuration);
+
+    configurationObj.decks.forEach(deckObj => {
+      // Object.setPrototypeOf(configurationObj, Configuration.prototype)
+      Object.assign(deckObj, Deck);
+
+      //TODO:  Move these to the model, I see no reason why they're here
+      deckObj.type = "deck"; //TODO This is probably not needed later 
+      deckObj.imagePath = "assets/images/playing-cards/deck.png";
+    });
+
+    configurationObj.counters.forEach(counterObj => {
+      // Object.setPrototypeOf(configurationObj, Configuration.prototype)
+      Object.assign(counterObj, Counter);
+    });
+
+    // Correct the date format since the backend auto-formats it
+    configurationObj.date = new Date(configurationObj.date);
+
+    //TODO: Delete this line
+    console.log(configurationObj);
+
+    return configurationObj
+  }
+  
+  /**
+   * Removes on screen elements and renders passed in configuration
+   * @param configuration 
+   */
   renderConfiguration(configuration: Configuration) {
-    console.log(configuration);
+    // if(this.configuration) {
+    //   this.phaserScene. // TODO: Remove the shit that's there already if needed
+    // }
+
     configuration.decks.forEach(deck => {
-      //deck.id = null;
-      deck.type = "deck"; //TODO This is probably not needed later
-      deck.imagePath = "assets/images/playing-cards/deck.png";
       HelperFunctions.createDeck(deck, this, SharedActions.onDragMove, SharedActions.onDragEnd, DeckActions.deckRightClick, deck.x, deck.y)
     });
     // configuration.counters.forEach(counter => {
@@ -171,21 +237,17 @@ export class ConfigEditorComponent implements OnInit {
     // });
   }
 
-  counterText(inputText) {
+  counterText(id: number, inputObject: any) {
     //var inputText = this.getChildByName('nameField');
 
     //  Have they entered anything?
-    if (inputText.value !== '') {
+    if (inputObject.value !== '') {
       // //  Turn off the click events
       // this.removeListener('click');
 
       // //  Hide the login element
       // this.setVisible(false);
-      console.log('inputText == ', inputText);
+      console.log('inputText == ', inputObject.value);
     }
-
   }
-
-
-
 }

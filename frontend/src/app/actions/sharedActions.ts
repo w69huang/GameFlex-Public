@@ -34,11 +34,11 @@ export function onDragMove(object: any, component: any, pointer: Phaser.Input.Po
 // Will only be used in the playspace as right now it only applies to cards
 export function onDragEnd(object: any, playspaceComponent: PlayspaceComponent, pointer: Phaser.Input.Pointer) {
 
-    // TODO: If card being moved around in hand, report back to host
-    const card: Card = playspaceComponent.gameState.getCardByID(object.id, playspaceComponent.playerID)?.card;
-    const overlapObject: OverlapObject = playspaceComponent.gameState.checkForOverlap(object.id, playspaceComponent.playerID);
+      // TODO: If card being moved around in hand, report back to host
+      const card: Card = playspaceComponent.gameState?.getCardByID(object.id, playspaceComponent.playerID)?.card;
+      const overlapObject: OverlapObject = playspaceComponent.gameState?.checkForOverlap(object.id, playspaceComponent.playerID);
 
-    if (playspaceComponent.connections) {
+    if (playspaceComponent.connections && overlapObject) {
       if (overlapObject.overlapType === EOverlapType.HAND) {
         playspaceComponent.connections.forEach((connection: DataConnection) => {
           connection.send({

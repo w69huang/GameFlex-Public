@@ -1,6 +1,6 @@
 import Card from './card';
 
-export default class Deck {
+export default class Hand {
     /**
      * The phaser game object for the hand
      */

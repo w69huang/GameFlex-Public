@@ -1,17 +1,20 @@
 <h1>Config Editor</h1>
-<h2>Config id - {{configurationId}}</h2>
+<h2>Config id - {{configuration._id}}</h2>
 <button class="btn btn-primary" (click)="initDeck()">Create Deck</button>
-<button class="btn btn-primary" (click)="initCounter()">Create Counter</button>
 <button class="btn btn-primary" (click)="saveConfig()">Save to Mongo</button>
 <button class="btn btn-primary" (click)="updateConfig()">Update Config</button>
 <button class="btn btn-primary" (click)="deleteConfig()">Delete from Mongo</button>
 <button class="btn btn-primary" (click)="getConfig(configIdInput.value)">Get a Config</button>
 <input #configIdInput type="text" placeholder="Game Id">
-<div id="configEditorContainer">
-    <div
-        style="z-index: 0; display: block; position: absolute; opacity: 1; pointer-events: auto; mix-blend-mode: normal; transform: matrix(1, 0, 0, 1, 122.5, 260) skew(0rad, 0rad) rotate3d(0, 0, 0, 0deg); transform-origin: 50% 50%;">
-        <input #nameField (change)="counterText(nameField.value)" type="text" id="nameField" name="nameField"
-            placeholder="##" style="font-size: 32px">
+<div class="contentContainer">
+    <div class="rightSidebar">
+        <mat-card>
+            <button class="btn btn-primary" (click)="initCounter()">Create Counter</button>
+            <div *ngFor="let counter of configuration.counters">
+                <label for="nameField">{{ counter.name }}</label>
+                <input (change)="counterText(counter.id, this)" type="text" id="counter.id" name="nameField"
+                placeholder="##" style="font-size: 24px">
+             </div>
+        </mat-card>
     </div>
-
 </div>

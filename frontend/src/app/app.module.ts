@@ -34,6 +34,10 @@ import { NgxMatSelectSearchModule } from 'ngx-mat-select-search';
 import { JoinByCodeComponent } from './join-by-code/join-by-code.component';
 import { GameInstanceComponent } from './game-instance/game-instance.component';
 import { LoadGameStatePopupComponent } from './popups/load-game-state-popup/load-game-state-popup.component';
+import { CreateCounterPopupComponent } from './popups/create-counter-popup/create-counter-popup.component';
+import { ConfigEditorComponent } from './config-editor/config-editor.component';
+import { SaveConfigurationPopupComponent } from './popups/save-configuration-popup/save-configuration-popup.component';
+
 
 @NgModule({
   declarations: [
@@ -55,7 +59,11 @@ import { LoadGameStatePopupComponent } from './popups/load-game-state-popup/load
     RetrieveGameStatePopupComponent,
     JoinByCodeComponent,
     GameInstanceComponent,
+    CreateCounterPopupComponent,
     LoadGameStatePopupComponent,
+    CreateCounterPopupComponent,
+    ConfigEditorComponent,
+    SaveConfigurationPopupComponent,
   ],
   imports: [
     BrowserModule,
@@ -75,9 +83,11 @@ import { LoadGameStatePopupComponent } from './popups/load-game-state-popup/load
     NgxMatSelectSearchModule
   ],
   entryComponents: [
+    SaveConfigurationPopupComponent,
     GameBrowserPopupComponent,
     GameSetupPopupComponent,
     SaveGameStatePopupComponent,
+    CreateCounterPopupComponent,
     RetrieveGameStatePopupComponent,
     DialogForgotPassword
   ],

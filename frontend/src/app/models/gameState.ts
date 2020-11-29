@@ -572,9 +572,6 @@ export default class GameState {
         });
         this._hands = [];
         this.myHand.cards = [];
-        this._counters.forEach((counter: Counter) => {
-            counter.gameObject?.destroy();
-        });
         this._counters = [];
     }
 
