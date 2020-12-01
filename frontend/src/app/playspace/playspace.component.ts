@@ -188,7 +188,7 @@ export class PlayspaceComponent implements OnInit {
 
   undoGameState() {
     this.undoGameStateEmitter.subscribe((count: integer) => {
-      this.gameState.buildGameFromCache(this, count);
+      this.gameState.buildGameFromCache(this, false, count);
     })
   }
 
@@ -237,7 +237,7 @@ export class PlayspaceComponent implements OnInit {
 
     dialogRef.afterClosed().subscribe(object => {
       if (object.loadFromCache === true) {
-        this.gameState.buildGameFromCache(this);
+        this.gameState.buildGameFromCache(this, true);
       } else if (object.loadFromCache === false) {
         this.gameState.clearCache();
       } else {

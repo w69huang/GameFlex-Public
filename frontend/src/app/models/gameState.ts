@@ -331,6 +331,8 @@ export default class GameState {
     }
 
     private saveGameHistory(): void  {
+        this.currentMove = this.batchStateHistory.pop();
+        this.batchStateHistory = [];
         if (this.currentMove != null || this.currentMove != undefined){
             this.gameStateHistory.push(this.currentMove);
             if (this.gameStateHistory.length > this.maxNumOfCachedStates) {
@@ -338,27 +340,37 @@ export default class GameState {
             }
             localStorage.setItem('gameStateHistory', JSON.stringify(this.gameStateHistory));
         }
-        this.currentMove = this.batchStateHistory.pop();
-        this.batchStateHistory = [];
     }
 
     /**
      * A method to build the game state from the cache
      * @param playspaceComponent - A reference to the playspace component, needed to create the cards and decks
+     * @param initialBuild - If this is the very first time we're building from the cache in this browser session
+     * @param undo - The number of times undo has been called
      */
-    public buildGameFromCache(playspaceComponent: PlayspaceComponent, undo = 0): void {
+    public buildGameFromCache(playspaceComponent: PlayspaceComponent, initialBuild: boolean, undo: number = 0): void {
         if (this.amHost) {
             const cache = {gamestate: null};
             if (undo > 0) {
                 this.gameStateHistory = JSON.parse(localStorage.getItem('gameStateHistory'));
           
                 for(let i: number = 0; i < undo; i++) {
-                    cache.gamestate = this.gameStateHistory.pop();
+                    if (this.gameStateHistory.length > 1) {
+                        this.gameStateHistory.pop();
+                        cache.gamestate = this.gameStateHistory[this.gameStateHistory.length - 1];
+                    }
                 }
-                localStorage.setItem('gameStateHistory', JSON.stringify(this.gameStateHistory));
-                
+
+                if (cache.gamestate) {
+                    localStorage.setItem('gameStateHistory', JSON.stringify(this.gameStateHistory));
+                    localStorage.setItem('cachedGameState', JSON.stringify(cache.gamestate));
+                }
             } else {
                 cache.gamestate = JSON.parse(localStorage.getItem('cachedGameState'));
+                if (initialBuild) {
+                    this.gameStateHistory.push(cache.gamestate);
+                    localStorage.setItem('gameStateHistory', JSON.stringify(this.gameStateHistory));
+                }
             }
             if (cache.gamestate != null) {
                 this.setCachingEnabled(false);
@@ -405,7 +417,8 @@ export default class GameState {
      */
     public clearCache(): void {
         localStorage.removeItem('cachedGameState');
-        localStorage.removeItem('gameStateHistory');
+        this.gameStateHistory.push(new CachedGameState(this));
+        localStorage.setItem('gameStateHistory', JSON.stringify(this.gameStateHistory));
     }
 
     /**
