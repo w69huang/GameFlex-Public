@@ -178,12 +178,18 @@ export class ConfigEditorComponent implements OnInit {
     this.configuration = new Configuration(this.middleware.getUsername(), "", 1, true, [], []);
   }
 
+  /**
+   * Creates a deck.
+   */
   initDeck() {
     // Just for the create deck button
     let deck: Deck = new Deck(this.highestID++, "assets/images/playing-cards/deck.png", [], 400, 250);
     HelperFunctions.createDeck(deck, this, SharedActions.onDragMove, SharedActions.onDragEnd, DeckActions.deckRightClick, deck.x, deck.y);
   }
 
+  /**
+   * Creates a new counter.
+   */
   initCounter() {
 
     let dialogRef = this.dialog.open(CreateCounterPopupComponent, {
@@ -198,7 +204,8 @@ export class ConfigEditorComponent implements OnInit {
         // Just for the create counter button
         let counter: Counter = new Counter(this.highestID++, createCounterData.name, parseFloat(createCounterData.defaultValue)); //TODO: Take in meaningful names
         this.configuration.counters.push(counter);
-        // HelperFunctions.createCounter(this, counter, SharedActions.onDragMove);
+        
+        // HelperFunctions.createCounter(this, counter, SharedActions.onDragMove);  //TODO: Implement
       }
     });
 
@@ -209,10 +216,8 @@ export class ConfigEditorComponent implements OnInit {
    * @param configurationObj a configuration as an object, usually as returned from the backend.
    */
   processConfigurationFromBackend(configurationObj: Configuration) {
-      //TODO: Delete this line
-      console.log('Before', configurationObj);
 
-  
+    // TODO: See if I can get this Object.setPrototypeOf thing working.
     // Object.setPrototypeOf(configurationObj, Configuration.prototype)
     Object.assign(configurationObj, Configuration);
 
@@ -230,11 +235,8 @@ export class ConfigEditorComponent implements OnInit {
       Object.assign(counterObj, Counter);
     });
 
-    // Correct the date format since the backend auto-formats it
+    // Corrects the date format since the backend auto-formats it
     configurationObj.date = new Date(configurationObj.date);
-
-    //TODO: Delete this line
-    console.log(configurationObj);
 
     return configurationObj
   }
@@ -249,10 +251,7 @@ export class ConfigEditorComponent implements OnInit {
     configuration.decks?.forEach(deck => decks.push(new DeckMin(deck))) //TODO: This does nothing rn. Is the reason it's not saving because of the backend model not matching up maybe?
     let processedConfiguration = Object.assign({}, this.configuration);
     processedConfiguration.decks = decks;
-    console.log('Saving: ');
-    console.log(configuration);
-    console.log('OG: ');
-    console.log(configuration);
+
     // Convert Counters to Counter model
     // TODO To be implemented 
     
@@ -266,27 +265,25 @@ export class ConfigEditorComponent implements OnInit {
   renderConfiguration(configuration: Configuration) {
    this.clearConfig();
 
-
     configuration.decks.forEach(deck => {
       HelperFunctions.createDeck(deck, this, SharedActions.onDragMove, SharedActions.onDragEnd, DeckActions.deckRightClick, deck.x, deck.y)
     });
+    //TODO: Confirm this works, and delete. How does it work without this?
     // configuration.counters.forEach(counter => {
-    //   //deck.id = null;
     //   counter.type = "counter"; //TODO This is probably not needed later OR see other comment about renderableObject
     //   HelperFunctions.createCounter(this, counter, SharedActions.onDragMove)
     // });
   }
 
-  counterText(id: number, inputObject: any) {
-    //var inputText = this.getChildByName('nameField');
+  /**
+   * Updates the counter object with the actual value on change.
+   * @param id of the counter.
+   * @param inputObject uuuuuuuuhhh? //TODO: describe
+   */
+  onChangeCounterText(id: number, inputObject: any) {
 
     //  Have they entered anything?
-    if (inputObject.value !== '') {
-      // //  Turn off the click events
-      // this.removeListener('click');
-
-      // //  Hide the login element
-      // this.setVisible(false);
+    if (inputObject.value !== '') { //TODO: What if they emptied it and it previously had a value?
       console.log('inputText == ', inputObject.value);
     }
   }

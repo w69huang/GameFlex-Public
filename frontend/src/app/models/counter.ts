@@ -1,5 +1,3 @@
-import { runInThisContext } from 'vm';
-
 export default class Counter {
     id: number;
     name: string;
