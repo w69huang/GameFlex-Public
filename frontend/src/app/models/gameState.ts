@@ -124,15 +124,37 @@ export default class GameState {
     private cachingEnabled: boolean = false;
 
     /**
-     * Contains a history of savedGameStates for undo purposes.
+     * A history of saved game states to allow for undoing
      */
+     private gameStateHistory: CachedGameState[] = [];
 
-    private gameStateHistory: CachedGameState[] = [];
+    /**
+     * Controls the maximum number of game states that can be cahced
+     */
+    private maxNumOfCachedStates: number = 10;
+
+    /**
+     * Because of how actions are set up, it is possible that a single action could involve 2 writes to the cache: for example, removing a card from a deck and then adding it to the table
+     * In this scenario, we do not want the game state history to record the "in between" move -- removing the card from the deck
+     * Thus, if multiple saves are called within a very short period of time, we can be sure that it was because of the code and not because of a player, and thus we'll only save the final state out of the batch of save calls
+     */
     private batchStateHistory: CachedGameState[] = [];
-    private previousMove: CachedGameState;
+
+    /**
+     * The amount of time to wait for another save call before saving in milliseconds
+     */
+    private batchStateWaitTime: number = 200;
+
+    /**
+     * The current cached game state
+     */
     private currentMove: CachedGameState;
-    private gameStateHistorySize: integer;
+
+    /**
+     * A timer function used to control the batches of game states
+     */
     private timerFunc: NodeJS.Timer;
+
     /**
      * Holds all cards on the table
      */
@@ -211,9 +233,6 @@ export default class GameState {
         this._decks = decks;
         this._hands = hands;
         this.myHand = new Hand(null, []);
-        // setInterval( () => {this.currentMove = new CachedGameState(this)}, 100);
-        // this.currentMove = new CachedGameState(this);
-        this.gameStateHistorySize = this.gameStateHistory.length;
     }
 
     /**
@@ -307,23 +326,20 @@ export default class GameState {
             localStorage.setItem('cachedGameState', JSON.stringify(cachedGameState)); 
             this.batchStateHistory.push(cachedGameState);
             clearTimeout(this.timerFunc);
-            this.timerFunc = setTimeout(this.saveGameHistory.bind(null, this), 200)
+            this.timerFunc = setTimeout(this.saveGameHistory.bind(this), this.batchStateWaitTime);
         }
     }
 
-    private saveGameHistory(gameState): void  {
-        // Works well.
-        if (gameState.currentMove != null || gameState.currentMove != undefined){
-            gameState.previousMove = gameState.currentMove;
-            gameState.gameStateHistory.push(gameState.previousMove);
-            if (gameState.gameStateHistory.length >= 10) {
-                var index = gameState.gameStateHistory.length - 9
-                gameState.gameStateHistory = gameState.gameStateHistory.slice(index);
+    private saveGameHistory(): void  {
+        if (this.currentMove != null || this.currentMove != undefined){
+            this.gameStateHistory.push(this.currentMove);
+            if (this.gameStateHistory.length > this.maxNumOfCachedStates) {
+                this.gameStateHistory.shift();
             }
-            localStorage.setItem('gameStateHistory', JSON.stringify(gameState.gameStateHistory));
+            localStorage.setItem('gameStateHistory', JSON.stringify(this.gameStateHistory));
         }
-        gameState.currentMove = gameState.batchStateHistory.pop();
-        gameState.batchStateHistory = []
+        this.currentMove = this.batchStateHistory.pop();
+        this.batchStateHistory = [];
     }
 
     /**
@@ -337,9 +353,10 @@ export default class GameState {
                 this.gameStateHistory = JSON.parse(localStorage.getItem('gameStateHistory'));
           
                 for(let i: number = 0; i < undo; i++) {
-                    cache.gamestate = this.gameStateHistory.pop()
+                    cache.gamestate = this.gameStateHistory.pop();
                 }
                 localStorage.setItem('gameStateHistory', JSON.stringify(this.gameStateHistory));
+                
             } else {
                 cache.gamestate = JSON.parse(localStorage.getItem('cachedGameState'));
             }
@@ -372,13 +389,12 @@ export default class GameState {
                     });
                 }
             
-            // Just a temporary thing for now. Ask Zach where the host sends the game state on load.
-            if (undo >0) {
-                this.sendGameStateToPeers();
-                this.currentMove = new CachedGameState(this); 
-                this.previousMove = this.currentMove
+                // Just a temporary thing for now. Ask Zach where the host sends the game state on load.
+                if (undo > 0) {
+                    this.sendGameStateToPeers();
+                    this.currentMove = new CachedGameState(this); 
+                }        
 
-            }        
                 this.setCachingEnabled(true);
             }            
         }        
@@ -389,6 +405,7 @@ export default class GameState {
      */
     public clearCache(): void {
         localStorage.removeItem('cachedGameState');
+        localStorage.removeItem('gameStateHistory');
     }
 
     /**

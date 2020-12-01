@@ -83,7 +83,7 @@ export class PlayspaceComponent implements OnInit {
       path: '/peerserver' // Make sure this path matches the path you used to launch it
     }); 
 
-    this.peer.on('connection', (conn) => { 
+    this.peer.on('connection', (conn: DataConnection) => { 
       console.log(`Received connection request from peer with id ${conn.peer}.`);
 
       conn.on('open', () => {
@@ -97,47 +97,44 @@ export class PlayspaceComponent implements OnInit {
       conn.on('data', (data) => {
         this.gameState.handleData(data, this);
       });
+
+      // Catches the case of a browser being closed
+      conn.peerConnection.oniceconnectionstatechange = () => {
+        if(conn.peerConnection.iceConnectionState == 'disconnected') {
+          console.log("Peer-to-Peer Error: Other party disconnected.");
+          this.hostHandleConnectionClose(conn);
+        }
+      }
       conn.on('close', () => {
         console.log("Peer-to-Peer Error: Other party disconnected.");
-        this.gameState.connections = this.filterOutPeer(this.gameState.connections, conn);
-
-        let playerData: PlayerData = null;
-        this.gameState.playerDataObjects.forEach((playerDataObject: PlayerData) => {
-          if (playerDataObject.peerID === conn.peer) {
-            playerData = playerDataObject;
-          }
-        });
-
-        if (playerData) {
-          this.gameState.playerDataObjects = this.filterOutID(this.gameState.playerDataObjects, playerData);
-          this.playerDataEmitter.emit(this.gameState.playerDataObjects);
-
-          this.onlineGame.numPlayers--;
-          this.onlineGamesService.update(this.onlineGame).subscribe();
-        }
+        this.hostHandleConnectionClose(conn);
       });
       conn.on('error', (err) => {
         console.log("Unspecified Peer-to-Peer Error:");
         console.log(err);
-        this.gameState.connections = this.filterOutPeer(this.gameState.connections, conn);
-        
-        let playerData: PlayerData = null;
-        this.gameState.playerDataObjects.forEach((playerDataObject: PlayerData) => {
-          if (playerDataObject.peerID === conn.peer) {
-            playerData = playerDataObject;
-          }
-        });
-
-        if (playerData) {
-          this.gameState.playerDataObjects = this.filterOutID(this.gameState.playerDataObjects, playerData);
-          this.playerDataEmitter.emit(this.gameState.playerDataObjects);
-
-          this.onlineGame.numPlayers--;
-          this.onlineGamesService.update(this.onlineGame).subscribe();
-        }
+        this.hostHandleConnectionClose(conn);
       });
     });
    }
+
+  hostHandleConnectionClose(conn: DataConnection) {
+    this.gameState.connections = this.filterOutPeer(this.gameState.connections, conn);
+    
+    let playerData: PlayerData = null;
+    this.gameState.playerDataObjects.forEach((playerDataObject: PlayerData) => {
+      if (playerDataObject.peerID === conn.peer) {
+        playerData = playerDataObject;
+      }
+    });
+
+    if (playerData) {
+      this.gameState.playerDataObjects = this.filterOutID(this.gameState.playerDataObjects, playerData);
+      this.playerDataEmitter.emit(this.gameState.playerDataObjects);
+
+      this.onlineGame.numPlayers--;
+      this.onlineGamesService.update(this.onlineGame).subscribe();
+    }
+  }
 
   ngOnInit() {
     // TODO: Band-aid solution, find a better one at some point
@@ -320,7 +317,7 @@ export class PlayspaceComponent implements OnInit {
   }
 
   openConnection() {
-    var conn = this.peer.connect(this.mainHostID);
+    var conn: DataConnection = this.peer.connect(this.mainHostID);
     this.firstConnectionAttempt = true;
     this.openConnectionAttempts++;
     conn?.on('open', () => {
@@ -333,26 +330,33 @@ export class PlayspaceComponent implements OnInit {
       conn.on('data', (data) => {
         this.gameState.handleData(data, this);
       });
-      conn.on('close', () => {
-        console.log("Peer-to-Peer Error: Connection closed.");
-        if (!this.connectionClosedIntentionally) {
-          this.gameState.connections = this.filterOutPeer(this.gameState.connections, conn);
-          this.connOpenedSuccessfully = false;
-          this.finishConnectionProcess();
-          this.checkIfCanOpenConnectionInterval = setInterval(this.checkIfCanOpenConnection.bind(this), 2000);
+
+      // Catches the case where the browser is closed
+      conn.peerConnection.oniceconnectionstatechange = () => {
+        if(conn.peerConnection.iceConnectionState == 'disconnected') {
+          console.log("Peer-to-Peer Error: Other party disconnected.");
+          this.clientHandleConnectionClose(conn);
         }
+      }
+      conn.on('close', () => {
+        console.log("Peer-to-Peer Error: Other party disconnected.");
+        this.clientHandleConnectionClose(conn);
       });
       conn.on('error', (err) => {
         console.log("Unspecified Peer-to-Peer Error: ");
         console.log(err);
-        if (!this.connectionClosedIntentionally) {
-          this.gameState.connections = this.filterOutPeer(this.gameState.connections, conn);
-          this.connOpenedSuccessfully = false;
-          this.finishConnectionProcess();
-          this.checkIfCanOpenConnectionInterval = setInterval(this.checkIfCanOpenConnection.bind(this), 2000);
-        }
+        this.clientHandleConnectionClose(conn);
       });
       this.gameState.sendPeerData(EActionTypes.SENDSTATE, null);
     });
+  }
+
+  clientHandleConnectionClose(conn: DataConnection) {
+    if (!this.connectionClosedIntentionally) {
+      this.gameState.connections = this.filterOutPeer(this.gameState.connections, conn);
+      this.connOpenedSuccessfully = false;
+      this.finishConnectionProcess();
+      this.checkIfCanOpenConnectionInterval = setInterval(this.checkIfCanOpenConnection.bind(this), 2000);
+    }
   }
 }
