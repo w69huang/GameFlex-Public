@@ -13,7 +13,7 @@ export function onDragMove(object: any, component: any, pointer: Phaser.Input.Po
       
       if (component.gameState) {
         component.gameState.sendPeerData(
-          EActionTypes.MOVE,
+          EActionTypes.move,
             {
               id: object.id,
               type: object.type,
@@ -34,7 +34,7 @@ export function onDragEnd(object: any, playspaceComponent: PlayspaceComponent, p
     console.log(object.x, ",",object.y)
     if (overlapObject.overlapType === EOverlapType.HAND) {
       playspaceComponent.gameState.sendPeerData(
-        EActionTypes.INSERTINTOHAND,
+        EActionTypes.insertIntoHand,
         {
           cardID: card.id,
           type: object.type,
@@ -43,7 +43,7 @@ export function onDragEnd(object: any, playspaceComponent: PlayspaceComponent, p
     } else if (overlapObject.overlapType === EOverlapType.ALREADYINHAND || (overlapObject.overlapType === EOverlapType.TABLE && overlapObject.wasInHand === false)) {
       // If overlapped with only the table or the card was already in hand and overlapped with hand again, report movement
       playspaceComponent.gameState.sendPeerData(
-        EActionTypes.MOVE,
+        EActionTypes.move,
         {
           id: object.id,
           type: object.type,
@@ -55,7 +55,7 @@ export function onDragEnd(object: any, playspaceComponent: PlayspaceComponent, p
     } else if (overlapObject.overlapType === EOverlapType.TABLE && overlapObject.wasInHand === true) {
       // If card overlapped with table and it was in my hand previously
       playspaceComponent.gameState.sendPeerData(
-        EActionTypes.REMOVEFROMHAND,
+        EActionTypes.removeFromHand,
         {
           cardID: object.id,
           type: object.type,
@@ -67,7 +67,7 @@ export function onDragEnd(object: any, playspaceComponent: PlayspaceComponent, p
       );
     } else if (overlapObject.overlapType === EOverlapType.DECK) {
       playspaceComponent.gameState.sendPeerData(
-        EActionTypes.INSERTINTODECK,
+        EActionTypes.insertIntoDeck,
         {
           cardID: object.id,
           deckID: overlapObject.deckID,

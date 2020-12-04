@@ -2,7 +2,10 @@ import { PlayspaceComponent } from './playspace/playspace.component';
 import Card from './models/card';
 import Deck from './models/deck';
 
-export enum DestinationEnum {
+/**
+ * An enum representing the possible destinations for a card after being moved/retrieved from a deck/etc
+ */
+export enum EDestination {
     TABLE = "Table",
     HAND = "Hand"
 }
@@ -18,7 +21,7 @@ export function createCard(card: Card, playspaceComponent: PlayspaceComponent, d
         card.gameObject.on('dragend', dragEnd.bind(this, card, playspaceComponent));
         card.gameObject.displayWidth = 200;
         card.gameObject.displayHeight = 300;
-        if (destination === DestinationEnum.TABLE) {
+        if (destination === EDestination.TABLE) {
             playspaceComponent.gameState.addCardToTable(card);
         } else {
             playspaceComponent.gameState.addCardToOwnHand(card);
@@ -39,7 +42,7 @@ export function cardCreationCallback(card: Card, playspaceComponent: PlayspaceCo
     card.gameObject.on('dragend', dragEnd.bind(this, card, playspaceComponent));
     card.gameObject.displayWidth = 200;
     card.gameObject.displayHeight = 300;
-    if (destination === DestinationEnum.TABLE) {
+    if (destination === EDestination.TABLE) {
         playspaceComponent.gameState.addCardToTable(card);
     } else {
         playspaceComponent.gameState.addCardToOwnHand(card);
