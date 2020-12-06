@@ -44,13 +44,16 @@ export class DeckEditorComponent implements OnInit {
     this.deckService.createDeck(username, deckName);
   }
 
-  uploadCards() {
+  editDeck(deckName: string) {
     //  const tempID = 'abcde';
     //  this.deckService.createDeck(tempID, name);
 
     let dialogRef = this.dialog.open(UploadCardsPopupComponent, {
       height: '200px',
       width: '400px',
+      data: { 
+        deckNameData: deckName
+      }
     });
 
     dialogRef.afterClosed().subscribe(deckData => {
@@ -64,6 +67,8 @@ export class DeckEditorComponent implements OnInit {
    }
 
   findExistingDeck(name: string) { }
+
+  deleteDeck(name: string) { }
 
   public download(fileName: string):  void {
     //TODO: Dont have this hard coded! File names and ID's should be accesible

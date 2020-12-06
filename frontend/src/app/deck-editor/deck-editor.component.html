@@ -27,8 +27,8 @@
         <ul>
             <li *ngFor="let fileObject of deckList$" >
                 {{fileObject.deckName}}&nbsp;&nbsp;
-                <span (click)="download(fileObject.fileName)">download</span>&nbsp;
-                <span (click)="remove(fileObject.fileName)">remove</span>
+                <span (click)="editDeck(fileObject.fileName)">Edit Deck</span>&nbsp;
+                <span (click)="deleteDeck(fileObject.fileName)">Delete Deck</span>
             </li>
         </ul>  
 

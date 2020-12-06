@@ -1,5 +1,7 @@
 import { Component, OnInit, ViewChild, ElementRef  } from '@angular/core';
 import { MatDialogRef } from '@angular/material/dialog';
+import {MAT_DIALOG_DATA} from '@angular/material/dialog';
+import { Inject } from '@angular/core';
 
 @Component({
   selector: 'app-create-deck-popup',
@@ -9,13 +11,17 @@ import { MatDialogRef } from '@angular/material/dialog';
 export class UploadCardsPopupComponent implements OnInit {
   @ViewChild('errorsDiv') errorsDiv: ElementRef;
   @ViewChild("fileUpload", {static: false}) fileUpload: ElementRef; 
+
   private files: any[] = [];
+  deckNameData: string;
 
   constructor(
-    private dialogRef: MatDialogRef<UploadCardsPopupComponent>
+    private dialogRef: MatDialogRef<UploadCardsPopupComponent>,
+    @Inject(MAT_DIALOG_DATA) public data: any
   ) { }
 
   ngOnInit(): void {
+    this.deckNameData = this.data.deckName;
   }
 
   cancel(): void {

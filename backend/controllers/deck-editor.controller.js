@@ -28,10 +28,12 @@ module.exports = (upload) => {
     */
     router.route('/upload')
         .post(upload.array('file', 60), (req, res, next) => {
+            console.log(req.body);
             res.status(200).json({
                 success: true,
                 message: req.files.length + ' file(s) uploaded succesfully',
             });
+            //TODO: if new deck -> create new deck
         });
 
     /*
@@ -149,28 +151,47 @@ module.exports = (upload) => {
    let Deck = require('../database/models/userDeck');
 
    router.route('/new-deck').post((req, res, next) => {
-        const deckName = req.deckName;
-        const deck = new Deck({
-            userID: req.userID,
-            deckID: new mongoose.Types.ObjectId(),
-            deckName: deckName
-        });
-        deck.save().then(result => {
-            console.log(result);
-            res.status(201).json({
-                message: "Done upload!",
-                userCreated: {
-                    _id: result._id,
-                    avatar: result.avatar
-                }
-            })
-        }).catch(err => {
-            console.log(err),
+        const deckName = req.body.deckName;
+        const username = req.body.userID;
+        //console.log(req);
+        //console.log(deckName, ' ', username);
+ 
+
+        let deckList = [];
+
+        Deck.find({ deckName: deckName, userID: username })
+        .then((Deck) => deckList = Deck)
+
+        if (deckList.length != 0) {
+            //TODO: send error to user
             res.status(500).json({
-                error: err
+                message: 'Deck already exists'
             });
-        })
+        } else {
+            const deck = new Deck({
+                userID: username,
+                deckName: deckName
+            });
+            deck.save().then(result => {
+                console.log(result);
+                res.status(201).json({
+                    message: "Deck creation complete!!",
+                })
+            }).catch(err => {
+                console.log(err),
+                res.status(500).json({
+                    error: err
+                });
+            })
+        }
     })
+
+    router.route('/get').post((req, res, next) => {
+            const username = req.body.userID;
+            Deck.find({ userID: username })
+            .then((deckList) => res.send(deckList))
+            .catch((error) => console.log(error));
+    });
 
     return router;
 };
