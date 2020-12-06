@@ -268,22 +268,6 @@ export default class GameState {
     }
 
     /**
-     * Used to remove and the destroy the gameObjects of cards from a list of cards, RETURNS A NEW LIST WITH THE CHANGES MADE
-     * @param cardList - The list to remove from
-     * @param card - The card to remove
-     * @param location - The location the card was in, used to determine whether or not to remove the card from the hands array
-     */
-    private removeAndDestroyCardFromListByID(cardList: Card[], card: Card, location: ECardLocation): Card[] {
-        if (this.amHost && location === ECardLocation.OTHERHAND || location === ECardLocation.MYHAND) {
-            this.removeFromHandsArray(card);
-        }
-
-        card.gameObject?.destroy();
-        card.gameObject = null;
-        return this.filterOutID(cardList, card);
-    }
-
-    /**
      * A method used to set yourself as the host, taking care of anything required to make this happen
      * @param amHost - Whether or not I am the host
      */
@@ -382,7 +366,7 @@ export default class GameState {
       
                 cache.gamestate.cardMins.forEach((cardMin: CardMin) => {
                     const card: Card = new Card(cardMin.id, cardMin.imagePath, cardMin.x, cardMin.y);
-                    HelperFunctions.createCard(card, playspaceComponent, SharedActions.onDragMove, SharedActions.onDragEnd, HelperFunctions.EDestination.TABLE, card.x, card.y);
+                    HelperFunctions.createCard(card, playspaceComponent, SharedActions.onDragMove, SharedActions.onDragEnd, HelperFunctions.EDestination.TABLE);
                 });
                 cache.gamestate.deckMins.forEach((deckMin: DeckMin) => {
                     let cardList: Card[] = [];
@@ -390,14 +374,14 @@ export default class GameState {
                         cardList.push(new Card(cardMin.id, cardMin.imagePath, cardMin.x, cardMin.y));
                     });
                     const deck: Deck = new Deck(deckMin.id, deckMin.imagePath, cardList, deckMin.x, deckMin.y);
-                    HelperFunctions.createDeck(deck, playspaceComponent, SharedActions.onDragMove, SharedActions.onDragEnd, DeckActions.deckRightClick, deck.x, deck.y);
+                    HelperFunctions.createDeck(deck, playspaceComponent, SharedActions.onDragMove, SharedActions.onDragEnd, DeckActions.deckRightClick);
                 });
                 for (let i = 0; i < cache.gamestate.handMins.length; i++) {
                     cache.gamestate.handMins[i].cardMins.forEach((cardMin: CardMin) => {
                         if (cache.gamestate.handMins[i].playerID === this.playerID) {
                             const card: Card = new Card(cardMin.id, cardMin.imagePath, cardMin.x, cardMin.y);
                             this.addCardToOwnHand(card);
-                            HelperFunctions.createCard(card, playspaceComponent, SharedActions.onDragMove, SharedActions.onDragEnd, HelperFunctions.EDestination.HAND, card.x, card.y);
+                            HelperFunctions.createCard(card, playspaceComponent, SharedActions.onDragMove, SharedActions.onDragEnd, HelperFunctions.EDestination.HAND);
                         } else {
                             this.addCardToPlayerHand(new Card(cardMin.id, cardMin.imagePath, cardMin.x, cardMin.y), cache.gamestate.handMins[i].playerID);
                         }
@@ -437,7 +421,7 @@ export default class GameState {
       
             savedGameState.cardMins.forEach((cardMin: CardMin) => {
                 const card: Card = new Card(cardMin.id, cardMin.imagePath, cardMin.x, cardMin.y);
-                HelperFunctions.createCard(card, playspaceComponent, SharedActions.onDragMove, SharedActions.onDragEnd, HelperFunctions.EDestination.TABLE, card.x, card.y);
+                HelperFunctions.createCard(card, playspaceComponent, SharedActions.onDragMove, SharedActions.onDragEnd, HelperFunctions.EDestination.TABLE);
             });
             savedGameState.deckMins.forEach((deckMin: DeckMin) => {
                 let cardList: Card[] = [];
@@ -445,14 +429,14 @@ export default class GameState {
                     cardList.push(new Card(cardMin.id, cardMin.imagePath, cardMin.x, cardMin.y));
                 });
                 const deck: Deck = new Deck(deckMin.id, deckMin.imagePath, cardList, deckMin.x, deckMin.y);
-                HelperFunctions.createDeck(deck, playspaceComponent, SharedActions.onDragMove, SharedActions.onDragEnd, DeckActions.deckRightClick, deck.x, deck.y);
+                HelperFunctions.createDeck(deck, playspaceComponent, SharedActions.onDragMove, SharedActions.onDragEnd, DeckActions.deckRightClick);
             });
             for (let i = 0; i < savedGameState.handMins.length; i++) {
                 savedGameState.handMins[i].cardMins.forEach((cardMin: CardMin) => {
                     if (savedGameState.handMins[i].playerID === this.playerID) {
                         const card: Card = new Card(cardMin.id, cardMin.imagePath, cardMin.x, cardMin.y);
                         this.addCardToOwnHand(card);
-                        HelperFunctions.createCard(card, playspaceComponent, SharedActions.onDragMove, SharedActions.onDragEnd, HelperFunctions.EDestination.HAND, card.x, card.y);
+                        HelperFunctions.createCard(card, playspaceComponent, SharedActions.onDragMove, SharedActions.onDragEnd, HelperFunctions.EDestination.HAND);
                     } else {
                         this.addCardToPlayerHand(new Card(cardMin.id, cardMin.imagePath, cardMin.x, cardMin.y), savedGameState.handMins[i].playerID);
                     }
@@ -473,6 +457,26 @@ export default class GameState {
     }
 
     /**
+     * Used to remove a card fom the table
+     * @param cardID - The ID of the card to remove
+     * @param destroy - Whether or not to destroy the game object associated with the card
+     */
+    public removeCardFromTable(cardID: number, destroy: boolean = false): void {
+        const card: Card = this.getCardByID(cardID, this.playerID).card;
+
+        if (card) {
+            this._cards = this.filterOutID(this._cards, card);
+
+            if (destroy && card.gameObject) {
+                card.gameObject.destroy();
+                card.gameObject = null;
+            }
+
+            this.delay(this.saveToCache());
+        }
+    }
+
+    /**
      * Used to add a card to a deck
      * @param card - The card to add
      * @param deckID - The ID of the deck to add to
@@ -482,7 +486,10 @@ export default class GameState {
     
         if (deck) {
             card.inDeck = true;
-            deck.cards.push(card);
+
+            if (this.amHost) {
+                deck.cards.push(card);
+            }
         }
 
         this.delay(this.saveToCache())
@@ -514,14 +521,19 @@ export default class GameState {
     /**
      * Used to remove a card from the player's own hand, which also removes the card from the overall hands array if the player is the host
      * @param cardID - The ID of the card to remove
-     * @param playerID - The ID of the player removing it
+     * @param destroy - Whether or not to destroy the game object associated with that card
      */
-    public removeCardFromOwnHand(cardID: number): void {
+    public removeCardFromOwnHand(cardID: number, destroy: boolean = false): void {
         const card: Card = this.getCardByID(cardID, this.playerID).card;
 
         if (card) {
             card.inHand = false;
             this.myHand.cards = this.filterOutID(this.myHand.cards, card);
+
+            if (destroy && card.gameObject) {
+                card.gameObject.destroy();
+                card.gameObject = null;
+            }
 
             if (this.amHost) {
                 this.removeCardFromPlayerHand(cardID, this.playerID);
@@ -597,6 +609,8 @@ export default class GameState {
 
                 this.delay(this.saveToCache())
             }
+            card.x = deck.x;
+            card.y = deck.y;
             return card;
         } else {
             return null;
@@ -644,7 +658,11 @@ export default class GameState {
                     image = this.decks[i].gameObject;
 
                     if (myCenterX > image.x && myCenterX < image.x + image.displayWidth && myCenterY > image.y && myCenterY < image.y + image.displayHeight) {
-                        this._cards = this.removeAndDestroyCardFromListByID(this._cards, card, cardLocation);
+                        if (cardLocation === ECardLocation.MYHAND) {
+                            this.removeCardFromOwnHand(card.id, true);
+                        } else if (cardLocation === ECardLocation.TABLE) {
+                            this.removeCardFromTable(card.id, true);
+                        }
                         this.addCardToDeck(card, this.decks[i].id);
                         return { overlapType: EOverlapType.DECK, deckID: this.decks[i].id };
                     }
@@ -690,7 +708,7 @@ export default class GameState {
                 found = true;
 
                 if (removeAndDestroyFromTable) {
-                    this._cards = this.removeAndDestroyCardFromListByID(this._cards, card, ECardLocation.TABLE);
+                    this.removeCardFromTable(card.id, true);
                 }
                 return { card: card, location: ECardLocation.TABLE };
             }
@@ -704,7 +722,7 @@ export default class GameState {
 
                     if (removeAndDestroyFromHand) {
                         card.inHand = false;
-                        this.myHand.cards = this.removeAndDestroyCardFromListByID(this.myHand.cards, card, ECardLocation.MYHAND);
+                        this.removeCardFromOwnHand(card.id, true);
                     }
                     return { card: card, location: ECardLocation.MYHAND };
                 }
@@ -719,7 +737,7 @@ export default class GameState {
                             card = this._hands[i].cards[j];
                             if (removeAndDestroyFromHand) {
                                 card.inHand = false;
-                                this._hands[i].cards = this.removeAndDestroyCardFromListByID(this._hands[i].cards, card, ECardLocation.OTHERHAND);
+                                this.removeCardFromPlayerHand(card.id, playerIDOfWhoActedOnCard);
                             }
                             return { card: card, location: ECardLocation.OTHERHAND };
                         }
@@ -770,7 +788,7 @@ export default class GameState {
      * @param extras - An array of extra game object properties that the user wants to include
      * @param doNotSendTo - a list of peerIDs not to send the data to
      */
-    public sendPeerData(action: string, extras: GameObjectExtraProperties, doNotSendTo: string[] = [], onlySendTo: string[] = [],) {
+    public sendPeerData(action: string, extras: GameObjectExtraProperties, doNotSendTo: string[] = [], onlySendTo: string[] = []) {
         this.connections.forEach((connection: DataConnection) => {
             if (onlySendTo.length > 0) {
                 if (onlySendTo.includes(connection.peer)) {
@@ -851,15 +869,15 @@ export default class GameState {
     
             receivedGameState.cardMins.forEach((cardMin: CardMin) => {
               let card: Card = new Card(cardMin.id, cardMin.imagePath, cardMin.x, cardMin.y);
-              HelperFunctions.createCard(card, playspaceComponent, SharedActions.onDragMove, SharedActions.onDragEnd, HelperFunctions.EDestination.TABLE, card.x, card.y);
+              HelperFunctions.createCard(card, playspaceComponent, SharedActions.onDragMove, SharedActions.onDragEnd, HelperFunctions.EDestination.TABLE);
             });
             receivedGameState.deckMins.forEach((deckMin: DeckMin) => {
               let deck: Deck = new Deck(deckMin.id, deckMin.imagePath, [], deckMin.x, deckMin.y);
-              HelperFunctions.createDeck(deck, playspaceComponent, SharedActions.onDragMove, SharedActions.onDragEnd, DeckActions.deckRightClick, deck.x, deck.y);
+              HelperFunctions.createDeck(deck, playspaceComponent, SharedActions.onDragMove, SharedActions.onDragEnd, DeckActions.deckRightClick);
             });
             receivedGameState.handMin.cardMins.forEach((cardMin: CardMin) => {
               let card: Card = new Card(cardMin.id, cardMin.imagePath, cardMin.x, cardMin.y, true);
-              HelperFunctions.createCard(card, playspaceComponent, SharedActions.onDragMove, SharedActions.onDragEnd, HelperFunctions.EDestination.HAND, card.x, card.y);
+              HelperFunctions.createCard(card, playspaceComponent, SharedActions.onDragMove, SharedActions.onDragEnd, HelperFunctions.EDestination.HAND);
             });
     
             document.getElementById('loading').style.display = "none";
@@ -924,9 +942,11 @@ export default class GameState {
     
               if (deck && deck.cards.length > 0) {
                 let card: Card = this.getCardFromDeck(deck.cards.length - 1, deck.id, true);
+                card.x = data.extras.destination === HelperFunctions.EDestination.TABLE ? deck.x : playspaceComponent.gameState.myHand.gameObject.x + 150;
+                card.y = data.extras.destination === HelperFunctions.EDestination.TABLE ? deck.y : playspaceComponent.gameState.myHand.gameObject.y + 200;
     
                 if (data.extras.destination === HelperFunctions.EDestination.TABLE) {
-                    HelperFunctions.createCard(card, playspaceComponent, SharedActions.onDragMove, SharedActions.onDragEnd, HelperFunctions.EDestination.TABLE, deck.gameObject.x, deck.gameObject.y);
+                    HelperFunctions.createCard(card, playspaceComponent, SharedActions.onDragMove, SharedActions.onDragEnd, HelperFunctions.EDestination.TABLE);
                 } else if (data.extras.destination === HelperFunctions.EDestination.HAND) {
                     this.addCardToPlayerHand(card, data.playerID);
                 }
@@ -937,8 +957,8 @@ export default class GameState {
                       cardID: card.id,
                       deckID: deck.id,
                       type: EGameObjectType.CARD,
-                      x: deck.x,
-                      y: deck.y,
+                      x: card.x,
+                      y: card.y,
                       imagePath: card.imagePath,
                       destination: data.extras.destination
                     },
@@ -962,9 +982,8 @@ export default class GameState {
                 HelperFunctions.createCard(card, playspaceComponent, 
                     SharedActions.onDragMove, 
                     SharedActions.onDragEnd, 
-                    data.extras.destination, 
-                    data.extras.destination === HelperFunctions.EDestination.TABLE ? deck.gameObject.x : playspaceComponent.gameState.myHand.gameObject.x + 150,
-                    data.extras.destination === HelperFunctions.EDestination.TABLE ? deck.gameObject.y : playspaceComponent.gameState.myHand.gameObject.y + 200);
+                    data.extras.destination
+                );
               }
             }
             break;
@@ -1018,7 +1037,7 @@ export default class GameState {
                     {
                       cardID: card.id,
                       type: EGameObjectType.CARD,
-                    }
+                    },
                     [data.peerID]
                   );
     
@@ -1037,8 +1056,10 @@ export default class GameState {
               if (this.amHost) {
                 // Card already exists if I'm the host, since I know everyone's hands
                 card = this.getCardByID(data.extras.cardID, data.playerID, true, true).card;
+                card.x = data.extras.x;
+                card.y = data.extras.y;
     
-                HelperFunctions.createCard(card, playspaceComponent, SharedActions.onDragMove, SharedActions.onDragEnd, HelperFunctions.EDestination.TABLE, data.extras.x, data.extras.y)
+                HelperFunctions.createCard(card, playspaceComponent, SharedActions.onDragMove, SharedActions.onDragEnd, HelperFunctions.EDestination.TABLE)
     
                 // Tell other possible peers that this card was removed from a hand
                 this.sendPeerData(
@@ -1049,12 +1070,12 @@ export default class GameState {
                     imagePath: card.imagePath,
                     x: card.x,
                     y: card.y,
-                  }
+                  },
                   [data.peerID]
                 );        
               } else {
                 card = new Card(data.extras.cardID, data.extras.imagePath, data.extras.x, data.extras.y);
-                HelperFunctions.createCard(card, playspaceComponent, SharedActions.onDragMove, SharedActions.onDragEnd, HelperFunctions.EDestination.TABLE, data.extras.x, data.extras.y);
+                HelperFunctions.createCard(card, playspaceComponent, SharedActions.onDragMove, SharedActions.onDragEnd, HelperFunctions.EDestination.TABLE);
               }
             }
     

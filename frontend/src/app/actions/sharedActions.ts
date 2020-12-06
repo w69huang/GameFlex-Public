@@ -11,7 +11,7 @@ export function onDragMove(object: any, component: any, pointer: Phaser.Input.Po
       object.gameObject.setX(dragX);
       object.gameObject.setY(dragY);
       
-      if (component.gameState) {
+      if (component.gameState && !object.inHand) {
         component.gameState.sendPeerData(
           EActionTypes.move,
             {
@@ -40,8 +40,9 @@ export function onDragEnd(object: any, playspaceComponent: PlayspaceComponent, p
           type: object.type,
         }
       );
-    } else if (overlapObject.overlapType === EOverlapType.ALREADYINHAND || (overlapObject.overlapType === EOverlapType.TABLE && overlapObject.wasInHand === false)) {
-      // If overlapped with only the table or the card was already in hand and overlapped with hand again, report movement
+    } else if (overlapObject.overlapType === EOverlapType.ALREADYINHAND && !playspaceComponent.gameState.getAmHost()) {
+      // If overlapped with the hand and was already in the hand, report movement if NOT the host
+      // The host does not need to share its local hand movements b/c the other players do not store the host's hand data
       playspaceComponent.gameState.sendPeerData(
         EActionTypes.move,
         {
@@ -52,7 +53,20 @@ export function onDragEnd(object: any, playspaceComponent: PlayspaceComponent, p
           finishedMoving: true
         }
       );
-    } else if (overlapObject.overlapType === EOverlapType.TABLE && overlapObject.wasInHand === true) {
+    } else if (overlapObject.overlapType === EOverlapType.TABLE && overlapObject.wasInHand === false) {
+      // If overlapped with the table and the card was already on the table
+      playspaceComponent.gameState.sendPeerData(
+        EActionTypes.move,
+        {
+          id: object.id,
+          type: object.type,
+          x: object.x,
+          y: object.y,
+          finishedMoving: true
+        }
+      );
+    } 
+    else if (overlapObject.overlapType === EOverlapType.TABLE && overlapObject.wasInHand === true) {
       // If card overlapped with table and it was in my hand previously
       playspaceComponent.gameState.sendPeerData(
         EActionTypes.removeFromHand,

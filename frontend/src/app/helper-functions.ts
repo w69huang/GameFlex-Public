@@ -10,11 +10,11 @@ export enum EDestination {
     HAND = "Hand"
 }
 
-export function createCard(card: Card, playspaceComponent: PlayspaceComponent, dragMove: Function, dragEnd: Function, destination: string, x: number, y: number) {
+export function createCard(card: Card, playspaceComponent: PlayspaceComponent, dragMove: Function, dragEnd: Function, destination: string) {
     if (playspaceComponent.phaserScene.textures.exists(card.imagePath)) {
         // If the image already exists in the texture manager's cache, we can create the object now
 
-        card.gameObject = playspaceComponent.phaserScene.add.image(x, y, card.imagePath);
+        card.gameObject = playspaceComponent.phaserScene.add.image(card.x, card.y, card.imagePath);
         card.gameObject.setInteractive();
         playspaceComponent.phaserScene.input.setDraggable(card.gameObject);
         card.gameObject.on('drag', dragMove.bind(this, card, playspaceComponent));
@@ -29,7 +29,7 @@ export function createCard(card: Card, playspaceComponent: PlayspaceComponent, d
     } else {
         // Otherwise, we have to dynamically load it
         playspaceComponent.phaserScene.load.image(card.imagePath, card.imagePath);
-        playspaceComponent.phaserScene.load.once("complete", cardCreationCallback.bind(this, card, playspaceComponent, dragMove, dragEnd, destination, x, y));
+        playspaceComponent.phaserScene.load.once("complete", cardCreationCallback.bind(this, card, playspaceComponent, dragMove, dragEnd, destination, card.x, card.y));
         playspaceComponent.phaserScene.load.start();
     }
 }
@@ -49,11 +49,11 @@ export function cardCreationCallback(card: Card, playspaceComponent: PlayspaceCo
     }
 }
 
-export function createDeck(deck: Deck, playspaceComponent: PlayspaceComponent, dragMove: Function, dragEnd: Function, rightClick: Function, x: number, y: number) {
+export function createDeck(deck: Deck, playspaceComponent: PlayspaceComponent, dragMove: Function, dragEnd: Function, rightClick: Function) {
     if (playspaceComponent.phaserScene.textures.exists(deck.imagePath)) {
         // If the image already exists in the texture manager's cache, we can create the object now
 
-        deck.gameObject = playspaceComponent.phaserScene.add.image(x, y, deck.imagePath);
+        deck.gameObject = playspaceComponent.phaserScene.add.image(deck.x, deck.y, deck.imagePath);
         deck.gameObject.setInteractive();
         playspaceComponent.phaserScene.input.setDraggable(deck.gameObject);
         deck.gameObject.on('drag', dragMove.bind(this, deck, playspaceComponent));
@@ -65,7 +65,7 @@ export function createDeck(deck: Deck, playspaceComponent: PlayspaceComponent, d
     } else {
         // Otherwise, we have to dynamically load it
         playspaceComponent.phaserScene.load.image(deck.imagePath, deck.imagePath);
-        playspaceComponent.phaserScene.load.once("complete", deckCreationCallback.bind(this, deck, playspaceComponent, dragMove, rightClick, x, y));
+        playspaceComponent.phaserScene.load.once("complete", deckCreationCallback.bind(this, deck, playspaceComponent, dragMove, rightClick, deck.x, deck.y));
         playspaceComponent.phaserScene.load.start();
     }
 }

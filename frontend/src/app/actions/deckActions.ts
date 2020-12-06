@@ -47,9 +47,8 @@ export function retrieveTopCard(popupScene: PopupScene, deck: Deck, playspaceCom
                 HelperFunctions.createCard(card, playspaceComponent, 
                     SharedActions.onDragMove, 
                     SharedActions.onDragEnd, 
-                    HelperFunctions.EDestination.TABLE, 
-                    optionObjectConfig.destination === HelperFunctions.EDestination.TABLE ? deck.gameObject.x : playspaceComponent.gameState.myHand.gameObject.x + 150,
-                    optionObjectConfig.destination === HelperFunctions.EDestination.TABLE ? deck.gameObject.y : playspaceComponent.gameState.myHand.gameObject.y + 200);
+                    optionObjectConfig.destination
+                );
 
                 if (optionObjectConfig.destination === HelperFunctions.EDestination.TABLE) {
                     playspaceComponent.gameState.sendPeerData(
