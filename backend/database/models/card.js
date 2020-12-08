@@ -14,8 +14,8 @@ const CardSchema = new mongoose.Schema({
     type: String,
     visibleTo: Array
 
-})
+});
 
-const Card = mongoose.model('Card', CardSchema)
+const Card = mongoose.model('Card', CardSchema);
 
 module.exports = Card;

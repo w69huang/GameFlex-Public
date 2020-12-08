@@ -84,7 +84,7 @@ export class ConfigEditorComponent implements OnInit {
       if (saveConfigData) {
         this.configuration.name = saveConfigData.name;
         
-        let processedConfiguration = this.processConfigurationForBackend(this.configuration)
+        let processedConfiguration = this.processConfigurationForBackend(this.configuration);
 
         this.configurationService.createConfiguration(processedConfiguration)
           .subscribe((configuration: Configuration) => {
@@ -96,19 +96,19 @@ export class ConfigEditorComponent implements OnInit {
   }
 
   updateConfig() {
-    let processedConfiguration = this.processConfigurationForBackend(this.configuration)
+    let processedConfiguration = this.processConfigurationForBackend(this.configuration);
     this.configurationService.updateConfiguration(processedConfiguration)
       .subscribe((configuration: Configuration) => {
         console.log("Updated to... ", configuration);
-      })
+      });
   }
 
-  deleteConfig(configurationId: string = this?.configuration._id) { //TODO: Should this attempt to grad from the input box first?
+  deleteConfig(configurationId: string = this?.configuration._id) { //TODO: Should this attempt to grab from the input box first?
     this.configurationService.deleteConfiguration(configurationId)
       .subscribe(() => {
         console.log('Deletion has returned.');
         this.clearConfig();
-      })
+      });
   }
 
   getConfig(configurationId: string) {
@@ -121,22 +121,20 @@ export class ConfigEditorComponent implements OnInit {
         let newConfiguration = this.processConfigurationFromBackend(configuration);
         this.renderConfiguration(newConfiguration);
         this.configuration = newConfiguration;
-      })
+      });
 
   }
 
-  //
   // HELPER FUNCTIONS
-  //
 
   /**
    * Remove any config that is on the screen and set a fresh empty one.
    */
   clearConfig() {
     if(this.configuration) {
-      this.configuration.decks.forEach(deck => deck.gameObject.destroy()) // TODO: Remove the shit that's there already if needed
+      this.configuration.decks.forEach(deck => deck.gameObject.destroy());
     }
-    this.initConfig()
+    this.initConfig();
   }
 
   /**
@@ -150,7 +148,6 @@ export class ConfigEditorComponent implements OnInit {
    * Creates a deck.
    */
   initDeck() {
-    // Just for the create deck button
     let deck: Deck = new Deck(this.highestID++, "assets/images/playing-cards/deck.png", [], 400, 250);
     HelperFunctions.createDeck(deck, this, SharedActions.onDragMove, SharedActions.onDragEnd, DeckActions.deckRightClick, deck.x, deck.y);
   }
@@ -206,7 +203,7 @@ export class ConfigEditorComponent implements OnInit {
     // Corrects the date format since the backend auto-formats it
     configurationObj.date = new Date(configurationObj.date);
 
-    return configurationObj
+    return configurationObj;
   }
 
   /**
@@ -216,14 +213,14 @@ export class ConfigEditorComponent implements OnInit {
   processConfigurationForBackend(configuration: Configuration){
     // Convert Decks to Deck model
     let decks = [];
-    configuration.decks?.forEach(deck => decks.push(new DeckMin(deck))) //TODO: This does nothing rn. Is the reason it's not saving because of the backend model not matching up maybe?
+    configuration.decks?.forEach(deck => decks.push(new DeckMin(deck)));
     let processedConfiguration = Object.assign({}, this.configuration);
     processedConfiguration.decks = decks;
 
     // Convert Counters to Counter model
     // TODO To be implemented 
     
-    return processedConfiguration
+    return processedConfiguration;
   }
 
   /**
@@ -234,7 +231,7 @@ export class ConfigEditorComponent implements OnInit {
    this.clearConfig();
 
     configuration.decks.forEach(deck => {
-      HelperFunctions.createDeck(deck, this, SharedActions.onDragMove, SharedActions.onDragEnd, DeckActions.deckRightClick, deck.x, deck.y)
+      HelperFunctions.createDeck(deck, this, SharedActions.onDragMove, SharedActions.onDragEnd, DeckActions.deckRightClick, deck.x, deck.y);
     });
     //TODO: Confirm this works, and delete. How does it work without this?
     // configuration.counters.forEach(counter => {

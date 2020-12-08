@@ -169,11 +169,6 @@ mysqlapp.use('/online-games', onlineGamesRoutes);
 app.use('/saved-game-state', savedGameStateRoutes);
 app.use('/configuration', configurationRoutes);
 
-<<<<<<< HEAD
-// port number to listen on, callback fxn for when it completes
-app.listen(3000, () => console.log("Server Connected on port 3000"));
-=======
  // port number to listen on, callback fxn for when it completes
 app.listen(3000, () => console.log("Server Connected on port 3000"))
->>>>>>> develop
 mysqlapp.listen(5000, () => console.log("Mysql Server Connected on port 5000"));

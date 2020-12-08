@@ -37,9 +37,6 @@ export class RetrieveGameStatePopupComponent implements OnInit {
 
       this.saves = savedGameStates;
 
-      // set initial selection
-      // this.saveCtrl.setValue(this.saves[0]);
-
       // load the initial save list
       this.filteredSaves.next(this.saves.slice());
 
