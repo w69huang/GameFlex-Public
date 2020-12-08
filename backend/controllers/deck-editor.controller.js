@@ -14,6 +14,9 @@ module.exports = (upload) => {
 
     let gfs;
 
+    //Deck Model
+    let Deck = require('../database/models/userDeck');
+
     connect.once('open', () => {
         //initialize Gridfs datastream
         gfs = new mongoose.mongo.GridFSBucket(connect.db, {
@@ -28,19 +31,32 @@ module.exports = (upload) => {
     */
     router.route('/upload')
         .post(upload.array('file', 60), (req, res, next) => {
-            console.log(req.body);
+
+            const cardID = req.files[0].id;
+            const userID = req.body.username;
+            const deckName = req.body.deckName;
+            
+            Deck.find({ deckName: deckName, userID: userID })
+                .then((Deck) => Deck.imageID.append(req.files[0].id)).save();
+
             res.status(200).json({
                 success: true,
                 message: req.files.length + ' file(s) uploaded succesfully',
             });
-            //TODO: if new deck -> create new deck
         });
 
     /*
         GET: Fetches all the files in the uploads collection
     */
     router.route('/files').get((req, res, next) => {
-        gfs.find().toArray((err, files) => {
+        //find the deck using deckname and userID
+        const userID = req.query.userID;
+        const deckName = req.query.deckName;
+        const currentDeck = Deck.find({ deckName: deckName, userID: userID });
+        var cardIDs = currentDeck.imageID;
+        
+        //gridFS fid by ID(????)
+        gfs.find({ deckName: deckName }).toArray((err, files) => {
             if (!files || files.length === 0) {
                 return res.status(200).json({
                     success: false,
@@ -147,8 +163,7 @@ module.exports = (upload) => {
 
    //TODO: integrate deck functionality into the routes
 
-   //Deck Model
-   let Deck = require('../database/models/userDeck');
+
 
    router.route('/new-deck').post((req, res, next) => {
         const deckName = req.body.deckName;

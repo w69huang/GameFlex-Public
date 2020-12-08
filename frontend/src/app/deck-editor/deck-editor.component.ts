@@ -57,7 +57,7 @@ export class DeckEditorComponent implements OnInit {
     });
 
     dialogRef.afterClosed().subscribe(deckData => {
-      const deckName: string = deckData.name;
+      //const deckName: string = deckData.name;
       const username: string = this.middleWare.getUsername();
 
       deckData.files?.forEach(file => {  

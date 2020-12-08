@@ -33,8 +33,8 @@ export class FileService {
     this.fileList$.next(this.fileList);
   }
 
-  public list(): any {
-    return this.webService.get('files', true);
+  public list(deckName: string, userID: string): any {
+    return this.webService.get(`files?deckName=${deckName}&userID=${userID}`, true);
     //return this.fileList$;
   }
 
