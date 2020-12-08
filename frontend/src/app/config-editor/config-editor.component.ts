@@ -1,24 +1,13 @@
-import { HttpEventType, HttpErrorResponse } from '@angular/common/http';
-import { of } from 'rxjs';
-import { catchError, map } from 'rxjs/operators';
-
 import { ConfigurationService } from 'src/app/services/configuration.service';
 import { Router, ActivatedRoute, Params } from '@angular/router';
 import { MatDialog } from '@angular/material/dialog';
 import { Component, OnInit } from '@angular/core';
 
-import { DataConnection } from 'peerjs';
 import Phaser from 'phaser';
-import Card from '../models/card';
-import CardMin from '../models/cardMin';
 import Deck from '../models/deck';
 import DeckMin from '../models/deckMin';
 import Counter from '../models/counter';
-import Hand from '../models/hand';
-import HandMin from '../models/handMin';
-import GameState from '../models/gameState';
 import Configuration from '../models/configuration'
-import SentGameState from '../models/sentGameState';
 import ConfigScene from '../models/phaser-scenes/configScene';
 import PopupScene from '../models/phaser-scenes/popupScene';
 import OptionObject from '../models/optionObject';
@@ -26,7 +15,6 @@ import OptionObject from '../models/optionObject';
 import * as HelperFunctions from '../helper-functions';
 import * as SharedActions from '../actions/sharedActions';
 import * as DeckActions from '../actions/deckActions';
-import { NewTaskComponent } from '../pages/new-task/new-task.component';
 import { CreateCounterPopupComponent } from '../popups/create-counter-popup/create-counter-popup.component';
 import { SaveConfigurationPopupComponent } from '../popups/save-configuration-popup/save-configuration-popup.component';
 import { MiddleWare } from '../services/middleware';
@@ -49,10 +37,7 @@ export class ConfigEditorComponent implements OnInit {
   public handBeginY: number = 600;
   public otherPeerId: string;
   public highestID: number = 1;
-
-  // State
   public playerID: number = 1;
-  // public gameState: GameState;
 
   configuration: Configuration;
 
@@ -68,11 +53,6 @@ export class ConfigEditorComponent implements OnInit {
 
   ngOnInit(): void {
     setTimeout(_ => this.initialize(), 100);
-
-    // this.route.params.subscribe((params: Params) => this.configurationId = params.configurationId)
-    // this.configurationService.getConfiguration(this.configurationId)
-    // this.configurationService.getConfiguration()
-    //   .subscribe((configuration: Configuration) => this.configuration = configuration)
 
   }
 
@@ -90,9 +70,7 @@ export class ConfigEditorComponent implements OnInit {
 
   }
 
-  //
   // API CALLS
-  //
 
   saveConfig() {
     // if(configurationId){ this.configurationService.updateConfiguration(........)} else {}
@@ -115,17 +93,7 @@ export class ConfigEditorComponent implements OnInit {
 
       }
     });
-
   }
-/**
- * Get:
- * - Figure out backend bug with SavedConfigurations still existing, why can't we get it?
- * - Actually Render each thing  ***DONE***
- * - Assign the proper objects so they get all the parameters  ***DONE***
- * Save/Update:
- * - Strip out the _id and add it too ****DONE****
- * - Add _id to the model ***DONE***
- */
 
   updateConfig() {
     let processedConfiguration = this.processConfigurationForBackend(this.configuration)

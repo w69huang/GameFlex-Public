@@ -25,8 +25,8 @@ const ConfigurationSchema = new mongoose.Schema({
         type: [Deck]
     },
     counters: [Counter]
-})
+});
 
-const Configuration = mongoose.model('Configuration', ConfigurationSchema)
+const Configuration = mongoose.model('Configuration', ConfigurationSchema);
 
 module.exports = Configuration;

@@ -1,4 +1,4 @@
-const mongoose = require('mongoose')
+const mongoose = require('mongoose');
 
 // Create the schema
 
@@ -9,12 +9,8 @@ const CounterSchema = new mongoose.Schema({
     maxValue: Number,
     minValue: Number,
     increment: Number,
-    x: Number,
-    y: Number,
-    width: Number,
-    height: Number
-})
+});
 
-const Counter = mongoose.model('Counter', CounterSchema)
+const Counter = mongoose.model('Counter', CounterSchema);
 
 module.exports = Counter;
