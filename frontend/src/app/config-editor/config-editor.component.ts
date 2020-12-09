@@ -225,7 +225,7 @@ export class ConfigEditorComponent implements OnInit {
 
   /**
    * Removes on screen elements and renders passed in configuration
-   * @param configuration 
+   * @param configuration any Configuration type. Usually this.configuration.
    */
   renderConfiguration(configuration: Configuration) {
    this.clearConfig();
@@ -233,23 +233,17 @@ export class ConfigEditorComponent implements OnInit {
     configuration.decks.forEach(deck => {
       HelperFunctions.createDeck(deck, this, SharedActions.onDragMove, SharedActions.onDragEnd, DeckActions.deckRightClick, deck.x, deck.y);
     });
-    //TODO: Confirm this works, and delete. How does it work without this?
-    // configuration.counters.forEach(counter => {
-    //   counter.type = "counter"; //TODO This is probably not needed later OR see other comment about renderableObject
-    //   HelperFunctions.createCounter(this, counter, SharedActions.onDragMove)
-    // });
+
+    // Counters are rendered by the html
   }
 
   /**
    * Updates the counter object with the actual value on change.
    * @param id of the counter.
-   * @param inputObject uuuuuuuuhhh? //TODO: describe
+   * @param inputObject the input field containing the new information.
    */
-  onChangeCounterText(id: number, inputObject: any) {
-
-    //  Have they entered anything?
-    if (inputObject.value !== '') { //TODO: What if they emptied it and it previously had a value?
-      console.log('inputText == ', inputObject.value);
-    }
+  onChangeCounterText(counter) {
+    let input : HTMLInputElement = <HTMLInputElement>document.getElementById('counter' + counter.id);
+    counter.value = input.value;
   }
 }

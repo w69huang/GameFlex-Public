@@ -12,7 +12,7 @@
             <button class="btn btn-primary" (click)="initCounter()">Create Counter</button>
             <div *ngFor="let counter of configuration.counters">
                 <label for="nameField">{{ counter.name }}</label>
-                <input (change)="onChangeCounterText(counter.id, this)" type="text" id="counter.id" name="nameField" 
+                <input (change)="onChangeCounterText(counter)" type="text" id="counter{{counter.id}}" 
                 placeholder="##" value="{{counter.value}}" style="font-size: 24px">
                 <!-- Having the id as the counter.id is probably not the best... also is that even valid without the double { -->
              </div>
