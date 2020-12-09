@@ -643,10 +643,7 @@ export default class GameState {
         let image: Phaser.GameObjects.Image = this.myHand.gameObject;
 
         if (card) {
-            let myCenterX = card.gameObject.x + card.gameObject.displayWidth/2;
-            let myCenterY = card.gameObject.y + card.gameObject.displayHeight/2;
-
-            if (myCenterX > image.x && myCenterX < image.x + image.displayWidth && myCenterY > image.y && myCenterY < image.y + image.displayHeight) {
+            if (card.gameObject.x > image.x && card.gameObject.x < image.x + image.displayWidth && card.gameObject.y > image.y && card.gameObject.y < image.y + image.displayHeight) {
                 if (cardLocation !== ECardLocation.MYHAND) {
                     this._cards = this.filterOutID(this._cards, card);
                     this.addCardToOwnHand(card);
@@ -657,7 +654,7 @@ export default class GameState {
                 for (let i: number = 0; i < this._decks.length; i++) {
                     image = this.decks[i].gameObject;
 
-                    if (myCenterX > image.x && myCenterX < image.x + image.displayWidth && myCenterY > image.y && myCenterY < image.y + image.displayHeight) {
+                    if (card.gameObject.x > image.x - image.displayWidth && card.gameObject.x < image.x + image.displayWidth && card.gameObject.y > image.y - image.displayHeight && card.gameObject.y < image.y + image.displayHeight) {
                         if (cardLocation === ECardLocation.MYHAND) {
                             this.removeCardFromOwnHand(card.id, true);
                         } else if (cardLocation === ECardLocation.TABLE) {

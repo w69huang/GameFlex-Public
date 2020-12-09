@@ -22,8 +22,8 @@ export function createCard(card: Card, playspaceComponent: PlayspaceComponent, d
         });
         card.gameObject.on('drag', dragMove.bind(this, card, playspaceComponent));
         card.gameObject.on('dragend', dragEnd.bind(this, card, playspaceComponent));
-        card.gameObject.displayWidth = 200;
-        card.gameObject.displayHeight = 300;
+        card.gameObject.displayWidth = 100;
+        card.gameObject.displayHeight = 150;
         card.gameObject.setDepth(playspaceComponent.highestDepth++);
         if (destination === EDestination.TABLE) {
             playspaceComponent.gameState.addCardToTable(card);
@@ -47,8 +47,8 @@ export function cardCreationCallback(card: Card, playspaceComponent: PlayspaceCo
     });
     card.gameObject.on('drag', dragMove.bind(this, card, playspaceComponent));
     card.gameObject.on('dragend', dragEnd.bind(this, card, playspaceComponent));
-    card.gameObject.displayWidth = 200;
-    card.gameObject.displayHeight = 300;
+    card.gameObject.displayWidth = 100;
+    card.gameObject.displayHeight = 150;
     card.gameObject.setDepth(playspaceComponent.highestDepth++);
     if (destination === EDestination.TABLE) {
         playspaceComponent.gameState.addCardToTable(card);
@@ -70,8 +70,8 @@ export function createDeck(deck: Deck, playspaceComponent: PlayspaceComponent, d
         deck.gameObject.on('drag', dragMove.bind(this, deck, playspaceComponent));
         deck.gameObject.on('dragend', dragEnd.bind(this, deck, playspaceComponent));
         deck.gameObject.on('pointerdown', rightClick.bind(this, deck, playspaceComponent));
-        deck.gameObject.displayWidth = 200;
-        deck.gameObject.displayHeight = 300;
+        deck.gameObject.displayWidth = 100;
+        deck.gameObject.displayHeight = 150;
         deck.gameObject.setDepth(playspaceComponent.highestDepth++);
         playspaceComponent.gameState.addDeckToTable(deck);
     } else {
@@ -91,8 +91,8 @@ export function deckCreationCallback(deck: Deck, playspaceComponent: PlayspaceCo
     });
     deck.gameObject.on('drag', dragMove.bind(this, deck, playspaceComponent));
     deck.gameObject.on('pointerdown', rightClick.bind(this, deck, playspaceComponent));
-    deck.gameObject.displayWidth = 200;
-    deck.gameObject.displayHeight = 300;
+    deck.gameObject.displayWidth = 100;
+    deck.gameObject.displayHeight = 150;
     deck.gameObject.setDepth(playspaceComponent.highestDepth++);
     playspaceComponent.gameState.addDeckToTable(deck);
 }

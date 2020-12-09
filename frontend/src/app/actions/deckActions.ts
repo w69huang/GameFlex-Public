@@ -43,6 +43,8 @@ export function retrieveTopCard(popupScene: PopupScene, deck: Deck, playspaceCom
         if (card) {
             if (card.gameObject == null) {
                 card.inDeck = false;
+                card.x = optionObjectConfig.destination === HelperFunctions.EDestination.TABLE ? deck.x : playspaceComponent.gameState.myHand.gameObject.x + 150;
+                card.y = optionObjectConfig.destination === HelperFunctions.EDestination.TABLE ? deck.y : playspaceComponent.gameState.myHand.gameObject.y + 200;
 
                 HelperFunctions.createCard(card, playspaceComponent, 
                     SharedActions.onDragMove, 
