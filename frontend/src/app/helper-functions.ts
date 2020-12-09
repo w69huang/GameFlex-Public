@@ -55,10 +55,10 @@ export function createDeck(deck: Deck, component: any, dragMove: Function, dragE
         component.phaserScene.input.setDraggable(deck.gameObject);
         deck.gameObject.on('drag', dragMove.bind(this, deck, component));
         deck.gameObject.on('dragend', dragEnd.bind(this, deck, component));
-        deck.gameObject.on('pointerdown', rightClick.bind(this, deck, component));
         deck.gameObject.displayWidth = 200;
         deck.gameObject.displayHeight = 300;
         if (component.gameState) {
+            deck.gameObject.on('pointerdown', rightClick.bind(this, deck, component));
             component.gameState.addDeckToTable(deck);
         } else if (component.configuration) {
             component.configuration.decks.push(deck);
