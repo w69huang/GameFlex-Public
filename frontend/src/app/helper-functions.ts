@@ -17,10 +17,14 @@ export function createCard(card: Card, playspaceComponent: PlayspaceComponent, d
         card.gameObject = playspaceComponent.phaserScene.add.image(card.x, card.y, card.imagePath);
         card.gameObject.setInteractive();
         playspaceComponent.phaserScene.input.setDraggable(card.gameObject);
+        card.gameObject.on('dragstart', () => {
+            card.gameObject.setDepth(playspaceComponent.highestDepth++);
+        });
         card.gameObject.on('drag', dragMove.bind(this, card, playspaceComponent));
         card.gameObject.on('dragend', dragEnd.bind(this, card, playspaceComponent));
         card.gameObject.displayWidth = 200;
         card.gameObject.displayHeight = 300;
+        card.gameObject.setDepth(playspaceComponent.highestDepth++);
         if (destination === EDestination.TABLE) {
             playspaceComponent.gameState.addCardToTable(card);
         } else {
@@ -38,10 +42,14 @@ export function cardCreationCallback(card: Card, playspaceComponent: PlayspaceCo
     card.gameObject = playspaceComponent.phaserScene.add.image(x, y, card.imagePath);
     card.gameObject.setInteractive();
     playspaceComponent.phaserScene.input.setDraggable(card.gameObject);
+    card.gameObject.on('dragstart', () => {
+        card.gameObject.setDepth(playspaceComponent.highestDepth++);
+    });
     card.gameObject.on('drag', dragMove.bind(this, card, playspaceComponent));
     card.gameObject.on('dragend', dragEnd.bind(this, card, playspaceComponent));
     card.gameObject.displayWidth = 200;
     card.gameObject.displayHeight = 300;
+    card.gameObject.setDepth(playspaceComponent.highestDepth++);
     if (destination === EDestination.TABLE) {
         playspaceComponent.gameState.addCardToTable(card);
     } else {
@@ -56,11 +64,15 @@ export function createDeck(deck: Deck, playspaceComponent: PlayspaceComponent, d
         deck.gameObject = playspaceComponent.phaserScene.add.image(deck.x, deck.y, deck.imagePath);
         deck.gameObject.setInteractive();
         playspaceComponent.phaserScene.input.setDraggable(deck.gameObject);
+        deck.gameObject.on('dragstart', () => {
+            deck.gameObject.setDepth(playspaceComponent.highestDepth++);
+        });
         deck.gameObject.on('drag', dragMove.bind(this, deck, playspaceComponent));
         deck.gameObject.on('dragend', dragEnd.bind(this, deck, playspaceComponent));
         deck.gameObject.on('pointerdown', rightClick.bind(this, deck, playspaceComponent));
         deck.gameObject.displayWidth = 200;
         deck.gameObject.displayHeight = 300;
+        deck.gameObject.setDepth(playspaceComponent.highestDepth++);
         playspaceComponent.gameState.addDeckToTable(deck);
     } else {
         // Otherwise, we have to dynamically load it
@@ -74,9 +86,13 @@ export function deckCreationCallback(deck: Deck, playspaceComponent: PlayspaceCo
     deck.gameObject = playspaceComponent.phaserScene.add.image(x, y, deck.imagePath);
     deck.gameObject.setInteractive();
     playspaceComponent.phaserScene.input.setDraggable(deck.gameObject);
+    deck.gameObject.on('dragstart', () => {
+        deck.gameObject.setDepth(playspaceComponent.highestDepth++);
+    });
     deck.gameObject.on('drag', dragMove.bind(this, deck, playspaceComponent));
     deck.gameObject.on('pointerdown', rightClick.bind(this, deck, playspaceComponent));
     deck.gameObject.displayWidth = 200;
     deck.gameObject.displayHeight = 300;
+    deck.gameObject.setDepth(playspaceComponent.highestDepth++);
     playspaceComponent.gameState.addDeckToTable(deck);
 }

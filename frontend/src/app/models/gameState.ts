@@ -895,7 +895,6 @@ export default class GameState {
                 if (card.gameObject) { 
                   card.gameObject.setX(data.extras.x);
                   card.gameObject.setY(data.extras.y);
-    
                   this.sendPeerData(
                     EActionTypes.move,
                       {

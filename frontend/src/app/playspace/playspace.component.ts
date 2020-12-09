@@ -32,6 +32,7 @@ export class PlayspaceComponent implements OnInit {
   public sceneHeight: number = 1000;
   public handBeginY: number = 600;
   public highestID: number = 1;
+  public highestDepth: number = 0;
 
   // From Game Instance
   @Input() private mainHostID: string;

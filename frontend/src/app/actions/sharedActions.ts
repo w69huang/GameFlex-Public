@@ -1,6 +1,7 @@
 import { PlayspaceComponent } from '../playspace/playspace.component';
 import Card from '../models/card';
 import { EActionTypes, EGameObjectType, EOverlapType, OverlapObject } from '../models/gameState';
+import { GameObjects } from 'phaser';
 
 // Drag move callback for moving objects on the phaser canvas
 // Will be used for both the config editor and the playspace
@@ -31,7 +32,6 @@ export function onDragEnd(object: any, playspaceComponent: PlayspaceComponent, p
     const card: Card = playspaceComponent.gameState.getCardByID(object.id, playspaceComponent.gameState.playerID)?.card;
     const overlapObject: OverlapObject = playspaceComponent.gameState.checkForOverlap(object.id);
 
-    console.log(object.x, ",",object.y)
     if (overlapObject.overlapType === EOverlapType.HAND) {
       playspaceComponent.gameState.sendPeerData(
         EActionTypes.insertIntoHand,

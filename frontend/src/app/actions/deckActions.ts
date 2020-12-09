@@ -93,7 +93,16 @@ export function shuffleDeck(popupScene: PopupScene, deck: Deck, playspaceCompone
 }
 
 export function importDeck(popupScene: PopupScene, deck: Deck, playspaceComponent: PlayspaceComponent) {
-    let imagePaths: string[] = ["assets/images/playing-cards/king_of_hearts.png", "assets/images/playing-cards/king_of_hearts.png"];
+    let imagePaths: string[] = [];
+    let baseURL: string = "assets/images/playing-cards/";
+    let prefixes: string[] = ["ace_of_", "two_of_", "three_of_", "four_of_", "five_of_", "six_of_", "seven_of_", "eight_of_", "nine_of_", "ten_of_", "jack_of_", "queen_of_", "king_of_"];
+    let suffixes: string[] = ["hearts.png", "spades.png", "diamonds.png", "clubs.png"];
+
+    prefixes.forEach((prefix: string) => {
+        suffixes.forEach((suffix: string) => {
+            imagePaths.push(baseURL + prefix + suffix);
+        });
+    });
 
     if (playspaceComponent.gameState.getAmHost()) {
         imagePaths.forEach((imagePath: string) => {
