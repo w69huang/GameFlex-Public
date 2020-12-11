@@ -5,7 +5,7 @@ const mongoose = require('mongoose');
 // Takes in an object equal to the def of our schema
 const CounterSchema = new mongoose.Schema({
     name: String,
-    currentValue: Number,
+    value: Number,
     maxValue: Number,
     minValue: Number,
     increment: Number,

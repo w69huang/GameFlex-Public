@@ -83,14 +83,14 @@ export class ConfigEditorComponent implements OnInit {
     dialogRef.afterClosed().subscribe(saveConfigData => {
       if (saveConfigData) {
         this.configuration.name = saveConfigData.name;
-        
-        let processedConfiguration = this.processConfigurationForBackend(this.configuration);
+        // remove the _id if it exists, such that mongoDb will assign a new one and we won't collide with an already existing one
+        delete this.configuration._id;
 
+        let processedConfiguration = this.processConfigurationForBackend(this.configuration);
         this.configurationService.createConfiguration(processedConfiguration)
           .subscribe((configuration: Configuration) => {
             this.configuration._id = configuration._id;
           });
-
       }
     });
   }
@@ -99,14 +99,12 @@ export class ConfigEditorComponent implements OnInit {
     let processedConfiguration = this.processConfigurationForBackend(this.configuration);
     this.configurationService.updateConfiguration(processedConfiguration)
       .subscribe((configuration: Configuration) => {
-        console.log("Updated to... ", configuration);
       });
   }
 
   deleteConfig(configurationId: string = this?.configuration._id) { //TODO: Should this attempt to grab from the input box first?
     this.configurationService.deleteConfiguration(configurationId)
       .subscribe(() => {
-        console.log('Deletion has returned.');
         this.clearConfig();
       });
   }
@@ -115,9 +113,11 @@ export class ConfigEditorComponent implements OnInit {
     // TODO: auto save before get (maybe)
     // saveConfig()
 
+    // Reset the highestID since we are getting a new config
+    this.highestID = 1;
+
     this.configurationService.getConfiguration(configurationId)
       .subscribe((configuration: Configuration) => {
-        console.log('get: ', configuration);
         let newConfiguration = this.processConfigurationFromBackend(configuration);
         this.renderConfiguration(newConfiguration);
         this.configuration = newConfiguration;
@@ -164,7 +164,6 @@ export class ConfigEditorComponent implements OnInit {
 
     dialogRef.afterClosed().subscribe(createCounterData => {
       if (createCounterData) {
-        console.log(createCounterData); 
 
         // Just for the create counter button
         let counter: Counter = new Counter(this.highestID++, createCounterData.name, parseFloat(createCounterData.defaultValue)); //TODO: Take in meaningful names
@@ -193,11 +192,13 @@ export class ConfigEditorComponent implements OnInit {
       //TODO:  Move these to the model, I see no reason why they're here
       deckObj.type = "deck"; //TODO This is probably not needed later 
       deckObj.imagePath = "assets/images/playing-cards/deck.png";
+      deckObj.id = this.highestID++;
     });
 
     configurationObj.counters.forEach(counterObj => {
       // Object.setPrototypeOf(configurationObj, Configuration.prototype)
       Object.assign(counterObj, Counter);
+      counterObj.id = this.highestID++;
     });
 
     // Corrects the date format since the backend auto-formats it
