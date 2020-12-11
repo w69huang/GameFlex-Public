@@ -1,7 +1,22 @@
 import { PlayspaceComponent } from '../playspace/playspace.component';
 import Card from '../models/card';
 import { EActionTypes, EGameObjectType, EOverlapType, OverlapObject } from '../models/gameState';
-import { GameObjects } from 'phaser';
+import Deck from '../models/deck';
+
+export function updateRenderOrder(object: Card | Deck, playspaceComponent: PlayspaceComponent) {
+  playspaceComponent.gameState.highestDepth++;
+  object.gameObject.setDepth(playspaceComponent.gameState.highestDepth);
+  if ((object instanceof Card && !object.inHand) || object instanceof Deck) {
+    playspaceComponent.gameState.sendPeerData(
+      EActionTypes.updateRenderOrder,
+      {
+        id: object.id,
+        type: object.type,
+        highestDepth: playspaceComponent.gameState.highestDepth
+      }
+    );
+  }
+}
 
 // Drag move callback for moving objects on the phaser canvas
 // Will be used for both the config editor and the playspace

@@ -6,7 +6,6 @@ import PopupScene from '../models/phaser-scenes/popupScene';
 import { EGameObjectType, EActionTypes } from '../models/gameState';
 
 import * as HelperFunctions from '../helper-functions';
-import * as SharedActions from '../actions/sharedActions';
 
 function popupClose(popupScene: PopupScene, deck: Deck, component: any) {
     component.phaserScene.scene.remove(popupScene.key);
@@ -46,11 +45,7 @@ export function retrieveTopCard(popupScene: PopupScene, deck: Deck, playspaceCom
                 card.x = optionObjectConfig.destination === HelperFunctions.EDestination.TABLE ? deck.x : playspaceComponent.gameState.myHand.gameObject.x + 150;
                 card.y = optionObjectConfig.destination === HelperFunctions.EDestination.TABLE ? deck.y : playspaceComponent.gameState.myHand.gameObject.y + 200;
 
-                HelperFunctions.createCard(card, playspaceComponent, 
-                    SharedActions.onDragMove, 
-                    SharedActions.onDragEnd, 
-                    optionObjectConfig.destination
-                );
+                HelperFunctions.createCard(card, playspaceComponent, optionObjectConfig.destination);
 
                 if (optionObjectConfig.destination === HelperFunctions.EDestination.TABLE) {
                     playspaceComponent.gameState.sendPeerData(

@@ -7,6 +7,7 @@ export default class DeckMin {
     imagePath: string;
     x: number;
     y: number;
+    depth: number;
     cardMins: CardMin[];
 
     constructor(deck: Deck) {
@@ -14,6 +15,7 @@ export default class DeckMin {
        this.imagePath = deck.imagePath;
        this.x = deck.x;
        this.y = deck.y;
+       this.depth = deck.gameObject ? deck.gameObject.depth : 0;
        this.cardMins = [];
 
        deck.cards.forEach((card: Card) => {

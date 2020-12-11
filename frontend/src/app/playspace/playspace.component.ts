@@ -16,6 +16,7 @@ import SavedGameState from '../models/savedGameState';
 import OnlineGame from '../models/onlineGame';
 import PlayspaceScene from '../models/phaser-scenes/playspaceScene';
 import { MatDialog } from '@angular/material/dialog';
+import SentGameState from '../models/sentGameState';
 
 @Component({
   selector: 'app-playspace',
@@ -32,7 +33,6 @@ export class PlayspaceComponent implements OnInit {
   public sceneHeight: number = 1000;
   public handBeginY: number = 600;
   public highestID: number = 1;
-  public highestDepth: number = 0;
 
   // From Game Instance
   @Input() private mainHostID: string;
@@ -78,8 +78,8 @@ export class PlayspaceComponent implements OnInit {
     // 1. npm install -g peer
     // 2. peerjs --port 9000 --key peerjs --path /peerserver
     this.peer = new Peer(this.gameState.myPeerID, { // You can pass in a specific ID as the first argument if you want to hardcode the peer ID
-      // host: 'localhost',
-      host: '35.215.71.108', // This is reserved for the external IP of the mongo DB instance. Replace this IP with the new IP generated when starting up the 
+      host: 'localhost',
+      // host: '35.215.71.108', // This is reserved for the external IP of the mongo DB instance. Replace this IP with the new IP generated when starting up the 
       port: 9000,
       path: '/peerserver' // Make sure this path matches the path you used to launch it
     }); 
@@ -180,7 +180,7 @@ export class PlayspaceComponent implements OnInit {
         this.gameState.playerDataObjects.forEach((playerDataObject: PlayerData) => {
           if (playerDataObject.id != this.gameState.playerID) {      
             console.log("Sending updated state.");
-            this.gameState.sendGameStateToPeers(playerDataObject.peerID);
+            this.gameState.sendAlreadyMadeGameStateToPeer(SentGameState.buildSentGameStateFromSaveOrCache(savedGameState, playerDataObject.id), playerDataObject.peerID);
           }
         });  
       }

@@ -1,6 +1,8 @@
 import { PlayspaceComponent } from './playspace/playspace.component';
 import Card from './models/card';
 import Deck from './models/deck';
+import * as SA from './actions/sharedActions';
+import * as DA from './actions/deckActions';
 
 /**
  * An enum representing the possible destinations for a card after being moved/retrieved from a deck/etc
@@ -10,21 +12,20 @@ export enum EDestination {
     HAND = "Hand"
 }
 
-export function createCard(card: Card, playspaceComponent: PlayspaceComponent, dragMove: Function, dragEnd: Function, destination: string) {
+export function createCard(card: Card, playspaceComponent: PlayspaceComponent, destination: string, depth?: number) {
     if (playspaceComponent.phaserScene.textures.exists(card.imagePath)) {
         // If the image already exists in the texture manager's cache, we can create the object now
 
         card.gameObject = playspaceComponent.phaserScene.add.image(card.x, card.y, card.imagePath);
         card.gameObject.setInteractive();
         playspaceComponent.phaserScene.input.setDraggable(card.gameObject);
-        card.gameObject.on('dragstart', () => {
-            card.gameObject.setDepth(playspaceComponent.highestDepth++);
-        });
-        card.gameObject.on('drag', dragMove.bind(this, card, playspaceComponent));
-        card.gameObject.on('dragend', dragEnd.bind(this, card, playspaceComponent));
+        card.gameObject.on('dragstart', SA.updateRenderOrder.bind(this, card, playspaceComponent));
+        card.gameObject.on('drag', SA.onDragMove.bind(this, card, playspaceComponent));
+        card.gameObject.on('dragend', SA.onDragEnd.bind(this, card, playspaceComponent));
         card.gameObject.displayWidth = 100;
         card.gameObject.displayHeight = 150;
-        card.gameObject.setDepth(playspaceComponent.highestDepth++);
+        playspaceComponent.gameState.highestDepth++;
+        card.gameObject.setDepth(depth ? depth : playspaceComponent.gameState.highestDepth);
         if (destination === EDestination.TABLE) {
             playspaceComponent.gameState.addCardToTable(card);
         } else {
@@ -33,23 +34,22 @@ export function createCard(card: Card, playspaceComponent: PlayspaceComponent, d
     } else {
         // Otherwise, we have to dynamically load it
         playspaceComponent.phaserScene.load.image(card.imagePath, card.imagePath);
-        playspaceComponent.phaserScene.load.once("complete", cardCreationCallback.bind(this, card, playspaceComponent, dragMove, dragEnd, destination, card.x, card.y));
+        playspaceComponent.phaserScene.load.once("complete", cardCreationCallback.bind(this, card, playspaceComponent, destination, depth));
         playspaceComponent.phaserScene.load.start();
     }
 }
 
-export function cardCreationCallback(card: Card, playspaceComponent: PlayspaceComponent, dragMove: Function, dragEnd: Function, destination: string, x: number, y: number) {
-    card.gameObject = playspaceComponent.phaserScene.add.image(x, y, card.imagePath);
+export function cardCreationCallback(card: Card, playspaceComponent: PlayspaceComponent, destination: string, depth?: number) {
+    card.gameObject = playspaceComponent.phaserScene.add.image(card.x, card.y, card.imagePath);
     card.gameObject.setInteractive();
     playspaceComponent.phaserScene.input.setDraggable(card.gameObject);
-    card.gameObject.on('dragstart', () => {
-        card.gameObject.setDepth(playspaceComponent.highestDepth++);
-    });
-    card.gameObject.on('drag', dragMove.bind(this, card, playspaceComponent));
-    card.gameObject.on('dragend', dragEnd.bind(this, card, playspaceComponent));
+    card.gameObject.on('dragstart', SA.updateRenderOrder.bind(this, card, playspaceComponent));
+    card.gameObject.on('drag', SA.onDragMove.bind(this, card, playspaceComponent));
+    card.gameObject.on('dragend', SA.onDragEnd.bind(this, card, playspaceComponent));
     card.gameObject.displayWidth = 100;
     card.gameObject.displayHeight = 150;
-    card.gameObject.setDepth(playspaceComponent.highestDepth++);
+    playspaceComponent.gameState.highestDepth++;
+    card.gameObject.setDepth(depth ? depth : playspaceComponent.gameState.highestDepth);
     if (destination === EDestination.TABLE) {
         playspaceComponent.gameState.addCardToTable(card);
     } else {
@@ -57,42 +57,41 @@ export function cardCreationCallback(card: Card, playspaceComponent: PlayspaceCo
     }
 }
 
-export function createDeck(deck: Deck, playspaceComponent: PlayspaceComponent, dragMove: Function, dragEnd: Function, rightClick: Function) {
+export function createDeck(deck: Deck, playspaceComponent: PlayspaceComponent, depth?: number) {
     if (playspaceComponent.phaserScene.textures.exists(deck.imagePath)) {
         // If the image already exists in the texture manager's cache, we can create the object now
 
         deck.gameObject = playspaceComponent.phaserScene.add.image(deck.x, deck.y, deck.imagePath);
         deck.gameObject.setInteractive();
         playspaceComponent.phaserScene.input.setDraggable(deck.gameObject);
-        deck.gameObject.on('dragstart', () => {
-            deck.gameObject.setDepth(playspaceComponent.highestDepth++);
-        });
-        deck.gameObject.on('drag', dragMove.bind(this, deck, playspaceComponent));
-        deck.gameObject.on('dragend', dragEnd.bind(this, deck, playspaceComponent));
-        deck.gameObject.on('pointerdown', rightClick.bind(this, deck, playspaceComponent));
+        deck.gameObject.on('dragstart', SA.updateRenderOrder.bind(this, deck, playspaceComponent));
+        deck.gameObject.on('drag', SA.onDragMove.bind(this, deck, playspaceComponent));
+        deck.gameObject.on('dragend', SA.onDragEnd.bind(this, deck, playspaceComponent));
+        deck.gameObject.on('pointerdown', DA.deckRightClick.bind(this, deck, playspaceComponent));
         deck.gameObject.displayWidth = 100;
         deck.gameObject.displayHeight = 150;
-        deck.gameObject.setDepth(playspaceComponent.highestDepth++);
+        playspaceComponent.gameState.highestDepth++;
+        deck.gameObject.setDepth(depth ? depth : playspaceComponent.gameState.highestDepth);
         playspaceComponent.gameState.addDeckToTable(deck);
     } else {
         // Otherwise, we have to dynamically load it
         playspaceComponent.phaserScene.load.image(deck.imagePath, deck.imagePath);
-        playspaceComponent.phaserScene.load.once("complete", deckCreationCallback.bind(this, deck, playspaceComponent, dragMove, rightClick, deck.x, deck.y));
+        playspaceComponent.phaserScene.load.once("complete", deckCreationCallback.bind(this, deck, playspaceComponent, depth));
         playspaceComponent.phaserScene.load.start();
     }
 }
 
-export function deckCreationCallback(deck: Deck, playspaceComponent: PlayspaceComponent, dragMove: Function, rightClick: Function, x: number, y: number) {
-    deck.gameObject = playspaceComponent.phaserScene.add.image(x, y, deck.imagePath);
+export function deckCreationCallback(deck: Deck, playspaceComponent: PlayspaceComponent, depth?: number) {
+    deck.gameObject = playspaceComponent.phaserScene.add.image(deck.x, deck.y, deck.imagePath);
     deck.gameObject.setInteractive();
     playspaceComponent.phaserScene.input.setDraggable(deck.gameObject);
-    deck.gameObject.on('dragstart', () => {
-        deck.gameObject.setDepth(playspaceComponent.highestDepth++);
-    });
-    deck.gameObject.on('drag', dragMove.bind(this, deck, playspaceComponent));
-    deck.gameObject.on('pointerdown', rightClick.bind(this, deck, playspaceComponent));
+    deck.gameObject.on('dragstart', SA.updateRenderOrder.bind(this, deck, playspaceComponent));
+    deck.gameObject.on('drag', SA.onDragMove.bind(this, deck, playspaceComponent));
+    deck.gameObject.on('dragend', SA.onDragEnd.bind(this, deck, playspaceComponent));
+    deck.gameObject.on('pointerdown', DA.deckRightClick.bind(this, deck, playspaceComponent));
     deck.gameObject.displayWidth = 100;
     deck.gameObject.displayHeight = 150;
-    deck.gameObject.setDepth(playspaceComponent.highestDepth++);
+    playspaceComponent.gameState.highestDepth++;
+    deck.gameObject.setDepth(depth ? depth : playspaceComponent.gameState.highestDepth);
     playspaceComponent.gameState.addDeckToTable(deck);
 }
