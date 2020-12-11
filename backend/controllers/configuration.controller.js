@@ -4,10 +4,7 @@ const router = express.Router();
 const Configuration = require('../database/models/configuration');
 
 router.get('/:configurationId', getById);
-// router.get('/configuration/:configurationId', getById);
-
-router.post('/', create); //TODO Which of these actually runs?
-// router.post('/configuration', create);
+router.post('/', create);
 router.delete('/:configurationId', deleteById);
 router.patch('/:configurationId', update);
 
