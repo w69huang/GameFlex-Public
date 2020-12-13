@@ -169,7 +169,6 @@ export class ConfigEditorComponent implements OnInit {
         let counter: Counter = new Counter(this.highestID++, createCounterData.name, parseFloat(createCounterData.defaultValue)); //TODO: Take in meaningful names
         this.configuration.counters.push(counter);
         
-        // HelperFunctions.createCounter(this, counter, SharedActions.onDragMove);  //TODO: Implement
       }
     });
 
@@ -179,7 +178,7 @@ export class ConfigEditorComponent implements OnInit {
    * Set's the prototypes and parameters that are necessary but not included in the backend 
    * @param configurationObj a configuration as an object, usually as returned from the backend.
    */
-  processConfigurationFromBackend(configurationObj: Configuration) {
+  processConfigurationFromBackend(configurationObj: Configuration) : Configuration {
 
     // TODO: See if I can get this Object.setPrototypeOf thing working.
     // Object.setPrototypeOf(configurationObj, Configuration.prototype)
@@ -211,15 +210,12 @@ export class ConfigEditorComponent implements OnInit {
    * Strips out additional data, so that we do not transmit unneeded information ot the backend.
    * @param configuration any Configuration type. Usually this.configuration.
    */
-  processConfigurationForBackend(configuration: Configuration){
+  processConfigurationForBackend(configuration: Configuration) : Configuration {
     // Convert Decks to Deck model
     let decks = [];
     configuration.decks?.forEach(deck => decks.push(new DeckMin(deck)));
-    let processedConfiguration = Object.assign({}, this.configuration);
+    let processedConfiguration = Object.assign({}, configuration);
     processedConfiguration.decks = decks;
-
-    // Convert Counters to Counter model
-    // TODO To be implemented 
     
     return processedConfiguration;
   }
