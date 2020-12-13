@@ -24,14 +24,6 @@ export default class ConfigScene extends Phaser.Scene {
 
   create() {
     this.input.mouse.disableContextMenu();
-
-    // TODO: Delete if not needed
-    // let deckList: Deck[] = [];
-    // let counterList: Counter[] = [];
-
-    // deckList.forEach(deck => {
-    //   HelperFunctions.createDeck(deck, this.configEditorComponent, SharedActions.onDragMove, SharedActions.onDragEnd, DeckActions.deckRightClick, deck.x, deck.y);
-    // });
   }
 
   preload() {
@@ -44,5 +36,4 @@ export default class ConfigScene extends Phaser.Scene {
     this.load.image('grey-background', 'assets/images/backgrounds/grey.png');
   }
 
-  // update() {}
 }
