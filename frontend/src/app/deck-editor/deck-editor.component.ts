@@ -45,14 +45,14 @@ export class DeckEditorComponent implements OnInit {
   }
 
   editDeck(deckName: string) {
-    //  const tempID = 'abcde';
-    //  this.deckService.createDeck(tempID, name);
+    const username: string = this.middleWare.getUsername();
 
     let dialogRef = this.dialog.open(UploadCardsPopupComponent, {
       height: '200px',
       width: '400px',
       data: { 
-        deckNameData: deckName
+        deckNameData: deckName,
+        userID: username
       }
     });
 

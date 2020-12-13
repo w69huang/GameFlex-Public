@@ -1,5 +1,6 @@
 import { Component, OnInit } from '@angular/core';
 import { FileService } from '../services/file.service';
+import { DeckService } from '../services/deck.service';
 import { Observable } from 'rxjs';
 import { MiddleWare } from '../services/middleware';
 
@@ -17,8 +18,10 @@ export class DeckListComponent implements OnInit {
 public deckList$: fileObject[] = [];
 
 
- constructor(private fileService: FileService) { 
-   this.fileService.list().subscribe((data) => {
+ constructor(private fileService: FileService, private deckService: DeckService, private middleWare: MiddleWare) { 
+
+  const username: string = this.middleWare.getUsername();
+   this.deckService.list(username).subscribe((data) => {
     for (var i = 0; i < data.files.length; i++) {
       var fileName = data.files[i];
       console.log(fileName);

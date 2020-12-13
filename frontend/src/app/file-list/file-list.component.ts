@@ -17,7 +17,7 @@ public fileList$: fileObject[] = [];
 
 
  constructor(private fileService: FileService) { 
-   this.fileService.list().subscribe((data) => {
+   this.fileService.list(deckName, userID).subscribe((data) => {
     for (var i = 0; i < data.files.length; i++) {
       var fileName = data.files[i];
       console.log(fileName);
