@@ -20,19 +20,19 @@ class IDAndCode {
   styleUrls: ['./game-browser.component.scss']
 })
 export class GameBrowserComponent implements OnInit {
-  
+
   onlineGames: OnlineGame[];
   getAllGamesInterval: any;
 
   constructor(private hostService: HostService,
-              private onlineGamesService: OnlineGamesService, 
-              private dialog: MatDialog,
-              private middleware: MiddleWare
-              ) { 
+    private onlineGamesService: OnlineGamesService,
+    private dialog: MatDialog,
+    private middleware: MiddleWare
+  ) {
     this.onlineGames = [];
   }
 
-  ngOnInit(): void { 
+  ngOnInit(): void {
     this.getAllGames();
     this.getAllGamesInterval = setInterval(this.getAllGames.bind(this), 60000);
   }
@@ -47,7 +47,7 @@ export class GameBrowserComponent implements OnInit {
         height: '225px',
         width: '300px',
       });
-  
+
       dialogRef.afterClosed().subscribe(password => {
         if (password) {
           this.onlineGamesService.verify(onlineGame, password);

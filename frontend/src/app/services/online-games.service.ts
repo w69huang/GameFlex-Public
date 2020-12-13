@@ -20,7 +20,7 @@ export class OnlineGamesService {
   verify(onlineGame: OnlineGame, password: string): void {
     this.webService.post('online-games/verify', { onlineGame: onlineGame, password: password }).subscribe((object: any) => {
       if (object.hostID) {
-        this.router.navigate(['/playspace'], { queryParams: { host: object.hostID, onlineGameID: onlineGame.id } });
+        this.router.navigate(['/gameInstance'], { queryParams: { host: object.hostID, onlineGameID: onlineGame.id } });
       } else {
         alert(object.message);
       }
@@ -34,7 +34,7 @@ export class OnlineGamesService {
           if (data.message) {
             alert(data.message);
           } else if (data.hostID && data.id) {
-            this.router.navigate(['/playspace'], { queryParams: { host: data.hostID, onlineGameID: data.id } });
+            this.router.navigate(['/gameInstance'], { queryParams: { host: data.hostID, onlineGameID: data.id } });
           }
         }
       );
@@ -52,7 +52,7 @@ export class OnlineGamesService {
     this.webService.post('online-games/post', onlineGame)
         .subscribe(
           (data) => {
-            this.router.navigate(['/playspace'], { queryParams: { host: onlineGame.hostID, onlineGameID: onlineGame.id } });
+            this.router.navigate(['/gameInstance'], { queryParams: { host: onlineGame.hostID, onlineGameID: onlineGame.id } });
           }
         );
   }
