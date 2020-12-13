@@ -7,12 +7,12 @@ import { EGameObjectType, EActionTypes } from '../models/gameState';
 
 import * as HelperFunctions from '../helper-functions';
 
-function popupClose(popupScene: PopupScene, deck: Deck, component: any) {
+function popupClose(popupScene: PopupScene, deck: Deck, component: any): void {
     component.phaserScene.scene.remove(popupScene.key);
     deck.rightClick = false;
 }
 
-export function deckRightClick(deck: Deck, component: any, pointer: Phaser.Input.Pointer, optionObjectConfig?: OptionObjectConfig) {
+export function deckRightClick(deck: Deck, component: any, pointer: Phaser.Input.Pointer, optionObjectConfig?: OptionObjectConfig): void {
     if (pointer.rightButtonDown() && deck.rightClick == false) {
 
         let optionWidth = 200;
@@ -35,7 +35,7 @@ export function deckRightClick(deck: Deck, component: any, pointer: Phaser.Input
     }
 }
 
-export function retrieveTopCard(popupScene: PopupScene, deck: Deck, playspaceComponent: PlayspaceComponent, optionObjectConfig: OptionObjectConfig, pointer: Phaser.Input.Pointer) {
+export function retrieveTopCard(popupScene: PopupScene, deck: Deck, playspaceComponent: PlayspaceComponent, optionObjectConfig: OptionObjectConfig, pointer: Phaser.Input.Pointer): void {
     if (playspaceComponent.gameState.getAmHost()) {
         const card: Card = playspaceComponent.gameState.getCardFromDeck(deck.cards.length - 1, deck.id, true);
 
@@ -77,7 +77,7 @@ export function retrieveTopCard(popupScene: PopupScene, deck: Deck, playspaceCom
     popupClose(popupScene, deck, playspaceComponent);
 }
 
-export function shuffleDeck(popupScene: PopupScene, deck: Deck, playspaceComponent: PlayspaceComponent, pointer: Phaser.Input.Pointer) {
+export function shuffleDeck(popupScene: PopupScene, deck: Deck, playspaceComponent: PlayspaceComponent, pointer: Phaser.Input.Pointer): void {
     if (playspaceComponent.gameState.getAmHost()) {
         let shuffled = deck.cards.map((card) => ({randomVal: Math.random(), card: card}))
                                 .sort((object1, object2) => object1.randomVal - object2.randomVal)
@@ -89,7 +89,7 @@ export function shuffleDeck(popupScene: PopupScene, deck: Deck, playspaceCompone
     popupClose(popupScene, deck, playspaceComponent);
 }
 
-export function importDeck(popupScene: PopupScene, deck: Deck, playspaceComponent: PlayspaceComponent) {
+export function importDeck(popupScene: PopupScene, deck: Deck, playspaceComponent: PlayspaceComponent): void {
     let imagePaths: string[] = [];
     let baseURL: string = "assets/images/playing-cards/";
     let prefixes: string[] = ["ace_of_", "two_of_", "three_of_", "four_of_", "five_of_", "six_of_", "seven_of_", "eight_of_", "nine_of_", "ten_of_", "jack_of_", "queen_of_", "king_of_"];

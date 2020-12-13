@@ -792,7 +792,7 @@ export default class GameState {
      * @param extras - An array of extra game object properties that the user wants to include
      * @param doNotSendTo - a list of peerIDs not to send the data to
      */
-    public sendPeerData(action: string, extras: GameObjectExtraProperties, doNotSendTo: string[] = [], onlySendTo: string[] = []) {
+    public sendPeerData(action: string, extras: GameObjectExtraProperties, doNotSendTo: string[] = [], onlySendTo: string[] = []): void {
         this.connections.forEach((connection: DataConnection) => {
             if (onlySendTo.length > 0) {
                 if (onlySendTo.includes(connection.peer)) {
@@ -809,7 +809,7 @@ export default class GameState {
      * @param onlySendTo - An optional var specifying to only send data to a specific peer
      * @param doNotSendTo - An optional var specfying not to send data to a specific peer
      */
-    public sendGameStateToPeers(onlySendTo: string = "", doNotSendTo: string = "") {
+    public sendGameStateToPeers(onlySendTo: string = "", doNotSendTo: string = ""): void {
         if (this.amHost) {
             // TODO: Make sentGameState from current gameState and send to all peers
             this.playerDataObjects.forEach((playerData: PlayerData) => {
@@ -844,7 +844,7 @@ export default class GameState {
     /**
      * Used to handle data received from P2P connections
      */
-    handleData(data: GameObjectProperties, playspaceComponent: PlayspaceComponent) {
+    handleData(data: GameObjectProperties, playspaceComponent: PlayspaceComponent): void {
         if (this.amHost && data.amHost) {
           // Error! Both parties claim to the be the host! Abort!
           console.log("Fatal error: both parties claim to be the host.");

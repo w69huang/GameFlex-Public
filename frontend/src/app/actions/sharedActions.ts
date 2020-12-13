@@ -3,7 +3,7 @@ import Card from '../models/card';
 import { EActionTypes, EGameObjectType, EOverlapType, OverlapObject } from '../models/gameState';
 import Deck from '../models/deck';
 
-export function updateRenderOrder(object: Card | Deck, playspaceComponent: PlayspaceComponent) {
+export function updateRenderOrder(object: Card | Deck, playspaceComponent: PlayspaceComponent): void {
   playspaceComponent.gameState.highestDepth++;
   object.gameObject.setDepth(playspaceComponent.gameState.highestDepth);
   if ((object instanceof Card && !object.inHand) || object instanceof Deck) {
@@ -20,7 +20,7 @@ export function updateRenderOrder(object: Card | Deck, playspaceComponent: Plays
 
 // Drag move callback for moving objects on the phaser canvas
 // Will be used for both the config editor and the playspace
-export function onDragMove(object: any, component: any, pointer: Phaser.Input.Pointer, dragX: number, dragY: number) {
+export function onDragMove(object: any, component: any, pointer: Phaser.Input.Pointer, dragX: number, dragY: number): void {
     if (object.type == EGameObjectType.DECK || object.type == EGameObjectType.CARD) {
       object.x = dragX;
       object.y = dragY;
@@ -43,7 +43,7 @@ export function onDragMove(object: any, component: any, pointer: Phaser.Input.Po
 
 // Drag end callback for finishing moving objects on the phaser canvas
 // Will only be used in the playspace as right now it only applies to cards
-export function onDragEnd(object: any, playspaceComponent: PlayspaceComponent, pointer: Phaser.Input.Pointer) {
+export function onDragEnd(object: any, playspaceComponent: PlayspaceComponent, pointer: Phaser.Input.Pointer): void {
     const card: Card = playspaceComponent.gameState.getCardByID(object.id, playspaceComponent.gameState.playerID)?.card;
     const overlapObject: OverlapObject = playspaceComponent.gameState.checkForOverlap(object.id);
 

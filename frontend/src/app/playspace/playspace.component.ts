@@ -172,7 +172,7 @@ export class PlayspaceComponent implements OnInit {
     this.phaserGame = new Phaser.Game(this.config);
   }
 
-  getAllSavedGameStates() {
+  getAllSavedGameStates(): void {
     this.getAllSavedGameStatesEmitter.subscribe((savedGameState: SavedGameState) => {
       if (savedGameState) { // If they actually chose a saved game state
         this.gameState.buildGameStateFromSavedState(savedGameState, this);      
@@ -187,32 +187,32 @@ export class PlayspaceComponent implements OnInit {
     });
   }
 
-  undoGameState() {
+  undoGameState(): void {
     this.undoGameStateEmitter.subscribe((count: integer) => {
       this.gameState.buildGameFromCache(this, false, count);
     })
   }
 
-  saveGameState() {
+  saveGameState(): void {
     this.saveGameStateEmitter.subscribe(name => {
       this.savedGameStateService.create(new SavedGameState(this.middleware.getUsername(), name, this.gameState, this.gameState.playerDataObjects));
     });
   }
 
-  updateOnlineGame() {
+  updateOnlineGame(): void {
     if (this.gameState.getAmHost() && this.onlineGame) {
       this.onlineGame.lastUpdated = Date.now();
       this.onlineGamesService.update(this.onlineGame).subscribe();
     }
   }
 
-  filterOutID(objectListToFilter: any[], object: any) {
+  filterOutID(objectListToFilter: any[], object: any): any[] {
     return objectListToFilter.filter( (refObject: any) => {
       return object.id !== refObject.id;
     });
   }
 
-  filterOutPeer(connectionListToFilter: DataConnection[], connection: DataConnection) {
+  filterOutPeer(connectionListToFilter: DataConnection[], connection: DataConnection): DataConnection[] {
     return connectionListToFilter.filter( (refConnection: DataConnection) => {
       return connection.peer !== refConnection.peer;
     });
@@ -230,7 +230,7 @@ export class PlayspaceComponent implements OnInit {
     return newConnectionList;
   }
 
-  buildFromCacheDialog() {
+  buildFromCacheDialog(): void {
     let dialogRef = this.dialog.open(LoadGameStatePopupComponent, {
       height: '290px',
       width: '350px',
@@ -248,7 +248,7 @@ export class PlayspaceComponent implements OnInit {
     });
   }
 
-  finishConnectionProcess() {
+  finishConnectionProcess(): void {
     this.openConnectionAttempts = 0;
 
     if (this.checkIfCanOpenConnectionInterval) {
@@ -273,7 +273,7 @@ export class PlayspaceComponent implements OnInit {
     }
   }
 
-  startConnectionProcess() {
+  startConnectionProcess(): void {
     if (this.onlineGameID) {
       this.onlineGamesService.get(this.onlineGameID).subscribe((onlineGames: OnlineGame) => {
         this.onlineGame = onlineGames[0];
@@ -317,7 +317,7 @@ export class PlayspaceComponent implements OnInit {
     }
   }
 
-  openConnection() {
+  openConnection(): void {
     var conn: DataConnection = this.peer.connect(this.mainHostID);
     this.firstConnectionAttempt = true;
     this.openConnectionAttempts++;
@@ -352,7 +352,7 @@ export class PlayspaceComponent implements OnInit {
     });
   }
 
-  clientHandleConnectionClose(conn: DataConnection) {
+  clientHandleConnectionClose(conn: DataConnection): void {
     if (!this.connectionClosedIntentionally) {
       this.gameState.connections = this.filterOutPeer(this.gameState.connections, conn);
       this.connOpenedSuccessfully = false;

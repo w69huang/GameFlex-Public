@@ -12,7 +12,7 @@ export enum EDestination {
     HAND = "Hand"
 }
 
-export function createCard(card: Card, playspaceComponent: PlayspaceComponent, destination: string, depth?: number) {
+export function createCard(card: Card, playspaceComponent: PlayspaceComponent, destination: string, depth?: number): void {
     if (playspaceComponent.phaserScene.textures.exists(card.imagePath)) {
         // If the image already exists in the texture manager's cache, we can create the object now
 
@@ -39,7 +39,7 @@ export function createCard(card: Card, playspaceComponent: PlayspaceComponent, d
     }
 }
 
-export function cardCreationCallback(card: Card, playspaceComponent: PlayspaceComponent, destination: string, depth?: number) {
+export function cardCreationCallback(card: Card, playspaceComponent: PlayspaceComponent, destination: string, depth?: number): void {
     card.gameObject = playspaceComponent.phaserScene.add.image(card.x, card.y, card.imagePath);
     card.gameObject.setInteractive();
     playspaceComponent.phaserScene.input.setDraggable(card.gameObject);
@@ -57,7 +57,7 @@ export function cardCreationCallback(card: Card, playspaceComponent: PlayspaceCo
     }
 }
 
-export function createDeck(deck: Deck, playspaceComponent: PlayspaceComponent, depth?: number) {
+export function createDeck(deck: Deck, playspaceComponent: PlayspaceComponent, depth?: number): void {
     if (playspaceComponent.phaserScene.textures.exists(deck.imagePath)) {
         // If the image already exists in the texture manager's cache, we can create the object now
 
@@ -81,7 +81,7 @@ export function createDeck(deck: Deck, playspaceComponent: PlayspaceComponent, d
     }
 }
 
-export function deckCreationCallback(deck: Deck, playspaceComponent: PlayspaceComponent, depth?: number) {
+export function deckCreationCallback(deck: Deck, playspaceComponent: PlayspaceComponent, depth?: number): void {
     deck.gameObject = playspaceComponent.phaserScene.add.image(deck.x, deck.y, deck.imagePath);
     deck.gameObject.setInteractive();
     playspaceComponent.phaserScene.input.setDraggable(deck.gameObject);
