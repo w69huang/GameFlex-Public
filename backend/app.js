@@ -61,26 +61,27 @@ app.use('/deck-editor', deckEditorRoutes);
 const storage = new GridFsStorage({
     url: config.mongoURI,
     file: (req, file) => {
-        console.log(req);
-        console.log("reeeeeeeeee");
+        // console.log(req);
+        console.log("In the storage engine");
         return new Promise((resolve, reject) => {
             crypto.randomBytes(16, (err, buf) => {
                 if (err) {
                     return reject(err);
                 }
-                const filename = file.originalname
-                if(req.body.deckName) {
-                    const fileInfo = {
+                const filename = file.originalname;
+                let fileInfo = {};
+                // if(req.body.deckName) {
+                //     fileInfo = {
+                //         filename: filename,
+                //         bucketName: 'uploads',
+                //         deckName: req.body.deckName
+                //     };
+                // } else { 
+                    fileInfo = {
                         filename: filename,
-                        bucketName: 'uploads',
-                        deckName: req.body.deckName
+                        bucketName: 'uploads'
                     };
-                } else { const fileInfo = {
-                    filename: filename,
-                    bucketName: 'uploads'
-                    
-                    };
-                }
+                // }
                
                 resolve(fileInfo);
             });

@@ -25,11 +25,11 @@
 <!-- <app-deck-list></app-deck-list> -->
     <h1>Your Decks</h1>
         <ul>
-            <li *ngFor="let fileObject of deckList$" >
-                {{fileObject.deckName}}&nbsp;&nbsp;
-                <span (click)="editDeck(fileObject.fileName)">Edit Deck</span>&nbsp;
-                <span (click)="deleteDeck(fileObject.fileName)">Delete Deck</span>
-            </li>
+            <li *ngFor="let deckData of deckList$" >
+                {{deckData.deckName}}&nbsp;&nbsp;
+                <span (click)="editDeck(deckData.deckName)">Edit Deck</span>&nbsp;
+                <span (click)="deleteDeck(deckData.deckName)">Delete Deck</span>
+              </li>
         </ul>  
 
 <div style="text-align:center; margin-top: 100px; "><mat-card style="margin-top:10px; width: 50%;">  

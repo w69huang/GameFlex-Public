@@ -1,8 +1,3 @@
-<div mat-dialog-content>
-    <p>Please Enter a Deck Name:</p>
-    <input matInput #deckNameInput placeholder="Name">
-</div>
-<div #errorsDiv id="errorsDiv"></div>
 <div class="actions" mat-dialog-actions>
     <mat-card>
         <button mat-button (click)="cancel()">Cancel</button>
@@ -11,7 +6,7 @@
         <button mat-button (click)="upload()">Upload</button>
     </mat-card>
     <mat-card>
-        <button mat-button (click)="submit(deckNameInput.value)" value="Submit">Submit</button>
+        <button mat-button (click)="submit()" value="Submit">Submit</button>
     </mat-card>
 </div>
 <input type="file" #fileUpload id="fileUpload" name="fileUpload" multiple="multiple" accept="image/*" style="display:none;" />

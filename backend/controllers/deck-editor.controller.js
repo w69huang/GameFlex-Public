@@ -31,19 +31,44 @@ module.exports = (upload) => {
     */
     router.route('/upload')
         .post(upload.array('file', 60), (req, res, next) => {
+            try{
+                console.log("There was not an error");
+                console.log(req.body);
+                const cardID = req.files[0].id;
+                const userID = req.body.username;
+                const deckName = req.body.deckName;
 
-            const cardID = req.files[0].id;
-            const userID = req.body.username;
-            const deckName = req.body.deckName;
-            
-            Deck.find({ deckName: deckName, userID: userID })
-                .then((Deck) => Deck.imageID.append(req.files[0].id)).save();
+                console.log(userID);
+                console.log(deckName);
+                // Deck.find({ deckName: deckName, userID: userID })
+                //         .then((foundDeck) => {console.log(foundDeck)})
+                //             .save();
+                Deck.findOneAndUpdate({ deckName: deckName, userID: userID }, 
+                    {$push: {imageID: cardID} },
+                    function (err, success) {
+                        if(err) {
+                            console.log(err + " was the erro");
+                        } else {
+                            console.log(success);
+                        };
+                    });
+             
 
-            res.status(200).json({
-                success: true,
-                message: req.files.length + ' file(s) uploaded succesfully',
-            });
+                res.status(200).json({
+                    success: true,
+                    message: req.files.length + ' file(s) uploaded succesfully',
+                });
+            }
+            catch(err) {
+                console.log("there was an error!");
+                console.log(err);
+                res.status(500).json({
+                    success: false,
+                    message: err + " was the error"
+                })
+            }
         });
+    
 
     /*
         GET: Fetches all the files in the uploads collection
@@ -52,7 +77,7 @@ module.exports = (upload) => {
         //find the deck using deckname and userID
         const userID = req.query.userID;
         const deckName = req.query.deckName;
-        const currentDeck = Deck.find({ deckName: deckName, userID: userID });
+        const currentDeck = Deck.findOne({ deckName: deckName, userID: userID });
         var cardIDs = currentDeck.imageID;
         
         //gridFS fid by ID(????)
@@ -207,6 +232,10 @@ module.exports = (upload) => {
             .then((deckList) => res.send(deckList))
             .catch((error) => console.log(error));
     });
+
+    router.route('/deleteAllDecks').delete((req, res) => {
+        Deck.deleteMany().then(() => console.log("All decks have been deleted")).catch((err) => {console.log(err)});
+    })
 
     return router;
 };

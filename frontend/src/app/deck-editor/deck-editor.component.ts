@@ -26,12 +26,12 @@ export class DeckEditorComponent implements OnInit {
   constructor(private deckService: DeckService, private fileService: FileService, private dialog: MatDialog, private middleWare: MiddleWare) {
     const username: string = this.middleWare.getUsername();
     this.deckService.list(username).subscribe((data) => {
-      console.log(data[0]);
+      // console.log(data[0]);
       for (var i = 0; i < data.length; i++) {
-        var deckName = data[i];
-        console.log(deckName);
+        var deckData = data[i];
+        console.log(deckData);
         // this.fileList$.push(fileName.filename);
-        this.deckList$.push({deckID: deckName._id, deckName: deckName.deckName});
+        this.deckList$.push({deckID: deckData._id, deckName: deckData.deckName});
         console.log(this.deckList$);
       }
      });
@@ -57,7 +57,7 @@ export class DeckEditorComponent implements OnInit {
     });
 
     dialogRef.afterClosed().subscribe(deckData => {
-      //const deckName: string = deckData.name;
+      const deckName: string = deckData.name;
       const username: string = this.middleWare.getUsername();
 
       deckData.files?.forEach(file => {  
@@ -102,7 +102,6 @@ export class DeckEditorComponent implements OnInit {
     //Using the "new" fileService
     //this.fileService.upload(file.data.name, formData)
     
-
     file.inProgress = true;
     console.log("uploading now...")  
     this.fileService.upload(file.data, formData).pipe(  

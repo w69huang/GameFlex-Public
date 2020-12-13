@@ -1,6 +1,7 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, EventEmitter, Input } from '@angular/core';
 import { FileService } from '../services/file.service';
 import { Observable } from 'rxjs';
+import { MiddleWare } from '../services/middleware'; 
 
 class fileObject {
   fileName: string;
@@ -13,19 +14,27 @@ class fileObject {
   styleUrls: ['./file-list.component.scss']
 })
 export class FileListComponent implements OnInit {
+
 public fileList$: fileObject[] = [];
 
+//deckName emitter receiver
+@Input() private deckNameEmitter: EventEmitter<string> = new EventEmitter<string>(); 
 
- constructor(private fileService: FileService) { 
-   this.fileService.list(deckName, userID).subscribe((data) => {
-    for (var i = 0; i < data.files.length; i++) {
-      var fileName = data.files[i];
-      console.log(fileName);
-      // this.fileList$.push(fileName.filename);
-      this.fileList$.push({fileID: fileName._id, fileName: fileName.filename});
-      console.log(this.fileList$);
-    }
+
+ constructor(private fileService: FileService, private middleWare: MiddleWare) {
+  const userID: string = this.middleWare.getUsername(); 
+   this.deckNameEmitter.subscribe(deckName => {
+    this.fileService.list(deckName, userID).subscribe((data) => {
+      for (var i = 0; i < data.files.length; i++) {
+        var fileName = data.files[i];
+        console.log(fileName);
+        // this.fileList$.push(fileName.filename);
+        this.fileList$.push({fileID: fileName._id, fileName: fileName.filename});
+        console.log(this.fileList$);
+      }
+     });
    });
+ 
   }
 
  public download(fileName: string):  void {

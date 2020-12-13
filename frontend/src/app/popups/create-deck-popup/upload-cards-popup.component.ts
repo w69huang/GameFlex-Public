@@ -1,4 +1,4 @@
-import { Component, OnInit, ViewChild, ElementRef  } from '@angular/core';
+import { Component, OnInit, ViewChild, ElementRef, EventEmitter } from '@angular/core';
 import { MatDialogRef } from '@angular/material/dialog';
 import {MAT_DIALOG_DATA} from '@angular/material/dialog';
 import { Inject } from '@angular/core';
@@ -15,26 +15,26 @@ export class UploadCardsPopupComponent implements OnInit {
   private files: any[] = [];
   deckNameData: string;
 
+  //deckname emitter
+  public deckNameEmitter: EventEmitter<string> = new EventEmitter<string>();
+
   constructor(
     private dialogRef: MatDialogRef<UploadCardsPopupComponent>,
     @Inject(MAT_DIALOG_DATA) public data: any
   ) { }
 
   ngOnInit(): void {
-    this.deckNameData = this.data.deckName;
+    this.deckNameData = this.data.deckNameData;
+    console.log(this.data);
+    this.deckNameEmitter.emit(this.deckNameData);
   }
 
   cancel(): void {
     this.dialogRef.close();
   }
 
-  submit(name: string): void {
-    if (name != "") {
-      this.errorsDiv.nativeElement.innerHTML = "";
-      this.dialogRef.close({ name: name, files: this.files });
-    } else {
-      this.errorsDiv.nativeElement.innerHTML = "Missing name field.";
-    }
+  submit(): void {
+    this.dialogRef.close({ name: this.deckNameData, files: this.files });
   }
 
   upload() {  

@@ -17,7 +17,6 @@ export class FileService {
   public upload(fileData: any, fileContent: FormData) {
     this.fileList.push(fileData);
     this.fileList$.next(this.fileList);
-    console.log(fileContent);
     return this.webService.post('upload', fileContent, true);
   }
 
