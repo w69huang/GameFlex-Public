@@ -74,37 +74,103 @@ module.exports = (upload) => {
         GET: Fetches all the files in the uploads collection
     */
     router.route('/files').get((req, res, next) => {
+
         //find the deck using deckname and userID
+        console.log("In the file grabber");
         const userID = req.query.userID;
         const deckName = req.query.deckName;
-        const currentDeck = Deck.findOne({ deckName: deckName, userID: userID });
-        var cardIDs = currentDeck.imageID;
+
+        let fileArray = [];
+        var fileProcessCounter = 0;
         
-        //gridFS fid by ID(????)
-        gfs.find({ deckName: deckName }).toArray((err, files) => {
-            if (!files || files.length === 0) {
-                return res.status(200).json({
-                    success: false,
-                    message: 'No files available'
-                });
-            }
+        Deck.findOne({ deckName: deckName, userID: userID })
+            .then((currentDeck) => {
 
-            //image formats supported
-            files.map(file => {
-                if (file.contentType === 'image/jpeg'
-                    || file.contentType === 'image/png'
-                    || file.contentType === 'image/svg+xml') {
-                        file.isImage = true;
-                    } else {
-                        file.isImage = false;
+                var cardIDs = currentDeck.imageID;
+        
+                console.log("user Id " + userID);
+                console.log("deckName " + deckName);
+                console.log("card IDs " + cardIDs);
+                console.log(currentDeck);
+
+                gfs.find({ _id: { $in : cardIDs } }).toArray((err, files) => {
+                    console.log(files);
+                    if (!files || files.length === 0) {
+                        return res.status(200).json({
+                            success: false,
+                            message: 'No files available'
+                        });
                     }
+        
+                    //image formats supported
+                    files.map(file => {
+                        if (file.contentType === 'image/jpeg'
+                            || file.contentType === 'image/png'
+                            || file.contentType === 'image/svg+xml') {
+                                file.isImage = true;
+
+                                console.log("file analyzed");
+                                
+                                var rstream = gfs.openDownloadStream(file._id);
+
+                                var bufs = [];
+                                
+                                rstream.on('data', function(chunk) {
+                                
+                                    bufs.push(chunk);
+                                
+                                }).on('end', 
+                                    function() { // done
+                                        var fbuf = Buffer.concat(bufs);
+                                        var base64 = (fbuf.toString('base64'));
+                                        fileArray.push(base64);
+                                        fileProcessCounter ++; 
+                                        if(fileProcessCounter === files.length) {
+                                            console.log("file array sent")
+                                            res.send(fileArray);
+                                        }
+                                    });
+                        } else {
+                        //     res.status(404).json({
+                        //     err: 'Not an image',
+                        //    });
+                        }
+
+                    });
+                    // res.status(200).json({
+                    //     success: true,
+                    //     fileArray,
+                    // });
+                });
             });
 
-            res.status(200).json({
-                success: true,
-                files,
-            });
-        });
+
+        //gridFS fid by ID(????)
+        // gfs.find({ files_id: { $in : cardIDs } }).toArray((err, files) => {
+        //     //console.log(files);
+        //     if (!files || files.length === 0) {
+        //         return res.status(200).json({
+        //             success: false,
+        //             message: 'No files available'
+        //         });
+        //     }
+
+        //     //image formats supported
+        //     files.map(file => {
+        //         if (file.contentType === 'image/jpeg'
+        //             || file.contentType === 'image/png'
+        //             || file.contentType === 'image/svg+xml') {
+        //                 file.isImage = true;
+        //             } else {
+        //                 file.isImage = false;
+        //             }
+        //     });
+
+        //     res.status(200).json({
+        //         success: true,
+        //         files,
+        //     });
+        // });
     });
 
     /* 

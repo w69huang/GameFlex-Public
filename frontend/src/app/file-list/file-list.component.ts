@@ -21,21 +21,7 @@ public fileList$: fileObject[] = [];
 @Input() private deckNameEmitter: EventEmitter<string> = new EventEmitter<string>(); 
 
 
- constructor(private fileService: FileService, private middleWare: MiddleWare) {
-  const userID: string = this.middleWare.getUsername(); 
-   this.deckNameEmitter.subscribe(deckName => {
-    this.fileService.list(deckName, userID).subscribe((data) => {
-      for (var i = 0; i < data.files.length; i++) {
-        var fileName = data.files[i];
-        console.log(fileName);
-        // this.fileList$.push(fileName.filename);
-        this.fileList$.push({fileID: fileName._id, fileName: fileName.filename});
-        console.log(this.fileList$);
-      }
-     });
-   });
- 
-  }
+ constructor(private fileService: FileService, private middleWare: MiddleWare) { }
 
  public download(fileName: string):  void {
    //TODO: Dont have this hard coded! File names and ID's should be accesible
@@ -56,6 +42,23 @@ public fileList$: fileObject[] = [];
    this.fileService.remove(fileName);
  }
 
+ public renderImages(imageArray: string[]): void {
+  imageArray.forEach((image: string) => {
+    var outputImage: HTMLImageElement = document.createElement('img');
+     outputImage.height = 200;
+     outputImage.width = 200; 
+     outputImage.src = 'data:image/jpg;base64,'+ image;
+     document.getElementById("deckDisplay").appendChild(outputImage);
+  });
+ } 
+
  ngOnInit(): void {
+  const userID: string = this.middleWare.getUsername(); 
+  this.deckNameEmitter.subscribe(deckName => {
+    this.fileService.list(deckName, userID).subscribe((data) => {
+      console.log(data);
+      this.renderImages(data);
+    });
+  });
  }
 }

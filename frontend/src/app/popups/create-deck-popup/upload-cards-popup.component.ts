@@ -26,8 +26,12 @@ export class UploadCardsPopupComponent implements OnInit {
   ngOnInit(): void {
     this.deckNameData = this.data.deckNameData;
     console.log(this.data);
-    this.deckNameEmitter.emit(this.deckNameData);
+    setTimeout(() => {this.deckNameEmitter.emit(this.deckNameData)} ,100); 
   }
+
+  // deckEmitter(): void {
+  //   this.deckNameEmitter.emit(this.deckNameData)
+  // }
 
   cancel(): void {
     this.dialogRef.close();

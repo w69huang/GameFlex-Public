@@ -48,8 +48,8 @@ export class DeckEditorComponent implements OnInit {
     const username: string = this.middleWare.getUsername();
 
     let dialogRef = this.dialog.open(UploadCardsPopupComponent, {
-      height: '200px',
-      width: '400px',
+      height: '70%',
+      width: '70%',
       data: { 
         deckNameData: deckName,
         userID: username

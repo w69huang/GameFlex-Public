@@ -1,3 +1,5 @@
+<h1>Your Deck</h1>
+<div id = "deckDisplay"></div>
 <div class="actions" mat-dialog-actions>
     <mat-card>
         <button mat-button (click)="cancel()">Cancel</button>
@@ -11,4 +13,7 @@
 </div>
 <input type="file" #fileUpload id="fileUpload" name="fileUpload" multiple="multiple" accept="image/*" style="display:none;" />
 
-<app-file-list></app-file-list>
+
+<app-file-list
+[deckNameEmitter] = "deckNameEmitter"
+></app-file-list>

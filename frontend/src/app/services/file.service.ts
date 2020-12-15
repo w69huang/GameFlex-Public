@@ -33,6 +33,8 @@ export class FileService {
   }
 
   public list(deckName: string, userID: string): any {
+    console.log("Give me " + deckName);
+    console.log(typeof deckName);
     return this.webService.get(`files?deckName=${deckName}&userID=${userID}`, true);
     //return this.fileList$;
   }
