@@ -360,4 +360,18 @@ export class PlayspaceComponent implements OnInit {
       this.checkIfCanOpenConnectionInterval = setInterval(this.checkIfCanOpenConnection.bind(this), 2000);
     }
   }
+
+
+  addHand() {
+    this.gameState.createMyHand();
+    console.log('addHand');
+  }
+  nextHand() {
+    this.gameState.nextHand();
+    console.log('nextHand');
+  }
+  prevHand() {
+    this.gameState.previousHand();
+    console.log('prevHand');
+  }
 }

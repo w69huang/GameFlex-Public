@@ -178,7 +178,12 @@ export default class GameState {
     /**
      * Holds information about this player's hand only
      */
-    public myHand: Hand;
+    public myHands: Hand[];
+
+    /**
+     * Tracks the current hand index
+     */
+    public myCurrHand: integer = 0;
 
     /**
      * A boolean representing whether this player is the host, used to control branching paths
@@ -190,6 +195,13 @@ export default class GameState {
      */
     public get cards(): Card[] {
         return this._cards;
+    }
+
+    /**
+     * A public accessor to get the current hand the user is on
+     */
+    public get myHand(): Hand {
+        return this.myHands[this.myCurrHand];
     }
 
     /**
@@ -236,13 +248,13 @@ export default class GameState {
      * @param cards - The cards to add to the table at initialization time
      * @param decks - The decks to add to the table at initialization time
      * @param hands - The hand information to record at initialization time
-     * @param myHand - The player's hand information to record at initialization time
+     * @param myHands - The player's hand information to record at initialization time
      */
     constructor(cards: Card[], decks: Deck[], hands: Hand[]) {
         this._cards = cards;
         this._decks = decks;
         this._hands = hands;
-        this.myHand = new Hand(null, []);
+        this.myHands = [new Hand(null, [])];
     }
 
     /**
@@ -307,9 +319,9 @@ export default class GameState {
      * Used to save the current game state to the user's local storage
      */
 
-    // ISSUE 1: When the deck is rightclicked, and closed, it saved the state twice.
+    // ISSUE 1: When the deck is right clicked, and closed, it saved the state twice.
     /* ISSUE 2: When the other player (Not the host) makes a move, the save seems weird. 
-            Its like the host saved the state between the desitnation and the origin of where the other player moved it 
+            Its like the host saved the state between the destination and the origin of where the other player moved it 
             since when it's the host's actions, they save properly.
             Possibly has something to do with how currentMove is initialized in the constructor? Or just the delay of the 
             data being sent between the host and the user? 
@@ -535,7 +547,9 @@ export default class GameState {
 
         if (card) {
             card.inHand = false;
-            this.myHand.cards = this.filterOutID(this.myHand.cards, card);
+            this.myHands.forEach(myHand => {
+                myHand.cards = this.filterOutID(myHand.cards, card);
+            })
 
             if (destroy && card.gameObject) {
                 card.gameObject.destroy();
@@ -564,7 +578,8 @@ export default class GameState {
                     break;
                 }
             }
-    
+
+            // Create hand if one does nto already exist
             if (!inserted) {
                 this._hands.push(new Hand(playerID, [card]));
             }
@@ -647,7 +662,7 @@ export default class GameState {
         const cardLocationObject: CardLocationObject = this.getCardByID(id, this.playerID);
         const card: Card = cardLocationObject?.card;
         const cardLocation: ECardLocation = cardLocationObject?.location;
-        let image: Phaser.GameObjects.Image = this.myHand.gameObject;
+        let image: Phaser.GameObjects.Image = this.myHands[0].gameObject; // TODO: Refactor the GameObject out of the hand. Since we only need one
 
         if (card) {
             if (card.gameObject.x > image.x && card.gameObject.x < image.x + image.displayWidth && card.gameObject.y > image.y && card.gameObject.y < image.y + image.displayHeight) {
@@ -779,11 +794,13 @@ export default class GameState {
             deck.gameObject?.destroy();
         });
         this._decks = [];
-        this.myHand.cards.forEach((card: Card) => {
-            card.gameObject?.destroy();
-        });
+        this.myHands.forEach(myHand => {
+            myHand.cards.forEach((card: Card) => {
+                card.gameObject?.destroy();
+            });
+            myHand.cards = [];
+        })
         this._hands = [];
-        this.myHand.cards = [];
     }
 
     /**
@@ -1126,7 +1143,69 @@ export default class GameState {
             console.log('Received action did not match any existing action.');
             break;
         }
-      }
+    }
+
+    /*
+     * Sets the next hand 
+     */
+    public nextHand() {
+        let myLastHand = this.myCurrHand;
+        if(this.myHands.length-1 > this.myCurrHand) {
+            this.myCurrHand = this.myCurrHand + 1;
+        } else {
+            this.myCurrHand = this.myHands.length -1;
+        }
+        this.renderHand(myLastHand);
+    }
+
+    /**
+     * Sets the previous hand
+     */
+    public previousHand() {
+        let myLastHand = this.myCurrHand;
+        if( this.myCurrHand > 0) {
+            this.myCurrHand = this.myCurrHand - 1;
+        } else {
+            this.myCurrHand = 0;
+        }
+        this.renderHand(myLastHand);
+    }
+
+    /**
+     * Checks if card is in one of the current players hands
+     */
+    public inMyHands(theCardToCheck) {
+        this.myHands.forEach(hand => {
+            hand.cards.forEach(card => {
+                if(card === theCardToCheck) {
+                    return true;
+                }
+            })
+        })
+
+        return false;
+    }
+
+    /**
+     * Creates a hand
+     */
+    public createMyHand() {
+        let hand = new Hand(this.playerID, []);
+        this.myHands.push(hand);
+    }
+
+    /**
+     * Hides cards for the last hand shown, and displays the new hands cards
+     */
+    public renderHand(myLastHand: integer) {
+        if(!(myLastHand == this.myCurrHand)) {
+            this.myHands[myLastHand].cards.forEach(card => {
+                card.gameObject.setVisible(false);
+            })
+            this.myHands[this.myCurrHand].cards.forEach(card => {
+                card.gameObject.setVisible(true);
+            })
+        }
+    }
+
 }
-
-
