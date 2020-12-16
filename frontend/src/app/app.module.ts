@@ -37,7 +37,7 @@ import { JoinByCodeComponent } from './join-by-code/join-by-code.component';
 import { GameInstanceComponent } from './game-instance/game-instance.component';
 import { LoadGameStatePopupComponent } from './popups/load-game-state-popup/load-game-state-popup.component';
 import { UploadCardsPopupComponent } from './popups/create-deck-popup/upload-cards-popup.component';
-import { DeckListComponent } from './deck-list/deck-list.component';
+
 
 @NgModule({
   declarations: [
@@ -63,7 +63,6 @@ import { DeckListComponent } from './deck-list/deck-list.component';
     GameInstanceComponent,
     LoadGameStatePopupComponent,
     UploadCardsPopupComponent,
-    DeckListComponent
   ],
   imports: [
     BrowserModule,

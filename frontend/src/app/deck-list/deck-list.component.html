@@ -1,8 +1,0 @@
-<h1>Your files</h1>
-<ul>
- <li *ngFor="let deckData of deckList$" >
-   {{deckData.fileName}}&nbsp;&nbsp;
-   <span (click)="download(deckData.deckName)">download</span>&nbsp;
-   <span (click)="remove(deckData.deckName)">remove</span>
- </li>
-</ul>

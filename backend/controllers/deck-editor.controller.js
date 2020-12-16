@@ -252,6 +252,34 @@ module.exports = (upload) => {
        });
    });
 
+   router.route('/delete-deck').delete((req, res, next) => {
+
+    //iterate over all cards in the deck
+    //delete the deck itself from mongo
+
+    //this route recieves deck ID
+    //finds and deletes all images with deck ID 
+    //deles the deck
+
+        const userID = req.query.userID;
+        const deckName = req.query.deckName;
+
+        Deck.findOne({ deckName: deckName, userID: userID })
+            .then((currentDeck) => {
+
+                var cardIDs = currentDeck.imageID;
+
+                gfs.delete({ _id: { $in : cardIDs } });
+
+        });
+
+        res.status(200).json({
+            success: true,
+            message: deckName + ' has been deleted',
+        });
+
+    });
+
    //TODO: integrate deck functionality into the routes
 
 
@@ -259,10 +287,6 @@ module.exports = (upload) => {
    router.route('/new-deck').post((req, res, next) => {
         const deckName = req.body.deckName;
         const username = req.body.userID;
-        //console.log(req);
-        //console.log(deckName, ' ', username);
- 
-
         let deckList = [];
 
         Deck.find({ deckName: deckName, userID: username })
@@ -281,7 +305,8 @@ module.exports = (upload) => {
             deck.save().then(result => {
                 console.log(result);
                 res.status(201).json({
-                    message: "Deck creation complete!!",
+                    message: "Deck creation complete!",
+                    deck: result
                 })
             }).catch(err => {
                 console.log(err),

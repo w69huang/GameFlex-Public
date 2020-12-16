@@ -13,6 +13,7 @@ class deckObject {
   deckID: string;
 }
 
+
 @Component({
   selector: 'app-deck-editor',
   templateUrl: './deck-editor.component.html',
@@ -26,11 +27,9 @@ export class DeckEditorComponent implements OnInit {
   constructor(private deckService: DeckService, private fileService: FileService, private dialog: MatDialog, private middleWare: MiddleWare) {
     const username: string = this.middleWare.getUsername();
     this.deckService.list(username).subscribe((data) => {
-      // console.log(data[0]);
       for (var i = 0; i < data.length; i++) {
         var deckData = data[i];
         console.log(deckData);
-        // this.fileList$.push(fileName.filename);
         this.deckList$.push({deckID: deckData._id, deckName: deckData.deckName});
         console.log(this.deckList$);
       }
@@ -39,9 +38,14 @@ export class DeckEditorComponent implements OnInit {
 
   ngOnInit(): void {}
 
+  //TEST THIS! DEC 15th
   createDeck(deckName: string) {
     const username: string = this.middleWare.getUsername();
-    this.deckService.createDeck(username, deckName);
+    this.deckService.createDeck(username, deckName).subscribe((data: {message: string, deck: deckObject}) => {
+      if(data.deck){ 
+        this.deckList$.push(data.deck); 
+      }     
+    });
   }
 
   editDeck(deckName: string) {
@@ -68,7 +72,10 @@ export class DeckEditorComponent implements OnInit {
 
   findExistingDeck(name: string) { }
 
-  deleteDeck(name: string) { }
+  public deleteDeck(deckName: string) {
+    const username: string = this.middleWare.getUsername();
+    this.deckService.deleteDeck(username, deckName);
+   }
 
   public download(fileName: string):  void {
     //TODO: Dont have this hard coded! File names and ID's should be accesible

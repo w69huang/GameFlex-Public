@@ -16,13 +16,15 @@ export class DeckService {
 
   public createDeck(userID: string, deckName: string) { 
     console.log('Deck creation in progress...');
-    this.webService.post('new-deck', {userID: userID, deckName: deckName}, true).subscribe(() => {
-
-    });
+    return this.webService.post('new-deck', {userID: userID, deckName: deckName}, true);
   }
 
   public findExistingDeck(userID: string) { 
     //this.webService.get()
+  }
+
+  public deleteDeck(userID: string, deckName: string) {
+    return this.webService.delete(`delete-deck?userID=${userID}&deckName=${deckName}`, true ); 
   }
 
   public list(userID: string): any {
