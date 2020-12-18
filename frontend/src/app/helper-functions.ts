@@ -13,6 +13,12 @@ export enum EDestination {
 }
 
 export function createCard(card: Card, playspaceComponent: PlayspaceComponent, destination: string, depth?: number): void {
+    if (destination === EDestination.TABLE) {
+        playspaceComponent.gameState.addCardToTable(card);
+    } else {
+        playspaceComponent.gameState.addCardToOwnHand(card);
+    }
+
     if (playspaceComponent.phaserScene.textures.exists(card.imagePath)) {
         // If the image already exists in the texture manager's cache, we can create the object now
 
@@ -26,11 +32,6 @@ export function createCard(card: Card, playspaceComponent: PlayspaceComponent, d
         card.gameObject.displayHeight = 150;
         playspaceComponent.gameState.highestDepth++;
         card.gameObject.setDepth(depth ? depth : playspaceComponent.gameState.highestDepth);
-        if (destination === EDestination.TABLE) {
-            playspaceComponent.gameState.addCardToTable(card);
-        } else {
-            playspaceComponent.gameState.addCardToOwnHand(card);
-        }
     } else {
         // Otherwise, we have to dynamically load it
         playspaceComponent.phaserScene.load.image(card.imagePath, card.imagePath);
@@ -50,14 +51,10 @@ export function cardCreationCallback(card: Card, playspaceComponent: PlayspaceCo
     card.gameObject.displayHeight = 150;
     playspaceComponent.gameState.highestDepth++;
     card.gameObject.setDepth(depth ? depth : playspaceComponent.gameState.highestDepth);
-    if (destination === EDestination.TABLE) {
-        playspaceComponent.gameState.addCardToTable(card);
-    } else {
-        playspaceComponent.gameState.addCardToOwnHand(card);
-    }
 }
 
 export function createDeck(deck: Deck, playspaceComponent: PlayspaceComponent, depth?: number): void {
+    playspaceComponent.gameState.addDeckToTable(deck);
     if (playspaceComponent.phaserScene.textures.exists(deck.imagePath)) {
         // If the image already exists in the texture manager's cache, we can create the object now
 
@@ -72,7 +69,6 @@ export function createDeck(deck: Deck, playspaceComponent: PlayspaceComponent, d
         deck.gameObject.displayHeight = 150;
         playspaceComponent.gameState.highestDepth++;
         deck.gameObject.setDepth(depth ? depth : playspaceComponent.gameState.highestDepth);
-        playspaceComponent.gameState.addDeckToTable(deck);
     } else {
         // Otherwise, we have to dynamically load it
         playspaceComponent.phaserScene.load.image(deck.imagePath, deck.imagePath);
@@ -93,5 +89,4 @@ export function deckCreationCallback(deck: Deck, playspaceComponent: PlayspaceCo
     deck.gameObject.displayHeight = 150;
     playspaceComponent.gameState.highestDepth++;
     deck.gameObject.setDepth(depth ? depth : playspaceComponent.gameState.highestDepth);
-    playspaceComponent.gameState.addDeckToTable(deck);
 }

@@ -45,7 +45,6 @@ export class PlayspaceComponent implements OnInit {
   @Output() private onlineGameEmitter: EventEmitter<OnlineGame> = new EventEmitter<OnlineGame>();
   @Output() private amHostEmitter: EventEmitter<boolean> = new EventEmitter<boolean>();
 
-
   // Peer
   public peer: any;
   public firstConnectionAttempt: boolean = false;
@@ -172,7 +171,7 @@ export class PlayspaceComponent implements OnInit {
     this.phaserGame = new Phaser.Game(this.config);
   }
 
-  getAllSavedGameStates(): void {
+  getAllSavedGameStates() {
     this.getAllSavedGameStatesEmitter.subscribe((savedGameState: SavedGameState) => {
       if (savedGameState) { // If they actually chose a saved game state
         this.gameState.buildGameStateFromSavedState(savedGameState, this);      
@@ -180,7 +179,7 @@ export class PlayspaceComponent implements OnInit {
         this.gameState.playerDataObjects.forEach((playerDataObject: PlayerData) => {
           if (playerDataObject.id != this.gameState.playerID) {      
             console.log("Sending updated state.");
-            this.gameState.sendAlreadyMadeGameStateToPeer(SentGameState.buildSentGameStateFromSaveOrCache(savedGameState, playerDataObject.id), playerDataObject.peerID);
+            this.gameState.sendGameStateToPeers(playerDataObject.peerID);
           }
         });  
       }
@@ -190,11 +189,11 @@ export class PlayspaceComponent implements OnInit {
   undoGameState(): void {
     this.undoGameStateEmitter.subscribe((count: integer) => {
       this.gameState.buildGameFromCache(this, false, count);
-    })
+    });
   }
 
   saveGameState(): void {
-    this.saveGameStateEmitter.subscribe(name => {
+    this.saveGameStateEmitter.subscribe((name: string) => {
       this.savedGameStateService.create(new SavedGameState(this.middleware.getUsername(), name, this.gameState, this.gameState.playerDataObjects));
     });
   }

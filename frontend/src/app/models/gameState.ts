@@ -337,6 +337,61 @@ export default class GameState {
     }
 
     /**
+     * Used to send data to peer(s)
+     * @param action - The action to perform
+     * @param extras - An array of extra game object properties that the user wants to include
+     * @param doNotSendTo - a list of peerIDs not to send the data to
+     */
+    public sendPeerData(action: string, extras: GameObjectExtraProperties, doNotSendTo: string[] = [], onlySendTo: string[] = []): void {
+        this.connections.forEach((connection: DataConnection) => {
+            if (onlySendTo.length > 0) {
+                if (onlySendTo.includes(connection.peer)) {
+                    connection.send(new GameObjectProperties(this.amHost, action, this.myPeerID, this.playerID, extras));
+                }
+            } else if (!doNotSendTo.includes(connection.peer)) {
+                connection.send(new GameObjectProperties(this.amHost, action, this.myPeerID, this.playerID, extras));
+            }
+        });
+    }
+
+    /**
+     * Used to very quickly and easily send the current game state to all peers
+     * @param onlySendTo - An optional var specifying to only send data to a specific peer
+     * @param doNotSendTo - An optional var specfying not to send data to a specific peer
+     */
+    public sendGameStateToPeers(onlySendTo: string = "", doNotSendTo: string = ""): void {
+        if (this.amHost) {
+            // TODO: Make sentGameState from current gameState and send to all peers
+            this.playerDataObjects.forEach((playerData: PlayerData) => {
+                for (let i: number = 0; i < this.connections.length; i++) {
+                    if (playerData.peerID === this.connections[i].peer) {
+                        if (((onlySendTo !== "" && onlySendTo === playerData.peerID) || onlySendTo === "") && (doNotSendTo === "" || (doNotSendTo !== playerData.peerID))) {
+                            let sentGameState: SentGameState = new SentGameState(this, playerData.id);
+                            this.connections[i].send(new GameObjectProperties(this.amHost, 'replicateState', this.myPeerID, this.playerID, { 'state': sentGameState }));
+                            break; 
+                        }
+                    }
+                }
+            });
+        }
+    }
+
+    /**
+     * Used to send a pre-made sentGameState object to a peer
+     * @param sentGameState 
+     * @param peerID 
+     */
+    public sendAlreadyMadeGameStateToPeer(sentGameState: SentGameState, peerID: string): void {
+        if (this.amHost) {
+            for (let i: number = 0; i < this.connections.length; i++) {
+                if (this.connections[i].peer === peerID) {
+                    this.connections[i].send(new GameObjectProperties(this.amHost, 'replicateState', this.myPeerID, this.playerID, { 'state': sentGameState }));
+                }
+            }
+        }
+    }
+
+    /**
      * A method to build the game state from the cache
      * @param playspaceComponent - A reference to the playspace component, needed to create the cards and decks
      * @param initialBuild - If this is the very first time we're building from the cache in this browser session
@@ -784,61 +839,6 @@ export default class GameState {
         });
         this._hands = [];
         this.myHand.cards = [];
-    }
-
-    /**
-     * Used to send data to peer(s)
-     * @param action - The action to perform
-     * @param extras - An array of extra game object properties that the user wants to include
-     * @param doNotSendTo - a list of peerIDs not to send the data to
-     */
-    public sendPeerData(action: string, extras: GameObjectExtraProperties, doNotSendTo: string[] = [], onlySendTo: string[] = []): void {
-        this.connections.forEach((connection: DataConnection) => {
-            if (onlySendTo.length > 0) {
-                if (onlySendTo.includes(connection.peer)) {
-                    connection.send(new GameObjectProperties(this.amHost, action, this.myPeerID, this.playerID, extras));
-                }
-            } else if (!doNotSendTo.includes(connection.peer)) {
-                connection.send(new GameObjectProperties(this.amHost, action, this.myPeerID, this.playerID, extras));
-            }
-        });
-    }
-
-    /**
-     * Used to very quickly and easily send the current game state to all peers
-     * @param onlySendTo - An optional var specifying to only send data to a specific peer
-     * @param doNotSendTo - An optional var specfying not to send data to a specific peer
-     */
-    public sendGameStateToPeers(onlySendTo: string = "", doNotSendTo: string = ""): void {
-        if (this.amHost) {
-            // TODO: Make sentGameState from current gameState and send to all peers
-            this.playerDataObjects.forEach((playerData: PlayerData) => {
-                for (let i: number = 0; i < this.connections.length; i++) {
-                    if (playerData.peerID === this.connections[i].peer) {
-                        if (((onlySendTo !== "" && onlySendTo === playerData.peerID) || onlySendTo === "") && (doNotSendTo === "" || (doNotSendTo !== playerData.peerID))) {
-                            let sentGameState: SentGameState = new SentGameState(this, playerData.id);
-                            this.connections[i].send(new GameObjectProperties(this.amHost, 'replicateState', this.myPeerID, this.playerID, { 'state': sentGameState }));
-                            break; 
-                        }
-                    }
-                }
-            });
-        }
-    }
-
-    /**
-     * Used to send a pre-made sentGameState object to a peer
-     * @param sentGameState 
-     * @param peerID 
-     */
-    public sendAlreadyMadeGameStateToPeer(sentGameState: SentGameState, peerID: string): void {
-        if (this.amHost) {
-            for (let i: number = 0; i < this.connections.length; i++) {
-                if (this.connections[i].peer === peerID) {
-                    this.connections[i].send(new GameObjectProperties(this.amHost, 'replicateState', this.myPeerID, this.playerID, { 'state': sentGameState }));
-                }
-            }
-        }
     }
 
     /**
