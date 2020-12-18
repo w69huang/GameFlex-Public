@@ -24,6 +24,7 @@ export class DeckService {
   }
 
   public deleteDeck(userID: string, deckName: string) {
+    console.log("delete deck service call");
     return this.webService.delete(`delete-deck?userID=${userID}&deckName=${deckName}`, true ); 
   }
 

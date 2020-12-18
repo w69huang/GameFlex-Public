@@ -74,7 +74,12 @@ export class DeckEditorComponent implements OnInit {
 
   public deleteDeck(deckName: string) {
     const username: string = this.middleWare.getUsername();
-    this.deckService.deleteDeck(username, deckName);
+    console.log("delete deck: " + deckName);
+    this.deckService.deleteDeck(username, deckName).subscribe((data) => {
+      this.deckList$ = this.deckList$.filter((deck: deckObject) => {
+        return deck.deckName !== deckName;   
+      });
+    });
    }
 
   public download(fileName: string):  void {

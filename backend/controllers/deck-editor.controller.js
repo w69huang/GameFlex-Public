@@ -261,22 +261,55 @@ module.exports = (upload) => {
     //finds and deletes all images with deck ID 
     //deles the deck
 
+    //TODO: delete the deck itself from Mongo (not just the cards from GFS)
+    //TODO: better error handling
         const userID = req.query.userID;
         const deckName = req.query.deckName;
+        var fileProcessCounter = 0;
+        console.log("request received to delete " +  deckName + "by user: " + userID);
 
         Deck.findOne({ deckName: deckName, userID: userID })
             .then((currentDeck) => {
 
                 var cardIDs = currentDeck.imageID;
+                let cardMongoIDs = [];
+                console.log("card IDs " + cardIDs);
 
-                gfs.delete({ _id: { $in : cardIDs } });
+                console.log({$in : cardIDs})
+                console.log(cardIDs[0]);
 
+                for(let i = 0; i < cardIDs.length; i++){
+                    cardMongoIDs.push(new mongoose.Types.ObjectId(cardIDs[i])); 
+                }
+
+                cardMongoIDs.forEach((cardMongoID) => {
+                    gfs.delete(cardMongoID, (err, data) => { 
+                        if(err){
+                            console.log(err);
+                        }
+                        if(data) {console.log(data)}
+                        if(fileProcessCounter === cardMongoIDs.length) {
+                            console.log("file array sent")
+                            res.send(fileArray);
+                        }
+                        res.status(200).json({
+                            success: true,
+                            message: deckName + ' has been deleted',
+                        });
+                    });
+
+
+                })
+
+
+        }).catch((err) => {
+            res.status(500).json({
+                success: false,
+                message: "error message is " + err
+            });
         });
 
-        res.status(200).json({
-            success: true,
-            message: deckName + ' has been deleted',
-        });
+
 
     });
 
