@@ -263,6 +263,7 @@ module.exports = (upload) => {
 
     //TODO: delete the deck itself from Mongo (not just the cards from GFS)
     //TODO: better error handling
+
         const userID = req.query.userID;
         const deckName = req.query.deckName;
         var fileProcessCounter = 0;
@@ -271,37 +272,54 @@ module.exports = (upload) => {
         Deck.findOne({ deckName: deckName, userID: userID })
             .then((currentDeck) => {
 
-                var cardIDs = currentDeck.imageID;
-                let cardMongoIDs = [];
-                console.log("card IDs " + cardIDs);
+                if(currentDeck){
+                    console.log(currentDeck + " has been found")
 
-                console.log({$in : cardIDs})
-                console.log(cardIDs[0]);
+                    var cardIDs = currentDeck.imageID;
+                    let cardMongoIDs = [];
 
-                for(let i = 0; i < cardIDs.length; i++){
-                    cardMongoIDs.push(new mongoose.Types.ObjectId(cardIDs[i])); 
-                }
-
-                cardMongoIDs.forEach((cardMongoID) => {
-                    gfs.delete(cardMongoID, (err, data) => { 
-                        if(err){
-                            console.log(err);
-                        }
-                        if(data) {console.log(data)}
-                        if(fileProcessCounter === cardMongoIDs.length) {
-                            console.log("file array sent")
-                            res.send(fileArray);
-                        }
+                    for(let i = 0; i < cardIDs.length; i++){
+                        cardMongoIDs.push(new mongoose.Types.ObjectId(cardIDs[i])); 
+                    }
+                    if(cardMongoIDs.length > 0) {
+                        cardMongoIDs.forEach((cardMongoID) => {
+                            gfs.delete(cardMongoID, (err, data) => { 
+                                if(err){
+                                    console.log(err);
+                                } 
+                                if(data){
+                                    console.log(data);
+                                }
+                                fileProcessCounter++; 
+                                if(fileProcessCounter === cardMongoIDs.length) {
+                                    Deck.deleteOne({deckName: deckName, userID: userID}).catch((error) => {
+                                        console.log(error);
+                                    });
+                                    res.status(200).json({
+                                        success: true,
+                                        message: deckName + ' has been deleted',
+                                    });
+                                }
+                            });
+                        });
+                    } else {
+                        Deck.deleteOne({deckName: deckName, userID: userID}).catch((error) => {
+                            console.log(error);
+                        });
                         res.status(200).json({
                             success: true,
                             message: deckName + ' has been deleted',
-                        });
-                    });
+                        }); 
+                    }
+                } else {
+                    console.log("deck not found");
+                    res.status(500).json({
+                        success: false,
+                        message: deckName + ' cannot be found',
+                    }); 
+                }
 
-
-                })
-
-
+                
         }).catch((err) => {
             res.status(500).json({
                 success: false,
@@ -357,9 +375,17 @@ module.exports = (upload) => {
             .catch((error) => console.log(error));
     });
 
+    //deletes all decks from Mongo storage
     router.route('/deleteAllDecks').delete((req, res) => {
         Deck.deleteMany().then(() => console.log("All decks have been deleted")).catch((err) => {console.log(err)});
-    })
+    });
+
+    //deletes all images from GFS storage
+    router.route('/clearGFS').delete((req, res) => {
+        gfs.drop().catch((err) => {
+            console.log(err);
+        });
+    });
 
     return router;
 };
