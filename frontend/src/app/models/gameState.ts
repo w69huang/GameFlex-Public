@@ -506,6 +506,7 @@ export default class GameState {
             }
             
             this.cachingEnabled = true;
+            this.delay(this.saveToCache());
         }
     }
 
