@@ -17,20 +17,12 @@ import { GameInstanceComponent } from './game-instance/game-instance.component';
 
 
 const routes: Routes = [
-<<<<<<< HEAD
-  { path: '', redirectTo: 'joinByCode', pathMatch: 'full' },
-  { path: 'gameInstance', component: GameInstanceComponent },
-  { path: 'deckEditor', component: DeckEditorComponent },
-  { path: 'gameBrowser', component: GameBrowserComponent },
-  { path: 'joinByCode', component: JoinByCodeComponent },
-=======
   { path: '', redirectTo: 'gameBrowser', pathMatch: 'full' },
-  { path: 'playspace', component: PlayspaceComponent, canActivate:[AuthGuard] },
+  { path: 'gameInstance', component: GameInstanceComponent, canActivate:[AuthGuard] },
   { path: 'deckEditor', component: DeckEditorComponent, canActivate:[AuthGuard] },
   { path: 'configeditor', component: ConfigEditorComponent, canActivate:[AuthGuard] },
   { path: 'gameBrowser', component: GameBrowserComponent, canActivate:[AuthGuard] },
   { path: 'joinByCode', component: JoinByCodeComponent, canActivate:[AuthGuard] },
->>>>>>> develop
   
   { path: 'dummy', component: DummyComponent},
   { path: 'signup', component: SignupComponent,canActivate:[AuthGuard] },

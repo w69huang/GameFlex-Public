@@ -71,13 +71,13 @@ export function createDeck(deck: Deck, component: PlayspaceComponent | ConfigEdi
         deck.gameObject = component.phaserScene.add.image(deck.x, deck.y, deck.imagePath);
         deck.gameObject.setInteractive();
         component.phaserScene.input.setDraggable(deck.gameObject);
-        deck.gameObject.on('dragstart', SA.updateRenderOrder.bind(this, deck, component));
         deck.gameObject.on('drag', SA.onDragMove.bind(this, deck, component));
-        deck.gameObject.on('dragend', SA.onDragEnd.bind(this, deck, component));
         deck.gameObject.displayWidth = 100;
         deck.gameObject.displayHeight = 150;
 
         if (component instanceof PlayspaceComponent) {
+            deck.gameObject.on('dragstart', SA.updateRenderOrder.bind(this, deck, component));
+            deck.gameObject.on('dragend', SA.onDragEnd.bind(this, deck, component));
             deck.gameObject.on('pointerdown', DA.deckRightClick.bind(this, deck, component));
             component.gameState.highestDepth++;
             deck.gameObject.setDepth(depth ? depth : component.gameState.highestDepth);
@@ -94,15 +94,15 @@ export function deckCreationCallback(deck: Deck, component: PlayspaceComponent |
     deck.gameObject = component.phaserScene.add.image(deck.x, deck.y, deck.imagePath);
     deck.gameObject.setInteractive();
     component.phaserScene.input.setDraggable(deck.gameObject);
-    deck.gameObject.on('dragstart', SA.updateRenderOrder.bind(this, deck, component));
     deck.gameObject.on('drag', SA.onDragMove.bind(this, deck, component));
-    deck.gameObject.on('dragend', SA.onDragEnd.bind(this, deck, component));
     deck.gameObject.displayWidth = 100;
     deck.gameObject.displayHeight = 150;
 
     if (component instanceof PlayspaceComponent) {
+        deck.gameObject.on('dragstart', SA.updateRenderOrder.bind(this, deck, component));
+        deck.gameObject.on('dragend', SA.onDragEnd.bind(this, deck, component));
+        deck.gameObject.on('pointerdown', DA.deckRightClick.bind(this, deck, component));
         component.gameState.highestDepth++;
         deck.gameObject.setDepth(depth ? depth : component.gameState.highestDepth);
-        deck.gameObject.on('pointerdown', DA.deckRightClick.bind(this, deck, component));
     }
 }
