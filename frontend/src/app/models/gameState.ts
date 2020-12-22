@@ -1122,6 +1122,18 @@ export default class GameState {
                 this.highestDepth = data.extras.highestDepth;
                 object.gameObject.setDepth(this.highestDepth);
               }
+
+              if (this.amHost) {
+                playspaceComponent.gameState.sendPeerData(
+                    EActionTypes.updateRenderOrder,
+                    {
+                      id: object.id,
+                      type: object.type,
+                      highestDepth: playspaceComponent.gameState.highestDepth
+                    },
+                    [data.peerID]
+                  );
+              }
     
           default:
             console.log('Received action did not match any existing action.');
