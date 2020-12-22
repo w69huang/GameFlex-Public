@@ -7,6 +7,12 @@ export default class DeckMin {
     imagePath: string;
     x: number;
     y: number;
+    depth: number;
+    width: number = 99;
+    height: number = 98;
+    rotation: number = 180;
+    onInsertVisible: boolean = true;
+    numberOfVisibleCards: number = 10;
     cardMins: CardMin[];
 
     constructor(deck: Deck) {
@@ -14,9 +20,10 @@ export default class DeckMin {
        this.imagePath = deck.imagePath;
        this.x = deck.x;
        this.y = deck.y;
+       this.depth = deck.gameObject ? deck.gameObject.depth : 0;
        this.cardMins = [];
 
-       deck.cards.forEach((card: Card) => {
+       deck.cards?.forEach((card: Card) => {
         this.cardMins.push(new CardMin(card));
        });
     }

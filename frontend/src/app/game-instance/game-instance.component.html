@@ -14,6 +14,7 @@
                 <div class="btn btn-primary" (click)="getAllSavedGameStates()">Get Saved Games</div>
                 <div class="btn btn-primary" (click)="saveGameState()">Save Game</div>
                 <div class="btn btn-primary" (click)="deleteAllSaves()">Delete All Saves</div>
+                <div class="btn btn-primary" (click)="undo()">Undo Move</div>
                 <div class="btn btn-primary" (click)="clearCachedSave()">Clear Cached Save</div>
                 <div class="btn btn-primary" (click)="uploadCard()">Upload A Card</div>
             </mat-card>
@@ -23,6 +24,7 @@
         (amHostEmitter)="receiveAmHost($event)"
         (playerDataEmitter)="receivePlayerData($event)"
         (onlineGameEmitter)="receiveOnlineGameData($event)"
+        [undoGameStateEmitter]="undoGameStateEmitter"
         [saveGameStateEmitter]="saveGameStateEmitter"
         [uploadCardToGameStateEmitter]="uploadCardToGameStateEmitter"
         [getAllSavedGameStatesEmitter]="getAllSavedGameStatesEmitter"

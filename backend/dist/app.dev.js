@@ -1,33 +1,56 @@
 "use strict";
 
 // ~~~~~~~ Use `nodemon app.js` to start the server ~~~~~~~~~ //
-var express = require('express'); // The body parser will simplify the request data for mysql
+var createError = require('http-errors');
+
+var express = require('express');
+
+var config = require('./config');
+
+var multer = require('multer');
+
+var GridFsStorage = require('multer-gridfs-storage');
+
+var crypto = require('crypto');
+
+var cors = require('cors');
+
+var bodyParser = require('body-parser'); // The body parser will simplify the request data for mysql
+// instantiate our database that was set up and connected in mongoose.js
 
 
-var bodyParser = require('body-parser'); // The express() library will be used to handle backend routing
+var mongoose = require('./database/mongoose');
+
+var mysql_connection = require('./database/mysql'); // The express() library will be used to handle backend routing
 
 
 var app = express();
-var mysqlapp = express();
+var mysqlapp = express(); // Setting up routes that live in different controllers
 
-var cors = require('cors'); // allows our app to use json data
+var deckEditorRoutes = require('./controllers/deck-editor.controller'); // allows our app to use json data
 
 
-app.use(express.json()); // Allows use to parse application/json type post data
+app.use(express.json());
+app.use(bodyParser.urlencoded({
+  extended: false
+})); // Parses urlencoded bodies
+
+app.use(bodyParser.json()); // Send JSON responses
+// Allows use to parse application/json type post data
 
 mysqlapp.use(bodyParser.json());
 mysqlapp.use(bodyParser.urlencoded({
   extended: true
-})); // mysqlapp.use(cors());
-// instantiate our database that was set up and connected in mongoose.js
-
-var mongoose = require('./database/mongoose');
-
-var mysql_connection = require('./database/mysql');
+}));
+mysqlapp.use(cors());
 
 var List = require('./database/models/list');
 
 var Task = require('./database/models/task');
+
+var Deck = require('./database/models/deck');
+
+var Counter = require('./database/models/counter');
 
 var user = require('./database/models/mysql.user.model');
 /*
@@ -35,7 +58,6 @@ var user = require('./database/models/mysql.user.model');
     localhost:3000 - back-end api (mongo)
     localhost:4200 - front-end
     localhost:5000 - back-end api (mysql)
-
     For our back-end, CORS will take any request that comes from ports other than 3000 and reject it
 */
 // app.use allows us to create middleware, which in this case will be checking requests and responses
@@ -52,6 +74,38 @@ mysqlapp.use(function (req, res, next) {
   res.header("Access-Control-Allow-Methods", "GET, POST, HEAD, OPTIONS, PUT, PATCH, DELETE");
   res.header("Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Accept");
   next();
+});
+app.use('/deck-editor', deckEditorRoutes); //GridFS config -- create storage engine
+
+var storage = new GridFsStorage({
+  url: config.mongoURI,
+  file: function file(req, _file) {
+    // console.log(req);
+    console.log("In the storage engine");
+    return new Promise(function (resolve, reject) {
+      crypto.randomBytes(16, function (err, buf) {
+        if (err) {
+          return reject(err);
+        }
+
+        var filename = _file.originalname;
+        var fileInfo = {}; // if(req.body.deckName) {
+        //     fileInfo = {
+        //         filename: filename,
+        //         bucketName: 'uploads',
+        //         deckName: req.body.deckName
+        //     };
+        // } else { 
+
+        fileInfo = {
+          filename: filename,
+          bucketName: 'uploads'
+        }; // }
+
+        resolve(fileInfo);
+      });
+    });
+  }
 });
 /*
     List: Create, Update, ReadOne, ReadAll, Delete
@@ -126,15 +180,27 @@ app["delete"]('/lists/:listId', function (req, res) {
       return console.log(error);
     });
   };
+});
+var upload = multer({
+  storage: storage
+});
+app.use('/', deckEditorRoutes(upload)); // catch 404 and forward to error handler
 
-  List.findByIdAndDelete(req.params.listId).then(function (list) {
-    return res.send(deleteTasks(list));
-  })["catch"](function (error) {
-    return console.log(error);
+app.use(function (req, res, next) {
+  next(createError(404));
+}); // error handler
+
+app.use(function (req, res, next) {
+  // Error goes via `next()` method
+  setImmediate(function () {
+    next(new Error('Something went wrong'));
   });
-}); // Now for tasks. Since each task has to be associated with at least one list, our url will look something like:
-// http://localhost:3000/lists/:listId/tasks/:taskId
-// Task Routes //
+});
+app.use(function (err, req, res, next) {
+  console.error(err.message);
+  if (!err.statusCode) err.statusCode = 500;
+  res.status(err.statusCode).send(err.message);
+}); // Task Routes //
 
 app.get('/lists/:listId/tasks', function (req, res) {
   // note: `_listId` is of type `mongoose.Types.ObjectId`
@@ -192,11 +258,20 @@ app["delete"]('/lists/:listId/tasks/:taskId', function (req, res) {
 
 mysqlapp.get('/', function (req, res) {
   res.send("Hello World");
-});
+}); // Setting up routes that live in different controllers
 
-var userRoutes = require('./controller/mysql.user.controllers');
+var onlineGamesRoutes = require('./controllers/online-games.controller');
 
-mysqlapp.use('/user', userRoutes); // port number to listen on, callback fxn for when it completes
+var userRoutes = require('./controllers/mysql.user.controllers');
+
+var savedGameStateRoutes = require('./controllers/saved-game-state.controller');
+
+var configurationRoutes = require('./controllers/configuration.controller');
+
+mysqlapp.use('/user', userRoutes);
+mysqlapp.use('/online-games', onlineGamesRoutes);
+app.use('/saved-game-state', savedGameStateRoutes);
+app.use('/configuration', configurationRoutes); // port number to listen on, callback fxn for when it completes
 
 app.listen(3000, function () {
   return console.log("Server Connected on port 3000");

@@ -7,6 +7,7 @@ const mongoose = require('mongoose');
 const config = require('../config');
 const fs = require('fs');
 const { resolve } = require('path');
+const Deck = mongoose.model.deck;
 
 module.exports = (upload) => {
     const url = config.mongoURI;
@@ -15,7 +16,6 @@ module.exports = (upload) => {
     let gfs;
 
     //Deck Model
-    let Deck = require('../database/models/userDeck');
 
     connect.once('open', () => {
         //initialize Gridfs datastream

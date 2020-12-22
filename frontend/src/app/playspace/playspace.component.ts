@@ -16,6 +16,7 @@ import SavedGameState from '../models/savedGameState';
 import OnlineGame from '../models/onlineGame';
 import PlayspaceScene from '../models/phaser-scenes/playspaceScene';
 import { MatDialog } from '@angular/material/dialog';
+import SentGameState from '../models/sentGameState';
 
 @Component({
   selector: 'app-playspace',
@@ -40,11 +41,12 @@ export class PlayspaceComponent implements OnInit {
   @Input() private getAllSavedGameStatesEmitter: EventEmitter<SavedGameState> = new EventEmitter<SavedGameState>();
   @Input() private uploadCardToGameStateEmitter: EventEmitter<Array<string>> = new EventEmitter<Array<string>>();
 
+  @Input() private undoGameStateEmitter: EventEmitter<integer> = new EventEmitter<integer>();
   // To Game Instance
   @Output() public playerDataEmitter: EventEmitter<PlayerData[]> = new EventEmitter<PlayerData[]>();
   @Output() private onlineGameEmitter: EventEmitter<OnlineGame> = new EventEmitter<OnlineGame>();
   @Output() private amHostEmitter: EventEmitter<boolean> = new EventEmitter<boolean>();
-  
+
   // Peer
   public peer: any;
   public firstConnectionAttempt: boolean = false;
@@ -70,7 +72,7 @@ export class PlayspaceComponent implements OnInit {
     private middleware: MiddleWare,
     private dialog: MatDialog
    ) {
-    this.gameState = new GameState([], [], []);
+    this.gameState = new GameState([], [], [], []);
     this.gameState.myPeerID = hostService.getHostID();
 
     // NOTE: Launch a local peer server:
@@ -81,9 +83,9 @@ export class PlayspaceComponent implements OnInit {
       // host: '35.215.71.108', // This is reserved for the external IP of the mongo DB instance. Replace this IP with the new IP generated when starting up the 
       port: 9000,
       path: '/peerserver' // Make sure this path matches the path you used to launch it
-    }); 
+    });
 
-    this.peer.on('connection', (conn) => { 
+    this.peer.on('connection', (conn: DataConnection) => { 
       console.log(`Received connection request from peer with id ${conn.peer}.`);
 
       conn.on('open', () => {
@@ -97,57 +99,55 @@ export class PlayspaceComponent implements OnInit {
       conn.on('data', (data) => {
         this.gameState.handleData(data, this);
       });
+
+      // Catches the case of a browser being closed
+      conn.peerConnection.oniceconnectionstatechange = () => {
+        if(conn.peerConnection.iceConnectionState == 'disconnected') {
+          console.log("Peer-to-Peer Error: Other party disconnected.");
+          this.hostHandleConnectionClose(conn);
+        }
+      }
       conn.on('close', () => {
         console.log("Peer-to-Peer Error: Other party disconnected.");
-        this.gameState.connections = this.filterOutPeer(this.gameState.connections, conn);
-
-        let playerData: PlayerData = null;
-        this.gameState.playerDataObjects.forEach((playerDataObject: PlayerData) => {
-          if (playerDataObject.peerID === conn.peer) {
-            playerData = playerDataObject;
-          }
-        });
-
-        if (playerData) {
-          this.gameState.playerDataObjects = this.filterOutID(this.gameState.playerDataObjects, playerData);
-          this.playerDataEmitter.emit(this.gameState.playerDataObjects);
-
-          this.onlineGame.numPlayers--;
-          this.onlineGamesService.update(this.onlineGame).subscribe();
-        }
+        this.hostHandleConnectionClose(conn);
       });
       conn.on('error', (err) => {
         console.log("Unspecified Peer-to-Peer Error:");
         console.log(err);
-        this.gameState.connections = this.filterOutPeer(this.gameState.connections, conn);
-        
-        let playerData: PlayerData = null;
-        this.gameState.playerDataObjects.forEach((playerDataObject: PlayerData) => {
-          if (playerDataObject.peerID === conn.peer) {
-            playerData = playerDataObject;
-          }
-        });
-
-        if (playerData) {
-          this.gameState.playerDataObjects = this.filterOutID(this.gameState.playerDataObjects, playerData);
-          this.playerDataEmitter.emit(this.gameState.playerDataObjects);
-
-          this.onlineGame.numPlayers--;
-          this.onlineGamesService.update(this.onlineGame).subscribe();
-        }
+        this.hostHandleConnectionClose(conn);
       });
     });
-   }
+  }
+
+  hostHandleConnectionClose(conn: DataConnection) {
+    this.gameState.connections = this.filterOutPeer(this.gameState.connections, conn);
+    
+    let playerData: PlayerData = null;
+    this.gameState.playerDataObjects.forEach((playerDataObject: PlayerData) => {
+      if (playerDataObject.peerID === conn.peer) {
+        playerData = playerDataObject;
+      }
+    });
+
+    if (playerData) {
+      this.gameState.playerDataObjects = this.filterOutID(this.gameState.playerDataObjects, playerData);
+      this.playerDataEmitter.emit(this.gameState.playerDataObjects);
+
+      this.onlineGame.numPlayers--;
+      this.onlineGamesService.update(this.onlineGame).subscribe();
+    }
+  }
 
   ngOnInit() {
     // TODO: Band-aid solution, find a better one at some point
-    setTimeout(_=> this.initialize(), 100);
+    setTimeout(_ => this.initialize(), 100);
     this.checkIfCanOpenConnectionInterval = setInterval(this.checkIfCanOpenConnection.bind(this), 5000);
     this.getAllSavedGameStates();
     this.saveGameState();
     this.uploadCards();
+    this.undoGameState();
   }
-  
+
   ngOnDestroy() {
     this.connectionClosedIntentionally = true;
     clearInterval(this.updateOnlineGameInterval);
@@ -167,7 +167,7 @@ export class PlayspaceComponent implements OnInit {
       type: Phaser.AUTO,
       height: this.sceneHeight,
       width: this.sceneWidth,
-      scene: [ this.phaserScene ],
+      scene: [this.phaserScene],
       parent: 'gameContainer',
     };
 
@@ -184,7 +184,7 @@ export class PlayspaceComponent implements OnInit {
             console.log("Sending updated state.");
             this.gameState.sendGameStateToPeers(playerDataObject.peerID);
           }
-        });  
+        });
       }
     });
   }
@@ -199,26 +199,32 @@ export class PlayspaceComponent implements OnInit {
     })
   }
 
-  saveGameState() {
-    this.saveGameStateEmitter.subscribe(name => {
+  undoGameState(): void {
+    this.undoGameStateEmitter.subscribe((count: integer) => {
+      this.gameState.buildGameFromCache(this, false, count);
+    });
+  }
+
+  saveGameState(): void {
+    this.saveGameStateEmitter.subscribe((name: string) => {
       this.savedGameStateService.create(new SavedGameState(this.middleware.getUsername(), name, this.gameState, this.gameState.playerDataObjects));
     });
   }
 
-  updateOnlineGame() {
+  updateOnlineGame(): void {
     if (this.gameState.getAmHost() && this.onlineGame) {
       this.onlineGame.lastUpdated = Date.now();
       this.onlineGamesService.update(this.onlineGame).subscribe();
     }
   }
 
-  filterOutID(objectListToFilter: any[], object: any) {
+  filterOutID(objectListToFilter: any[], object: any): any[] {
     return objectListToFilter.filter( (refObject: any) => {
       return object.id !== refObject.id;
     });
   }
 
-  filterOutPeer(connectionListToFilter: DataConnection[], connection: DataConnection) {
+  filterOutPeer(connectionListToFilter: DataConnection[], connection: DataConnection): DataConnection[] {
     return connectionListToFilter.filter( (refConnection: DataConnection) => {
       return connection.peer !== refConnection.peer;
     });
@@ -236,7 +242,7 @@ export class PlayspaceComponent implements OnInit {
     return newConnectionList;
   }
 
-  buildFromCacheDialog() {
+  buildFromCacheDialog(): void {
     let dialogRef = this.dialog.open(LoadGameStatePopupComponent, {
       height: '290px',
       width: '350px',
@@ -244,7 +250,7 @@ export class PlayspaceComponent implements OnInit {
 
     dialogRef.afterClosed().subscribe(object => {
       if (object.loadFromCache === true) {
-        this.gameState.buildGameFromCache(this);
+        this.gameState.buildGameFromCache(this, true);
       } else if (object.loadFromCache === false) {
         this.gameState.clearCache();
       } else {
@@ -254,7 +260,7 @@ export class PlayspaceComponent implements OnInit {
     });
   }
 
-  finishConnectionProcess() {
+  finishConnectionProcess(): void {
     this.openConnectionAttempts = 0;
 
     if (this.checkIfCanOpenConnectionInterval) {
@@ -279,7 +285,7 @@ export class PlayspaceComponent implements OnInit {
     }
   }
 
-  startConnectionProcess() {
+  startConnectionProcess(): void {
     if (this.onlineGameID) {
       this.onlineGamesService.get(this.onlineGameID).subscribe((onlineGames: OnlineGame) => {
         this.onlineGame = onlineGames[0];
@@ -317,14 +323,14 @@ export class PlayspaceComponent implements OnInit {
           this.updateOnlineGameInterval = setInterval(this.updateOnlineGame.bind(this), 300000); // Tell the backend that this game still exists every 5 mins
           this.finishConnectionProcess();
         }
-      }); 
+      });
     } else {
       this.finishConnectionProcess();
     }
   }
 
-  openConnection() {
-    var conn = this.peer.connect(this.mainHostID);
+  openConnection(): void {
+    var conn: DataConnection = this.peer.connect(this.mainHostID);
     this.firstConnectionAttempt = true;
     this.openConnectionAttempts++;
     conn?.on('open', () => {
@@ -337,26 +343,33 @@ export class PlayspaceComponent implements OnInit {
       conn.on('data', (data) => {
         this.gameState.handleData(data, this);
       });
-      conn.on('close', () => {
-        console.log("Peer-to-Peer Error: Connection closed.");
-        if (!this.connectionClosedIntentionally) {
-          this.gameState.connections = this.filterOutPeer(this.gameState.connections, conn);
-          this.connOpenedSuccessfully = false;
-          this.finishConnectionProcess();
-          this.checkIfCanOpenConnectionInterval = setInterval(this.checkIfCanOpenConnection.bind(this), 2000);
+
+      // Catches the case where the browser is closed
+      conn.peerConnection.oniceconnectionstatechange = () => {
+        if(conn.peerConnection.iceConnectionState == 'disconnected') {
+          console.log("Peer-to-Peer Error: Other party disconnected.");
+          this.clientHandleConnectionClose(conn);
         }
+      }
+      conn.on('close', () => {
+        console.log("Peer-to-Peer Error: Other party disconnected.");
+        this.clientHandleConnectionClose(conn);
       });
       conn.on('error', (err) => {
         console.log("Unspecified Peer-to-Peer Error: ");
         console.log(err);
-        if (!this.connectionClosedIntentionally) {
-          this.gameState.connections = this.filterOutPeer(this.gameState.connections, conn);
-          this.connOpenedSuccessfully = false;
-          this.finishConnectionProcess();
-          this.checkIfCanOpenConnectionInterval = setInterval(this.checkIfCanOpenConnection.bind(this), 2000);
-        }
+        this.clientHandleConnectionClose(conn);
       });
-      this.gameState.sendPeerData(EActionTypes.SENDSTATE, null);
+      this.gameState.sendPeerData(EActionTypes.sendState, null);
     });
+  }
+
+  clientHandleConnectionClose(conn: DataConnection): void {
+    if (!this.connectionClosedIntentionally) {
+      this.gameState.connections = this.filterOutPeer(this.gameState.connections, conn);
+      this.connOpenedSuccessfully = false;
+      this.finishConnectionProcess();
+      this.checkIfCanOpenConnectionInterval = setInterval(this.checkIfCanOpenConnection.bind(this), 2000);
+    }
   }
 }

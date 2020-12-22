@@ -1,4 +1,8 @@
+@import '../../main.scss';
+
 mat-card {
+    background-color: $themeDarkGray;
+    color: $themeLightGray;
     width: 50%;
     margin-left: 25%;
     margin-top: 5%;
@@ -13,6 +17,12 @@ button {
     width: 250px;
     height: 75px;
     font-size: 24px;
+    background-color: $themeGray;
+    color: white;
+}
+
+button:hover {
+    background-color: $themePurple;
 }
 
 #errorsDiv {

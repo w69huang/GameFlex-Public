@@ -23,11 +23,19 @@ export class GameInstanceComponent implements OnInit {
   public onlineGame: OnlineGame;
   public playerData: PlayerData[];
   public amHost: boolean = false;
+  public undoCounter = 0;
+  private timer = false;
+  private timerFunc: NodeJS.Timer;
 
   public saveGameStateEmitter: EventEmitter<string> = new EventEmitter<string>();
   public getAllSavedGameStatesEmitter: EventEmitter<SavedGameState> = new EventEmitter<SavedGameState>();
+<<<<<<< HEAD
   public uploadCardToGameStateEmitter: EventEmitter<Array<string>> = new EventEmitter<Array<string>>();
   
+=======
+  public undoGameStateEmitter: EventEmitter<integer> = new EventEmitter<integer>();
+
+>>>>>>> origin/dev-gameInstance
   constructor(
     private route: ActivatedRoute,
     private savedGameStateService: SavedGameStateService,
@@ -80,6 +88,21 @@ export class GameInstanceComponent implements OnInit {
         this.saveGameStateEmitter.emit(formData.name);
       }
     });
+  }
+
+  clearCache(){
+    localStorage.removeItem('gameStateHistory');
+    console.log("Cleared")
+  }
+
+  undo(){
+    clearTimeout(this.timerFunc);
+    this.undoCounter +=1;
+    this.timerFunc = setTimeout((count) => {
+      this.undoGameStateEmitter.emit(count);
+      this.timer = false;
+      this.undoCounter = 0;
+    }, 2000, this.undoCounter);
   }
 
   deleteAllSaves() {

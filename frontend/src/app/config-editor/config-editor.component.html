@@ -1,0 +1,21 @@
+<h1>Config Editor</h1>
+<h2>Config id - {{configuration._id}}</h2>
+<button class="btn btn-primary" (click)="initDeck()">Create Deck</button>
+<button class="btn btn-primary" (click)="saveConfig()">Save to Mongo</button>
+<button class="btn btn-primary" (click)="updateConfig()">Update Config</button>
+<button class="btn btn-primary" (click)="deleteConfig()">Delete from Mongo</button>
+<button class="btn btn-primary" (click)="getConfig(configIdInput.value)">Get a Config</button>
+<input #configIdInput type="text" placeholder="Game Id">
+<div class="contentContainer">
+    <div class="rightSidebar">
+        <mat-card>
+            <button class="btn btn-primary" (click)="initCounter()">Create Counter</button>
+            <div *ngFor="let counter of configuration.counters">
+                <label for="nameField">{{ counter.name }}</label>
+                <input (change)="onChangeCounterText(counter)" type="number" id="counter{{counter.id}}" 
+                placeholder="##" value="{{counter.value}}" style="font-size: 24px">
+                <!-- Having the id as the counter.id is probably not the best... also is that even valid without the double { -->
+             </div>
+        </mat-card>
+    </div>
+</div>

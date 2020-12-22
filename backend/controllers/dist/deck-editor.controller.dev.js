@@ -19,6 +19,8 @@ var fs = require('fs');
 var _require = require('path'),
     resolve = _require.resolve;
 
+var Deck = mongoose.model.deck;
+
 module.exports = function (upload) {
   var url = config.mongoURI;
   var connect = mongoose.createConnection(url, {
@@ -26,8 +28,6 @@ module.exports = function (upload) {
     useUnifiedTopology: true
   });
   var gfs; //Deck Model
-
-  var Deck = require('../database/models/userDeck');
 
   connect.once('open', function () {
     //initialize Gridfs datastream

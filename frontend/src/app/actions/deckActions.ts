@@ -1,32 +1,26 @@
 import { PlayspaceComponent } from '../playspace/playspace.component';
 import Card from '../models/card';
 import Deck from '../models/deck';
-import OptionObject from '../models/optionObject';
+import OptionObject, { OptionObjectConfig } from '../models/optionObject';
 import PopupScene from '../models/phaser-scenes/popupScene';
 import { EGameObjectType, EActionTypes } from '../models/gameState';
 
 import * as HelperFunctions from '../helper-functions';
-import * as SharedActions from '../actions/sharedActions';
 
-
-enum DestinationEnum {
-    TABLE = "Table",
-    HAND = "Hand"
-}
-
-function popupClose(popupScene: PopupScene, deck: Deck, component: any) {
+function popupClose(popupScene: PopupScene, deck: Deck, component: any): void {
     component.phaserScene.scene.remove(popupScene.key);
     deck.rightClick = false;
 }
 
-export function deckRightClick(deck: Deck, component: any, pointer: Phaser.Input.Pointer) {
+export function deckRightClick(deck: Deck, component: any, pointer: Phaser.Input.Pointer, optionObjectConfig?: OptionObjectConfig): void {
     if (pointer.rightButtonDown() && deck.rightClick == false) {
 
         let optionWidth = 200;
         let optionHeight = 75;
         let optionObjects = [];
         let optionSeparation = 10;
-        optionObjects.push(new OptionObject("retrieveCard", retrieveTopCard, 'assets/images/buttons/retrieveTopCard.png', optionWidth, optionHeight));
+        optionObjects.push(new OptionObject("retrieveCard", retrieveTopCard, 'assets/images/buttons/retrieveTopCard.png', optionWidth, optionHeight, { destination: HelperFunctions.EDestination.TABLE }));
+        optionObjects.push(new OptionObject("addTopCardToHand", retrieveTopCard, 'assets/images/buttons/addTopCardToHand.png', optionWidth, optionHeight, { destination: HelperFunctions.EDestination.HAND }));
         optionObjects.push(new OptionObject("shuffleDeck", shuffleDeck, 'assets/images/buttons/shuffleDeck.png', optionWidth, optionHeight));
         optionObjects.push(new OptionObject("importDeck", importDeck, 'assets/images/buttons/importDeck.png', optionWidth, optionHeight));
         let width = 250;
@@ -41,36 +35,41 @@ export function deckRightClick(deck: Deck, component: any, pointer: Phaser.Input
     }
 }
 
-export function retrieveTopCard(popupScene: PopupScene, deck: Deck, playspaceComponent: PlayspaceComponent, pointer: Phaser.Input.Pointer) {
-
+export function retrieveTopCard(popupScene: PopupScene, deck: Deck, playspaceComponent: PlayspaceComponent, optionObjectConfig: OptionObjectConfig, pointer: Phaser.Input.Pointer): void {
     if (playspaceComponent.gameState.getAmHost()) {
         const card: Card = playspaceComponent.gameState.getCardFromDeck(deck.cards.length - 1, deck.id, true);
 
         if (card) {
             if (card.gameObject == null) {
                 card.inDeck = false;
+                card.x = optionObjectConfig.destination === HelperFunctions.EDestination.TABLE ? deck.x : playspaceComponent.gameState.myHand.gameObject.x + 150;
+                card.y = optionObjectConfig.destination === HelperFunctions.EDestination.TABLE ? deck.y : playspaceComponent.gameState.myHand.gameObject.y + 200;
 
-                HelperFunctions.createCard(card, playspaceComponent, SharedActions.onDragMove, SharedActions.onDragEnd, DestinationEnum.TABLE, deck.gameObject.x, deck.gameObject.y);
+                HelperFunctions.createCard(card, playspaceComponent, optionObjectConfig.destination);
 
-                playspaceComponent.gameState.sendPeerData(
-                    EActionTypes.SENDTOPCARD,
-                    {
-                        cardID: card.id,
-                        deckID: deck.id,
-                        imagePath: card.imagePath,
-                        type: EGameObjectType.CARD,
-                        x: deck.x,
-                        y: deck.y
-                    }                  
-                );
+                if (optionObjectConfig.destination === HelperFunctions.EDestination.TABLE) {
+                    playspaceComponent.gameState.sendPeerData(
+                        EActionTypes.sendTopCard,
+                        {
+                            cardID: card.id,
+                            deckID: deck.id,
+                            imagePath: card.imagePath,
+                            type: EGameObjectType.CARD,
+                            x: deck.x,
+                            y: deck.y,
+                            destination: optionObjectConfig.destination
+                        }                  
+                    );
+                }
             }
         }
     } else {
         playspaceComponent.gameState.sendPeerData(
-            EActionTypes.RETRIEVETOPCARD,
+            EActionTypes.retrieveTopCard,
             {
                 deckID: deck.id,
                 type: EGameObjectType.CARD,
+                destination: optionObjectConfig.destination
             }
         );
     }
@@ -78,7 +77,7 @@ export function retrieveTopCard(popupScene: PopupScene, deck: Deck, playspaceCom
     popupClose(popupScene, deck, playspaceComponent);
 }
 
-export function shuffleDeck(popupScene: PopupScene, deck: Deck, playspaceComponent: PlayspaceComponent, pointer: Phaser.Input.Pointer) {
+export function shuffleDeck(popupScene: PopupScene, deck: Deck, playspaceComponent: PlayspaceComponent, pointer: Phaser.Input.Pointer): void {
     if (playspaceComponent.gameState.getAmHost()) {
         let shuffled = deck.cards.map((card) => ({randomVal: Math.random(), card: card}))
                                 .sort((object1, object2) => object1.randomVal - object2.randomVal)
@@ -90,8 +89,17 @@ export function shuffleDeck(popupScene: PopupScene, deck: Deck, playspaceCompone
     popupClose(popupScene, deck, playspaceComponent);
 }
 
-export function importDeck(popupScene: PopupScene, deck: Deck, playspaceComponent: PlayspaceComponent, pointer: Phaser.Input.Pointer) {
-    let imagePaths: string[] = ["assets/images/playing-cards/king_of_hearts.png", "assets/images/playing-cards/king_of_hearts.png"];
+export function importDeck(popupScene: PopupScene, deck: Deck, playspaceComponent: PlayspaceComponent): void {
+    let imagePaths: string[] = [];
+    let baseURL: string = "assets/images/playing-cards/";
+    let prefixes: string[] = ["ace_of_", "two_of_", "three_of_", "four_of_", "five_of_", "six_of_", "seven_of_", "eight_of_", "nine_of_", "ten_of_", "jack_of_", "queen_of_", "king_of_"];
+    let suffixes: string[] = ["hearts.png", "spades.png", "diamonds.png", "clubs.png"];
+
+    prefixes.forEach((prefix: string) => {
+        suffixes.forEach((suffix: string) => {
+            imagePaths.push(baseURL + prefix + suffix);
+        });
+    });
 
     if (playspaceComponent.gameState.getAmHost()) {
         imagePaths.forEach((imagePath: string) => {
@@ -101,7 +109,7 @@ export function importDeck(popupScene: PopupScene, deck: Deck, playspaceComponen
 
     if (!playspaceComponent.gameState.getAmHost()) {
         playspaceComponent.gameState.sendPeerData(
-            EActionTypes.IMPORTDECK,
+            EActionTypes.importDeck,
             {
                 deckID: deck.id,
                 type: EGameObjectType.DECK,

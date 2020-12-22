@@ -15,17 +15,17 @@ export default class SentGameState {
     constructor(gameState: GameState, playerID: number) {
         this.playerID = playerID;
 
-        gameState.cards.forEach((card: Card) => {
+        gameState?.cards.forEach((card: Card) => {
             this.cardMins.push(new CardMin(card));
         });
-        gameState.decks.forEach((deck: Deck) => {
+        gameState?.decks.forEach((deck: Deck) => {
             this.deckMins.push(new DeckMin(deck));
         });
 
         let handFound: boolean = false;
-        for (let i = 0; i < gameState.hands.length; i++) {
-            if (gameState.hands[i].playerID === this.playerID) {
-                this.handMin = new HandMin(gameState.hands[i]);
+        for (let i = 0; i < gameState?.hands.length; i++) {
+            if (gameState?.hands[i].playerID === this.playerID) {
+                this.handMin = new HandMin(gameState?.hands[i]);
                 handFound = true;
                 break;
             }

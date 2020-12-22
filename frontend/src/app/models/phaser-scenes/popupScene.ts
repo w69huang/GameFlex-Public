@@ -55,7 +55,7 @@ export default class PopupScene extends Phaser.Scene {
         this.optionObjects.forEach((object: OptionObject) => {
           var button = this.add.image(0, verticalPosition, object.optionKey).setOrigin(0);
           button.setInteractive();
-          button.on('pointerdown', object.optionFunction.bind(this, this, this.deck, this.component));
+          button.on('pointerdown', object.optionFunction.bind(this, this, this.deck, this.component, object.optionObjectConfig));
           button.displayWidth = object.optionWidth;
           button.displayHeight = object.optionHeight;
 
