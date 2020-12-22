@@ -1,6 +1,7 @@
 import Card from './card';
 import Deck from './deck';
 import Hand from './hand';
+import Counter from './counter';
 import CachedGameState from './cachedGameState'
 import SavedGameState from './savedGameState';
 import CardMin from './cardMin';
@@ -176,6 +177,11 @@ export default class GameState {
     private _hands: Hand[];
 
     /**
+     * Holds all counters in the game instance
+     */
+    private _counters: Counter[];
+
+    /**
      * Holds information about this player's hand only
      */
     public myHand: Hand;
@@ -186,25 +192,33 @@ export default class GameState {
     private amHost: boolean = false;
 
     /**
-     * A public accessor to get all cards, should not be used outside of other game state classes
+     * A public accessor to get all cards
      */
     public get cards(): Card[] {
         return this._cards;
     }
 
     /**
-     * A public accessor to get all decks, should not be used outside of other game state classes
+     * A public accessor to get all decks
      */
     public get decks(): Deck[] {
         return this._decks;
     }
 
     /**
-     * A public accessor to get all hands, should not be used outside of othergmae state classes
+     * A public accessor to get all hands
      */
     public get hands(): Hand[] {
         return this._hands;
     }
+
+    /**
+     * A public accessor to get all counters
+     */
+    public get counters(): Counter[] {
+        return this._counters;
+    }
+
 
     /**
      * My player ID
@@ -236,13 +250,14 @@ export default class GameState {
      * @param cards - The cards to add to the table at initialization time
      * @param decks - The decks to add to the table at initialization time
      * @param hands - The hand information to record at initialization time
-     * @param myHand - The player's hand information to record at initialization time
+     * @param counters - The counter information to record at initialization time
      */
-    constructor(cards: Card[], decks: Deck[], hands: Hand[]) {
+    constructor(cards: Card[], decks: Deck[], hands: Hand[], counters: Counter[]) {
         this._cards = cards;
         this._decks = decks;
         this._hands = hands;
         this.myHand = new Hand(null, []);
+        this._counters = counters;
     }
 
     /**
@@ -840,6 +855,7 @@ export default class GameState {
         });
         this._hands = [];
         this.myHand.cards = [];
+        this._counters = [];
     }
 
     /**

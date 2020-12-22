@@ -35,7 +35,14 @@ import { AuthGuard } from './services/auth-guard';
 import { JoinByCodeComponent } from './join-by-code/join-by-code.component';
 import { GameInstanceComponent } from './game-instance/game-instance.component';
 import { LoadGameStatePopupComponent } from './popups/load-game-state-popup/load-game-state-popup.component';
+<<<<<<< HEAD
 import { UndoGameStatePopupComponent } from './popups/undo-game-state-popup/undo-game-state-popup.component';
+=======
+import { CreateCounterPopupComponent } from './popups/create-counter-popup/create-counter-popup.component';
+import { ConfigEditorComponent } from './config-editor/config-editor.component';
+import { SaveConfigurationPopupComponent } from './popups/save-configuration-popup/save-configuration-popup.component';
+
+>>>>>>> develop
 
 @NgModule({
   declarations: [
@@ -57,8 +64,15 @@ import { UndoGameStatePopupComponent } from './popups/undo-game-state-popup/undo
     RetrieveGameStatePopupComponent,
     JoinByCodeComponent,
     GameInstanceComponent,
+    CreateCounterPopupComponent,
     LoadGameStatePopupComponent,
+<<<<<<< HEAD
     UndoGameStatePopupComponent
+=======
+    CreateCounterPopupComponent,
+    ConfigEditorComponent,
+    SaveConfigurationPopupComponent,
+>>>>>>> develop
   ],
   imports: [
     BrowserModule,
@@ -78,9 +92,11 @@ import { UndoGameStatePopupComponent } from './popups/undo-game-state-popup/undo
     NgxMatSelectSearchModule
   ],
   entryComponents: [
+    SaveConfigurationPopupComponent,
     GameBrowserPopupComponent,
     GameSetupPopupComponent,
     SaveGameStatePopupComponent,
+    CreateCounterPopupComponent,
     RetrieveGameStatePopupComponent,
     LoadGameStatePopupComponent,
     DialogForgotPassword

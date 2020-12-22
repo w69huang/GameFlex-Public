@@ -70,7 +70,7 @@ export class PlayspaceComponent implements OnInit {
     private middleware: MiddleWare,
     private dialog: MatDialog
    ) {
-    this.gameState = new GameState([], [], []);
+    this.gameState = new GameState([], [], [], []);
     this.gameState.myPeerID = hostService.getHostID();
 
     // NOTE: Launch a local peer server:
@@ -81,7 +81,7 @@ export class PlayspaceComponent implements OnInit {
       // host: '35.215.71.108', // This is reserved for the external IP of the mongo DB instance. Replace this IP with the new IP generated when starting up the 
       port: 9000,
       path: '/peerserver' // Make sure this path matches the path you used to launch it
-    }); 
+    });
 
     this.peer.on('connection', (conn: DataConnection) => { 
       console.log(`Received connection request from peer with id ${conn.peer}.`);
@@ -115,7 +115,7 @@ export class PlayspaceComponent implements OnInit {
         this.hostHandleConnectionClose(conn);
       });
     });
-   }
+  }
 
   hostHandleConnectionClose(conn: DataConnection) {
     this.gameState.connections = this.filterOutPeer(this.gameState.connections, conn);
@@ -138,13 +138,13 @@ export class PlayspaceComponent implements OnInit {
 
   ngOnInit() {
     // TODO: Band-aid solution, find a better one at some point
-    setTimeout(_=> this.initialize(), 100);
+    setTimeout(_ => this.initialize(), 100);
     this.checkIfCanOpenConnectionInterval = setInterval(this.checkIfCanOpenConnection.bind(this), 5000);
     this.getAllSavedGameStates();
     this.saveGameState();
     this.undoGameState();
   }
-  
+
   ngOnDestroy() {
     this.connectionClosedIntentionally = true;
     clearInterval(this.updateOnlineGameInterval);
@@ -164,7 +164,7 @@ export class PlayspaceComponent implements OnInit {
       type: Phaser.AUTO,
       height: this.sceneHeight,
       width: this.sceneWidth,
-      scene: [ this.phaserScene ],
+      scene: [this.phaserScene],
       parent: 'gameContainer',
     };
 
@@ -181,7 +181,7 @@ export class PlayspaceComponent implements OnInit {
             console.log("Sending updated state.");
             this.gameState.sendGameStateToPeers(playerDataObject.peerID);
           }
-        });  
+        });
       }
     });
   }
@@ -310,7 +310,7 @@ export class PlayspaceComponent implements OnInit {
           this.updateOnlineGameInterval = setInterval(this.updateOnlineGame.bind(this), 300000); // Tell the backend that this game still exists every 5 mins
           this.finishConnectionProcess();
         }
-      }); 
+      });
     } else {
       this.finishConnectionProcess();
     }
