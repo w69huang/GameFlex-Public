@@ -7,6 +7,7 @@ import PlayerData from '../models/playerData';
 import SavedGameState from '../models/savedGameState';
 import { RetrieveGameStatePopupComponent } from '../popups/retrieve-game-state-popup/retrieve-game-state-popup.component';
 import { SaveGameStatePopupComponent } from '../popups/save-game-state-popup/save-game-state-popup.component';
+import { FileService } from '../services/file.service';
 import { MiddleWare } from '../services/middleware';
 import { SavedGameStateService } from '../services/saved-game-state.service';
 
@@ -25,12 +26,14 @@ export class GameInstanceComponent implements OnInit {
 
   public saveGameStateEmitter: EventEmitter<string> = new EventEmitter<string>();
   public getAllSavedGameStatesEmitter: EventEmitter<SavedGameState> = new EventEmitter<SavedGameState>();
-
+  public uploadCardToGameStateEmitter: EventEmitter<Array<string>> = new EventEmitter<Array<string>>();
+  
   constructor(
     private route: ActivatedRoute,
     private savedGameStateService: SavedGameStateService,
     private dialog: MatDialog,
-    public middleware: MiddleWare
+    public middleware: MiddleWare,
+    private fileService: FileService
     ) { }
 
   ngOnInit(): void {
@@ -85,5 +88,14 @@ export class GameInstanceComponent implements OnInit {
 
   clearCachedSave() {
     localStorage.removeItem('cachedGameState');
+  }
+
+  uploadCard(){
+    this.fileService.list('TestDeck', 'test2').subscribe((data) => {
+      console.log("GameInstance Componenet Pulled Files:")
+      console.log(data)
+      this.uploadCardToGameStateEmitter.emit(data);
+
+    })
   }
 }

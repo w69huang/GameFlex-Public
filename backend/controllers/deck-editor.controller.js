@@ -127,6 +127,7 @@ module.exports = (upload) => {
                                         fileProcessCounter ++; 
                                         if(fileProcessCounter === files.length) {
                                             console.log("file array sent")
+                                            console.log("fileArray: ")
                                             res.send(fileArray);
                                         }
                                     });

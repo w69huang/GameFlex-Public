@@ -38,6 +38,7 @@ export class PlayspaceComponent implements OnInit {
   @Input() private onlineGameID: string;
   @Input() private saveGameStateEmitter: EventEmitter<string> = new EventEmitter<string>();
   @Input() private getAllSavedGameStatesEmitter: EventEmitter<SavedGameState> = new EventEmitter<SavedGameState>();
+  @Input() private uploadCardToGameStateEmitter: EventEmitter<Array<string>> = new EventEmitter<Array<string>>();
 
   // To Game Instance
   @Output() public playerDataEmitter: EventEmitter<PlayerData[]> = new EventEmitter<PlayerData[]>();
@@ -144,6 +145,7 @@ export class PlayspaceComponent implements OnInit {
     this.checkIfCanOpenConnectionInterval = setInterval(this.checkIfCanOpenConnection.bind(this), 5000);
     this.getAllSavedGameStates();
     this.saveGameState();
+    this.uploadCards();
   }
   
   ngOnDestroy() {
@@ -185,6 +187,16 @@ export class PlayspaceComponent implements OnInit {
         });  
       }
     });
+  }
+
+  uploadCards() {
+    console.log("Uploaded?")
+    this.uploadCardToGameStateEmitter.subscribe(cards => {
+      cards.map(card => {
+        console.log("Card data?")
+        this.gameState.addCardToGame(card, this);
+      })
+    })
   }
 
   saveGameState() {

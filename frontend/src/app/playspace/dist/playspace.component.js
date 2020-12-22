@@ -8,36 +8,118 @@ var __decorate = (this && this.__decorate) || function (decorators, target, key,
 exports.__esModule = true;
 exports.PlayspaceComponent = void 0;
 var core_1 = require("@angular/core");
+var peerjs_1 = require("peerjs");
 var phaser_1 = require("phaser");
-var card_1 = require("../models/card");
-var deck_1 = require("../models/deck");
-var hand_1 = require("../models/hand");
+var load_game_state_popup_component_1 = require("../popups/load-game-state-popup/load-game-state-popup.component");
 var gameState_1 = require("../models/gameState");
-var sentGameState_1 = require("../models/sentGameState");
+var savedGameState_1 = require("../models/savedGameState");
 var playspaceScene_1 = require("../models/phaser-scenes/playspaceScene");
-var HelperFunctions = require("../helper-functions");
-var SharedActions = require("../actions/sharedActions");
-var DeckActions = require("../actions/deckActions");
-// TODO: Consider using a hashmap of keys to card objects (an associative array/object)
 var PlayspaceComponent = /** @class */ (function () {
-    function PlayspaceComponent() {
+    function PlayspaceComponent(hostService, onlineGamesService, savedGameStateService, router, middleware, dialog) {
+        var _this = this;
+        this.hostService = hostService;
+        this.onlineGamesService = onlineGamesService;
+        this.savedGameStateService = savedGameStateService;
+        this.router = router;
+        this.middleware = middleware;
+        this.dialog = dialog;
         this.popupCount = 0;
         this.sceneWidth = 1000;
         this.sceneHeight = 1000;
         this.handBeginY = 600;
         this.highestID = 1;
-        // State
-        this.playerID = 1;
-        // NOTE: In the future, this should be populated by a DB call for a specific game
-        this.amHost = true;
+        this.saveGameStateEmitter = new core_1.EventEmitter();
+        this.getAllSavedGameStatesEmitter = new core_1.EventEmitter();
+        this.uploadCardToGameStateEmitter = new core_1.EventEmitter();
+        // To Game Instance
+        this.playerDataEmitter = new core_1.EventEmitter();
+        this.onlineGameEmitter = new core_1.EventEmitter();
+        this.amHostEmitter = new core_1.EventEmitter();
+        this.firstConnectionAttempt = false;
+        this.connOpenedSuccessfully = false;
+        this.connectionClosedIntentionally = false;
+        this.openConnectionAttempts = 0;
+        this.initialStateRequest = false;
+        this.gameState = new gameState_1["default"]([], [], []);
+        this.gameState.myPeerID = hostService.getHostID();
+        // NOTE: Launch a local peer server:
+        // 1. npm install -g peer
+        // 2. peerjs --port 9000 --key peerjs --path /peerserver
+        this.peer = new peerjs_1["default"](this.gameState.myPeerID, {
+            host: 'localhost',
+            // host: '35.215.71.108', // This is reserved for the external IP of the mongo DB instance. Replace this IP with the new IP generated when starting up the 
+            port: 9000,
+            path: '/peerserver' // Make sure this path matches the path you used to launch it
+        });
+        this.peer.on('connection', function (conn) {
+            console.log("Received connection request from peer with id " + conn.peer + ".");
+            conn.on('open', function () {
+                // Check if there are duplicate connections, if so filter out
+                _this.gameState.connections = _this.closeAndFilterDuplicateConnections(conn);
+                _this.gameState.connections.push(conn);
+                _this.onlineGame.numPlayers++;
+                _this.onlineGamesService.update(_this.onlineGame).subscribe();
+            });
+            conn.on('data', function (data) {
+                _this.gameState.handleData(data, _this);
+            });
+            conn.on('close', function () {
+                console.log("Peer-to-Peer Error: Other party disconnected.");
+                _this.gameState.connections = _this.filterOutPeer(_this.gameState.connections, conn);
+                var playerData = null;
+                _this.gameState.playerDataObjects.forEach(function (playerDataObject) {
+                    if (playerDataObject.peerID === conn.peer) {
+                        playerData = playerDataObject;
+                    }
+                });
+                if (playerData) {
+                    _this.gameState.playerDataObjects = _this.filterOutID(_this.gameState.playerDataObjects, playerData);
+                    _this.playerDataEmitter.emit(_this.gameState.playerDataObjects);
+                    _this.onlineGame.numPlayers--;
+                    _this.onlineGamesService.update(_this.onlineGame).subscribe();
+                }
+            });
+            conn.on('error', function (err) {
+                console.log("Unspecified Peer-to-Peer Error:");
+                console.log(err);
+                _this.gameState.connections = _this.filterOutPeer(_this.gameState.connections, conn);
+                var playerData = null;
+                _this.gameState.playerDataObjects.forEach(function (playerDataObject) {
+                    if (playerDataObject.peerID === conn.peer) {
+                        playerData = playerDataObject;
+                    }
+                });
+                if (playerData) {
+                    _this.gameState.playerDataObjects = _this.filterOutID(_this.gameState.playerDataObjects, playerData);
+                    _this.playerDataEmitter.emit(_this.gameState.playerDataObjects);
+                    _this.onlineGame.numPlayers--;
+                    _this.onlineGamesService.update(_this.onlineGame).subscribe();
+                }
+            });
+        });
     }
     PlayspaceComponent.prototype.ngOnInit = function () {
         var _this = this;
         // TODO: Band-aid solution, find a better one at some point
         setTimeout(function (_) { return _this.initialize(); }, 100);
+        this.checkIfCanOpenConnectionInterval = setInterval(this.checkIfCanOpenConnection.bind(this), 5000);
+        this.getAllSavedGameStates();
+        this.saveGameState();
+        this.uploadCards();
+    };
+    PlayspaceComponent.prototype.ngOnDestroy = function () {
+        this.connectionClosedIntentionally = true;
+        clearInterval(this.updateOnlineGameInterval);
+        this.finishConnectionProcess();
+        if (this.gameState.connections.length > 0) {
+            this.gameState.connections.forEach(function (connection) {
+                connection.close();
+            });
+        }
+        this.peer.destroy();
+        this.phaserGame.destroy(true);
     };
     PlayspaceComponent.prototype.initialize = function () {
-        var _this = this;
         this.phaserScene = new playspaceScene_1["default"](this, this.sceneWidth, this.sceneHeight, this.handBeginY);
         this.config = {
             type: phaser_1["default"].AUTO,
@@ -46,402 +128,213 @@ var PlayspaceComponent = /** @class */ (function () {
             scene: [this.phaserScene],
             parent: 'gameContainer'
         };
-        // TODO: Based off player ID, need to ensure the other person has a different playerID
-        this.gameState = new gameState_1["default"]([], [], [], new hand_1["default"](this.playerID, []));
         this.phaserGame = new phaser_1["default"].Game(this.config);
-        // NOTE: Launch a local peer server:
-        // 1. npm install -g peer
-        // 2. peerjs --port 9000 --key peerjs --path /peerserver
-        this.peer = new Peer({
-            // host: 'localhost',
-            host: '35.215.71.108',
-            port: 9000,
-            path: '/peerserver' // Make sure this path matches the path you used to launch it
-        });
-        this.peer.on('open', function (id) {
-            _this.peerId = id;
-            console.log('My peer ID is: ' + id);
-        });
-        this.peer.on('connection', function (conn) {
-            console.log("Received connection request from peer with id " + conn.peer + ".");
-            // For now, if I receive a connection request I am not the host
-            _this.amHost = false;
-            // For now, we default the other person's playerID to be 2
-            _this.playerID = 2;
-            _this.conn = conn;
-            _this.otherPeerId = conn.peer;
-            _this.conn.on('data', function (data) {
-                _this.handleData(data);
-            });
-            _this.conn.on('close', function () {
-                console.log("Peer-to-Peer Error: Other party disconnected.");
-                _this.conn = null;
-                _this.otherPeerId = null;
-            });
-            _this.conn.on('error', function (err) {
-                console.log("Unspecified Peer-to-Peer Error:");
-                console.log(err);
-                _this.conn = null;
-                _this.otherPeerId = null;
-            });
-            _this.conn.on('open', function () {
-                _this.conn.send({
-                    'action': 'sendState',
-                    'amHost': _this.amHost,
-                    'playerID': _this.playerID
+    };
+    PlayspaceComponent.prototype.getAllSavedGameStates = function () {
+        var _this = this;
+        this.getAllSavedGameStatesEmitter.subscribe(function (savedGameState) {
+            if (savedGameState) { // If they actually chose a saved game state
+                _this.gameState.buildGameStateFromSavedState(savedGameState, _this);
+                _this.gameState.playerDataObjects.forEach(function (playerDataObject) {
+                    if (playerDataObject.id != _this.gameState.playerID) {
+                        console.log("Sending updated state.");
+                        _this.gameState.sendGameStateToPeers(playerDataObject.peerID);
+                    }
                 });
+            }
+        });
+    };
+    PlayspaceComponent.prototype.uploadCards = function () {
+        var _this = this;
+        console.log("Uploaded?");
+        this.uploadCardToGameStateEmitter.subscribe(function (cards) {
+            cards.map(function (card) {
+                console.log("Card data?");
+                _this.gameState.addCardToGame(card, _this);
             });
         });
     };
-    PlayspaceComponent.prototype.startConnection = function (peerID) {
+    PlayspaceComponent.prototype.saveGameState = function () {
         var _this = this;
-        this.otherPeerId = peerID;
-        var conn = this.peer.connect(this.otherPeerId);
-        this.conn = conn;
-        conn.on('open', function () {
-            // Receive messages
-            conn.on('data', function (data) {
-                _this.handleData(data);
-            });
-            conn.on('close', function () {
-                console.log("Peer-to-Peer Error: Other party disconnected.");
-                _this.conn = null;
-                _this.otherPeerId = null;
-            });
-            conn.on('error', function (err) {
-                console.log("Unspecified Peer-to-Peer Error:");
-                console.log(err);
-                _this.conn = null;
-                _this.otherPeerId = null;
-            });
+        this.saveGameStateEmitter.subscribe(function (name) {
+            _this.savedGameStateService.create(new savedGameState_1["default"](_this.middleware.getUsername(), name, _this.gameState, _this.gameState.playerDataObjects));
         });
+    };
+    PlayspaceComponent.prototype.updateOnlineGame = function () {
+        if (this.gameState.getAmHost() && this.onlineGame) {
+            this.onlineGame.lastUpdated = Date.now();
+            this.onlineGamesService.update(this.onlineGame).subscribe();
+        }
     };
     PlayspaceComponent.prototype.filterOutID = function (objectListToFilter, object) {
         return objectListToFilter.filter(function (refObject) {
             return object.id !== refObject.id;
         });
     };
-    PlayspaceComponent.prototype.handleData = function (data) {
+    PlayspaceComponent.prototype.filterOutPeer = function (connectionListToFilter, connection) {
+        return connectionListToFilter.filter(function (refConnection) {
+            return connection.peer !== refConnection.peer;
+        });
+    };
+    PlayspaceComponent.prototype.closeAndFilterDuplicateConnections = function (conn) {
+        var _a;
+        var newConnectionList = [];
+        (_a = this.gameState.connections) === null || _a === void 0 ? void 0 : _a.forEach(function (connection) {
+            if (connection.peer === conn.peer) {
+                connection.close();
+            }
+            else {
+                newConnectionList.push(connection);
+            }
+        });
+        return newConnectionList;
+    };
+    PlayspaceComponent.prototype.buildFromCacheDialog = function () {
         var _this = this;
-        if (this.amHost && data['amHost']) {
-            // Error! Both parties claim to the be the host! Abort!
-            console.log("Fatal error: both parties claim to be the host.");
-            return;
+        var dialogRef = this.dialog.open(load_game_state_popup_component_1.LoadGameStatePopupComponent, {
+            height: '290px',
+            width: '350px'
+        });
+        dialogRef.afterClosed().subscribe(function (object) {
+            if (object.loadFromCache === true) {
+                _this.gameState.buildGameFromCache(_this);
+            }
+            else if (object.loadFromCache === false) {
+                _this.gameState.clearCache();
+            }
+            else {
+                console.log('Error loading game from cache.');
+            }
+            _this.gameState.setCachingEnabled(true);
+        });
+    };
+    PlayspaceComponent.prototype.finishConnectionProcess = function () {
+        this.openConnectionAttempts = 0;
+        if (this.checkIfCanOpenConnectionInterval) {
+            clearInterval(this.checkIfCanOpenConnectionInterval);
         }
-        switch (data['action']) {
-            // Received by the host after being sent by the player upon connection to the host, in which the player asks for the game state
-            case 'sendState':
-                var sentGameState = new sentGameState_1["default"](this.gameState, data['playerID']);
-                console.log("Sending state.");
-                this.conn.send({
-                    'action': 'replicateState',
-                    'state': sentGameState,
-                    'amHost': this.amHost,
-                    'playerID': this.playerID
-                });
-                break;
-            case 'replicateState':
-                console.log("Received state.");
-                var receivedGameState = data['state'];
-                this.cleanUpGameState();
-                this.gameState = new gameState_1["default"]([], [], [], this.gameState.myHand);
-                receivedGameState.cardMins.forEach(function (cardMin) {
-                    var card = new card_1["default"](cardMin.id, cardMin.imagePath, cardMin.x, cardMin.y);
-                    HelperFunctions.createCard(card, _this, SharedActions.onDragMove, SharedActions.onDragEnd, HelperFunctions.DestinationEnum.TABLE, card.x, card.y);
-                });
-                receivedGameState.deckMins.forEach(function (deckMin) {
-                    var deck = new deck_1["default"](deckMin.id, deckMin.imagePath, [], deckMin.x, deckMin.y);
-                    HelperFunctions.createDeck(deck, _this, SharedActions.onDragMove, DeckActions.deckRightClick, deck.x, deck.y);
-                });
-                receivedGameState.handMin.cardMins.forEach(function (cardMin) {
-                    var card = new card_1["default"](cardMin.id, cardMin.imagePath, cardMin.x, cardMin.y, true);
-                    HelperFunctions.createCard(card, _this, SharedActions.onDragMove, SharedActions.onDragEnd, HelperFunctions.DestinationEnum.HAND, card.x, card.y);
-                });
-                break;
-            case 'move':
-                if (data['type'] === 'card') {
-                    var card = null;
-                    var found = true;
-                    for (var i = 0; i < this.gameState.cards.length; i++) {
-                        if (this.gameState.cards[i].id === data['id']) {
-                            card = this.gameState.cards[i];
-                            found = false;
-                            break;
-                        }
-                    }
-                    if (!found && this.amHost) {
-                        for (var i = 0; i < this.gameState.hands.length; i++) {
-                            if (data['playerID'] === this.gameState.hands[i].playerID) {
-                                for (var j = 0; j < this.gameState.hands[i].cards.length; j++) {
-                                    if (this.gameState.hands[i].cards[j].id === data['id']) {
-                                        card = this.gameState.hands[i].cards[j];
-                                        break;
-                                    }
-                                }
-                                break;
-                            }
-                        }
-                    }
-                    if (card) {
-                        card.x = data['x'];
-                        card.y = data['y'];
-                        if (card.gameObject) {
-                            card.gameObject.setX(data['x']);
-                            card.gameObject.setY(data['y']);
-                        }
-                    }
-                }
-                else if (data['type'] === 'deck') {
-                    var deck = null;
-                    for (var i = 0; i < this.gameState.decks.length; i++) {
-                        if (this.gameState.decks[i].id === data['id']) {
-                            deck = this.gameState.decks[i];
-                            break;
-                        }
-                    }
-                    if (deck) {
-                        deck.x = data['x'];
-                        deck.y = data['y'];
-                        deck.gameObject.setX(data['x']);
-                        deck.gameObject.setY(data['y']);
-                    }
-                }
-                break;
-            // Received by the host when a player inserts a card into the deck or by the player when the host inserts a card into the deck
-            case 'insertIntoDeck':
-                if (data['type'] === 'card' && this.amHost) {
-                    var card = null;
-                    var deck = null;
-                    var handIndex = null;
-                    var foundInHand = data['foundInHand'];
-                    if (!foundInHand) {
-                        for (var i = 0; i < this.gameState.cards.length; i++) {
-                            if (this.gameState.cards[i].id === data['cardID']) {
-                                card = this.gameState.cards[i];
-                                break;
-                            }
-                        }
-                    }
-                    else {
-                        for (var i = 0; i < this.gameState.hands.length; i++) {
-                            if (this.gameState.hands[i].playerID === data['playerID']) {
-                                var hand = this.gameState.hands[i];
-                                handIndex = i;
-                                for (var j = 0; j < hand.cards.length; j++) {
-                                    if (hand.cards[j].id === data['cardID']) {
-                                        card = hand.cards[j];
-                                        break;
-                                    }
-                                }
-                                break;
-                            }
-                        }
-                    }
-                    for (var i = 0; i < this.gameState.decks.length; i++) {
-                        if (this.gameState.decks[i].id === data['deckID']) {
-                            deck = this.gameState.decks[i];
-                            break;
-                        }
-                    }
-                    if (card && deck) {
-                        deck.cards.push(card);
-                        if (card.gameObject) {
-                            card.gameObject.destroy();
-                            card.gameObject = null;
-                        }
-                        if (!foundInHand) {
-                            this.gameState.cards = this.filterOutID(this.gameState.cards, card);
-                        }
-                        else {
-                            card.inHand = false;
-                            this.gameState.hands[handIndex].cards = this.filterOutID(this.gameState.hands[handIndex].cards, card);
-                        }
-                    }
-                }
-                else if (data['type'] === 'card' && !this.amHost) {
-                    var card = null;
-                    for (var i = 0; i < this.gameState.cards.length; i++) {
-                        if (this.gameState.cards[i].id === data['cardID']) {
-                            card = this.gameState.cards[i];
-                            break;
-                        }
-                    }
-                    if (card) {
-                        // If I am not the host and someone inserts a card into the deck, completely remove all reference to it
-                        card.gameObject.destroy();
-                        this.gameState.cards = this.filterOutID(this.gameState.cards, card);
-                    }
-                }
-                break;
-            // The host receives this action, which was sent by a non-host requesting the top card of the deck
-            case 'retrieveTopCard':
-                if (data['type'] === 'card' && this.amHost) {
-                    var deck = null;
-                    for (var i = 0; i < this.gameState.decks.length; i++) {
-                        if (this.gameState.decks[i].id === data['deckID']) {
-                            deck = this.gameState.decks[i];
-                            break;
-                        }
-                    }
-                    if (deck && deck.cards.length > 0) {
-                        var card = deck.cards[deck.cards.length - 1];
-                        card.inDeck = false;
-                        HelperFunctions.createCard(card, this, SharedActions.onDragMove, SharedActions.onDragEnd, HelperFunctions.DestinationEnum.TABLE, deck.gameObject.x, deck.gameObject.y);
-                        deck.cards = this.filterOutID(deck.cards, card);
-                        this.conn.send({
-                            'action': 'sendTopCard',
-                            'type': 'card',
-                            'cardID': card.id,
-                            'imagePath': card.imagePath,
-                            'deckID': deck.id,
-                            'x': deck.gameObject.x,
-                            'y': deck.gameObject.y,
-                            'amHost': this.amHost,
-                            'playerID': this.playerID
-                        });
-                    }
-                }
-                break;
-            // The non-host receives this action, which was sent by the host after the non-host requested the top card from a deck
-            case 'sendTopCard':
-                if (data['type'] === 'card' && !this.amHost) {
-                    var deck = null;
-                    for (var i = 0; i < this.gameState.decks.length; i++) {
-                        if (this.gameState.decks[i].id === data['deckID']) {
-                            deck = this.gameState.decks[i];
-                            break;
-                        }
-                    }
-                    if (deck) {
-                        var card = new card_1["default"](data['cardID'], data['imagePath'], data['x'], data['y']);
-                        card.inDeck = false;
-                        HelperFunctions.createCard(card, this, SharedActions.onDragMove, SharedActions.onDragEnd, HelperFunctions.DestinationEnum.TABLE, deck.gameObject.x, deck.gameObject.y);
-                    }
-                }
-                break;
-            // Anyone can receive this action, which is sent by someone who inserts a card into their hand
-            case 'insertIntoHand':
-                // If someone else inserts a card into their hand, we need to delete that card from everyone else's screen
-                if (data['type'] === 'card') {
-                    var card = null;
-                    for (var i = 0; i < this.gameState.cards.length; i++) {
-                        if (this.gameState.cards[i].id === data['cardID']) {
-                            card = this.gameState.cards[i];
-                            break;
-                        }
-                    }
-                    if (card) {
-                        // Delete the card
-                        card.gameObject.destroy();
-                        card.gameObject = null;
-                        if (this.amHost) {
-                            // If I am the host, add it to the appropriate player's hand in the game state
-                            card.inHand = true;
-                            var hand_2 = null;
-                            this.gameState.hands.forEach(function (refHand) {
-                                if (data['playerID'] === refHand.playerID) {
-                                    hand_2 = refHand;
-                                }
-                            });
-                            if (!hand_2) {
-                                this.gameState.hands.push(new hand_1["default"](data['playerID'], [card]));
-                            }
-                            else {
-                                hand_2.cards.push(card);
-                            }
-                        }
-                        this.gameState.cards = this.filterOutID(this.gameState.cards, card);
-                    }
-                }
-                break;
-            // Anyone can receive this action, and it is sent by someone who places a card from their hand on the table (NOT inserting it into a deck)
-            case 'removeFromHand':
-                if (data['type'] === 'card') {
-                    var card = null;
-                    if (this.amHost) {
-                        // Card already exists
-                        for (var i = 0; i < this.gameState.hands.length; i++) {
-                            if (this.gameState.hands[i].playerID === data['playerID']) {
-                                for (var j = 0; j < this.gameState.hands[i].cards.length; j++) {
-                                    if (this.gameState.hands[i].cards[j].id === data['cardID']) {
-                                        card = this.gameState.hands[i].cards[j];
-                                        card.inHand = false;
-                                        this.gameState.hands[i].cards = this.filterOutID(this.gameState.hands[i].cards, card);
-                                        HelperFunctions.createCard(card, this, SharedActions.onDragMove, SharedActions.onDragEnd, HelperFunctions.DestinationEnum.TABLE, data['x'], data['y']);
-                                        break;
-                                    }
-                                }
-                                break;
-                            }
-                        }
-                    }
-                    else {
-                        card = new card_1["default"](data['cardID'], data['imagePath'], data['x'], data['y']);
-                        HelperFunctions.createCard(card, this, SharedActions.onDragMove, SharedActions.onDragEnd, HelperFunctions.DestinationEnum.TABLE, data['x'], data['y']);
-                    }
-                }
-                break;
-            case 'importDeck':
-                if (data['type'] === 'deck' && this.amHost) {
-                    var deck_2 = null;
-                    for (var i = 0; i < this.gameState.decks.length; i++) {
-                        if (this.gameState.decks[i].id === data['deckID']) {
-                            deck_2 = this.gameState.decks[i];
-                        }
-                    }
-                    if (deck_2) {
-                        var imagePaths = data['imagePaths'];
-                        imagePaths.forEach(function (imagePath) {
-                            deck_2.cards.push(new card_1["default"](_this.highestID++, imagePath, deck_2.gameObject.x, deck_2.gameObject.y));
-                        });
-                    }
-                }
-                break;
-            case 'shuffle':
-                // TODO: Right now, only hosts can shuffle because only they know what is in the deck, and so no one should be receiving this call
-                // Can change if necessary
-                //if (data['type'] === 'deck' && this.amHost) {
-                //  let deck: Deck = null;
-                //
-                //  for (let i = 0; i < this.phaserScene.decks.length; i++) {
-                //    if (this.phaserScene.decks[i].id === data['deckID']) {
-                //      deck = this.phaserScene.decks[i];
-                //    }
-                //  }
-                //
-                //  if (deck) {
-                //    let shuffled = [];
-                //    data['shuffledCardIDs'].forEach((id) => {
-                //      for (let i = 0; i < deck.cards.length; i++) {
-                //        if (id === deck.cards[i].id) {
-                //          shuffled.push(deck.cards[i]);
-                //          break;
-                //        }
-                //      }
-                //    });
-                //
-                //    deck.cards = shuffled;
-                //  }
-                //}
-                break;
-            default:
-                break;
+        if (this.openConnectionInterval) {
+            clearInterval(this.openConnectionInterval);
+        }
+        document.getElementById('loading').style.display = "none";
+        document.getElementById('loadingText').style.display = "none";
+    };
+    PlayspaceComponent.prototype.checkIfCanOpenConnection = function () {
+        if (!this.connOpenedSuccessfully) {
+            document.getElementById('loading').removeAttribute('style');
+            document.getElementById('loadingText').removeAttribute('style');
+            if (this.firstConnectionAttempt) { // If the first connection attempt has occurred but the connection was not opened successfully
+                this.openConnectionInterval = setInterval(this.startConnectionProcess.bind(this), 5000);
+                clearInterval(this.checkIfCanOpenConnectionInterval);
+            }
         }
     };
-    PlayspaceComponent.prototype.cleanUpGameState = function () {
-        this.gameState.cards.forEach(function (card) {
-            card.gameObject.destroy();
-        });
-        this.gameState.cards = [];
-        this.gameState.decks.forEach(function (deck) {
-            deck.gameObject.destroy();
-        });
-        this.gameState.decks = [];
-        this.gameState.myHand.cards.forEach(function (card) {
-            card.gameObject.destroy();
-        });
-        this.gameState.myHand.cards = [];
+    PlayspaceComponent.prototype.startConnectionProcess = function () {
+        var _this = this;
+        if (this.onlineGameID) {
+            this.onlineGamesService.get(this.onlineGameID).subscribe(function (onlineGames) {
+                _this.onlineGame = onlineGames[0];
+                if (_this.onlineGame) { // If the online game's hostID has updated (b/c the host disconnects), update our local hostID reference
+                    _this.mainHostID = _this.onlineGame.hostID;
+                    _this.onlineGameEmitter.emit(_this.onlineGame);
+                }
+                if (!_this.onlineGame && _this.mainHostID != _this.gameState.myPeerID) { // I'm not the host and I couldn't find the game
+                    alert('Could not find game.');
+                    _this.router.navigate(['gameBrowser']);
+                }
+                else if (_this.mainHostID != _this.gameState.myPeerID) { // My ID does not match the host's
+                    if (_this.onlineGame.username === _this.middleware.getUsername()) { // i.e. I, the host, DC'd and was granted a new hostID
+                        // Update the hostID of the online game
+                        _this.gameState.setAmHost(true, _this.amHostEmitter, _this.middleware.getUsername());
+                        _this.onlineGame.hostID = _this.gameState.myPeerID;
+                        _this.onlineGamesService.update(_this.onlineGame).subscribe(function (data) {
+                            _this.buildFromCacheDialog();
+                            _this.updateOnlineGameInterval = setInterval(_this.updateOnlineGame.bind(_this), 300000); // Tell the backend that this game still exists every 5 mins
+                            _this.finishConnectionProcess();
+                        });
+                    }
+                    else { // I am not the host
+                        _this.gameState.setAmHost(false, _this.amHostEmitter);
+                        _this.openConnection();
+                        if (_this.openConnectionAttempts >= 5) {
+                            alert('Could not connect to host.');
+                            _this.router.navigate(['gameBrowser']);
+                        }
+                    }
+                }
+                else { // I am the host
+                    _this.gameState.setAmHost(true, _this.amHostEmitter, _this.middleware.getUsername());
+                    _this.buildFromCacheDialog();
+                    _this.updateOnlineGameInterval = setInterval(_this.updateOnlineGame.bind(_this), 300000); // Tell the backend that this game still exists every 5 mins
+                    _this.finishConnectionProcess();
+                }
+            });
+        }
+        else {
+            this.finishConnectionProcess();
+        }
     };
+    PlayspaceComponent.prototype.openConnection = function () {
+        var _this = this;
+        var conn = this.peer.connect(this.mainHostID);
+        this.firstConnectionAttempt = true;
+        this.openConnectionAttempts++;
+        conn === null || conn === void 0 ? void 0 : conn.on('open', function () {
+            console.log("Connection to " + _this.mainHostID + " opened successfully.");
+            _this.gameState.connections.push(conn);
+            _this.connOpenedSuccessfully = true;
+            _this.firstConnectionAttempt = true;
+            _this.finishConnectionProcess();
+            // Receive messages
+            conn.on('data', function (data) {
+                _this.gameState.handleData(data, _this);
+            });
+            conn.on('close', function () {
+                console.log("Peer-to-Peer Error: Connection closed.");
+                if (!_this.connectionClosedIntentionally) {
+                    _this.gameState.connections = _this.filterOutPeer(_this.gameState.connections, conn);
+                    _this.connOpenedSuccessfully = false;
+                    _this.finishConnectionProcess();
+                    _this.checkIfCanOpenConnectionInterval = setInterval(_this.checkIfCanOpenConnection.bind(_this), 2000);
+                }
+            });
+            conn.on('error', function (err) {
+                console.log("Unspecified Peer-to-Peer Error: ");
+                console.log(err);
+                if (!_this.connectionClosedIntentionally) {
+                    _this.gameState.connections = _this.filterOutPeer(_this.gameState.connections, conn);
+                    _this.connOpenedSuccessfully = false;
+                    _this.finishConnectionProcess();
+                    _this.checkIfCanOpenConnectionInterval = setInterval(_this.checkIfCanOpenConnection.bind(_this), 2000);
+                }
+            });
+            _this.gameState.sendPeerData(gameState_1.EActionTypes.SENDSTATE, null);
+        });
+    };
+    __decorate([
+        core_1.Input()
+    ], PlayspaceComponent.prototype, "mainHostID");
+    __decorate([
+        core_1.Input()
+    ], PlayspaceComponent.prototype, "onlineGameID");
+    __decorate([
+        core_1.Input()
+    ], PlayspaceComponent.prototype, "saveGameStateEmitter");
+    __decorate([
+        core_1.Input()
+    ], PlayspaceComponent.prototype, "getAllSavedGameStatesEmitter");
+    __decorate([
+        core_1.Input()
+    ], PlayspaceComponent.prototype, "uploadCardToGameStateEmitter");
+    __decorate([
+        core_1.Output()
+    ], PlayspaceComponent.prototype, "playerDataEmitter");
+    __decorate([
+        core_1.Output()
+    ], PlayspaceComponent.prototype, "onlineGameEmitter");
+    __decorate([
+        core_1.Output()
+    ], PlayspaceComponent.prototype, "amHostEmitter");
     PlayspaceComponent = __decorate([
         core_1.Component({
             selector: 'app-playspace',
