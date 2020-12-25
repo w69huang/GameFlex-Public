@@ -1176,6 +1176,7 @@ export default class GameState {
                     [data.peerID]
                   );
               }
+              break;
 
           case EActionTypes.flipCard:
               let card: Card = this.getCardByID(data.extras.cardID, data.playerID)?.card;
