@@ -7,6 +7,7 @@ import { PlayspaceComponent } from './playspace/playspace.component';
 import { ConfigEditorComponent } from './config-editor/config-editor.component';
 import { DeckEditorComponent } from './deck-editor/deck-editor.component';
 import { Config } from 'protractor';
+import { platform } from 'os';
 
 /**
  * An enum representing the possible destinations for a card after being moved/retrieved from a deck/etc
@@ -16,7 +17,7 @@ export enum EDestination {
     HAND = "Hand"
 }
 
-export function createCard(card: Card, playspaceComponent: PlayspaceComponent, destination: string, depth?: number): void {
+export function createCard(card: Card, playspaceComponent: PlayspaceComponent, destination: string, depth?: number, base64?: boolean): void {
     // Need to ensure the card is added to table/hand, and not delayed by the cardCreationCallback
     if (destination === EDestination.TABLE) {
         playspaceComponent.gameState.addCardToTable(card);
@@ -39,9 +40,42 @@ export function createCard(card: Card, playspaceComponent: PlayspaceComponent, d
         card.gameObject.setDepth(depth ? depth : playspaceComponent.gameState.highestDepth);
     } else {
         // Otherwise, we have to dynamically load it
-        playspaceComponent.phaserScene.load.image(card.imagePath, card.imagePath);
-        playspaceComponent.phaserScene.load.once("complete", cardCreationCallback.bind(this, card, playspaceComponent, destination, depth));
-        playspaceComponent.phaserScene.load.start();
+        if (base64 == true) {
+            let string = 'data:image/png;base64,'
+
+            // let counter = 0;
+            // playspaceComponent.phaserScene.textures.addBase64(String(card.id), string + card.imagePath);
+            // playspaceComponent.phaserScene.textures.on('onload', function() {
+            //     counter ++;
+            // });
+            // let customTimer = playspaceComponent.phaserScene.time.addEvent({ delay: 500, callback: function callback() {
+
+            //     if (counter === 1) {
+            //         customTimer.remove(false);
+            //         playspaceComponent.phaserScene.add.sprite(100, 100, String(card.id));
+            //     }
+            // }});
+
+            playspaceComponent.phaserScene.textures.once('addtexture', function() {
+                card.gameObject = playspaceComponent.phaserScene.add.image(400,400, String(card.imagePath));
+                card.gameObject.setInteractive();
+                playspaceComponent.phaserScene.input.setDraggable(card.gameObject);
+                card.gameObject.on('dragstart', SA.updateRenderOrder.bind(this, card, playspaceComponent));
+                card.gameObject.on('drag', SA.onDragMove.bind(this, card, playspaceComponent));
+                card.gameObject.on('dragend', SA.onDragEnd.bind(this, card, playspaceComponent));
+                card.gameObject.displayWidth = 100;
+                card.gameObject.displayHeight = 150;
+                playspaceComponent.gameState.highestDepth++;
+                card.gameObject.setDepth(depth ? depth : playspaceComponent.gameState.highestDepth);
+            }, playspaceComponent.phaserScene);
+
+            playspaceComponent.phaserScene.textures.addBase64(String(card.imagePath), string + card.imagePath);
+
+        } else {
+            playspaceComponent.phaserScene.load.image(card.imagePath, card.imagePath);
+            playspaceComponent.phaserScene.load.once("complete", cardCreationCallback.bind(this, card, playspaceComponent, destination, depth));
+            playspaceComponent.phaserScene.load.start();
+        }
     }
 }
 

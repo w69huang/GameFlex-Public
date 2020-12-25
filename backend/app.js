@@ -33,7 +33,7 @@ mysqlapp.use(cors());
 
 const List = require('./database/models/list')
 const Task = require('./database/models/task')
-const Deck = require('./database/models/deck')
+// const Deck = require('./database/models/deck')
 const Counter = require('./database/models/counter')
 const user = require('./database/models/mysql.user.model')
 

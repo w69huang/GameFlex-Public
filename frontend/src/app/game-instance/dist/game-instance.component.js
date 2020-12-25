@@ -11,29 +11,19 @@ var core_1 = require("@angular/core");
 var retrieve_game_state_popup_component_1 = require("../popups/retrieve-game-state-popup/retrieve-game-state-popup.component");
 var save_game_state_popup_component_1 = require("../popups/save-game-state-popup/save-game-state-popup.component");
 var GameInstanceComponent = /** @class */ (function () {
-<<<<<<< HEAD
     function GameInstanceComponent(route, savedGameStateService, dialog, middleware, fileService) {
-=======
-    function GameInstanceComponent(route, savedGameStateService, dialog, middleware) {
->>>>>>> origin/dev-gameInstance
         this.route = route;
         this.savedGameStateService = savedGameStateService;
         this.dialog = dialog;
         this.middleware = middleware;
-<<<<<<< HEAD
         this.fileService = fileService;
-        this.amHost = false;
-        this.saveGameStateEmitter = new core_1.EventEmitter();
-        this.getAllSavedGameStatesEmitter = new core_1.EventEmitter();
-        this.uploadCardToGameStateEmitter = new core_1.EventEmitter();
-=======
         this.amHost = false;
         this.undoCounter = 0;
         this.timer = false;
         this.saveGameStateEmitter = new core_1.EventEmitter();
         this.getAllSavedGameStatesEmitter = new core_1.EventEmitter();
+        this.uploadCardToGameStateEmitter = new core_1.EventEmitter();
         this.undoGameStateEmitter = new core_1.EventEmitter();
->>>>>>> origin/dev-gameInstance
     }
     GameInstanceComponent.prototype.ngOnInit = function () {
         var _this = this;
@@ -75,8 +65,6 @@ var GameInstanceComponent = /** @class */ (function () {
             }
         });
     };
-<<<<<<< HEAD
-=======
     GameInstanceComponent.prototype.clearCache = function () {
         localStorage.removeItem('gameStateHistory');
         console.log("Cleared");
@@ -91,24 +79,20 @@ var GameInstanceComponent = /** @class */ (function () {
             _this.undoCounter = 0;
         }, 2000, this.undoCounter);
     };
->>>>>>> origin/dev-gameInstance
     GameInstanceComponent.prototype.deleteAllSaves = function () {
         this.savedGameStateService.deleteAll().subscribe();
     };
     GameInstanceComponent.prototype.clearCachedSave = function () {
         localStorage.removeItem('cachedGameState');
     };
-<<<<<<< HEAD
     GameInstanceComponent.prototype.uploadCard = function () {
         var _this = this;
-        this.fileService.list('TestDeck', 'test2').subscribe(function (data) {
+        this.fileService.list('TestDeck2', 'test2').subscribe(function (data) {
             console.log("GameInstance Componenet Pulled Files:");
             console.log(data);
             _this.uploadCardToGameStateEmitter.emit(data);
         });
     };
-=======
->>>>>>> origin/dev-gameInstance
     GameInstanceComponent = __decorate([
         core_1.Component({
             selector: 'app-game-instance',

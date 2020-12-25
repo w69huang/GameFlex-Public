@@ -313,13 +313,10 @@ export default class GameState {
 
     public addCardToGame(cardData, playspaceComponent) {
         const card: Card = new Card(Math.floor(Math.random() *100000000 ), cardData, 50, 50);
-        HelperFunctions.createCard(card, playspaceComponent, SharedActions.onDragMove, SharedActions.onDragEnd, HelperFunctions.DestinationEnum.TABLE, card.x, card.y);
+        HelperFunctions.createCard(card, playspaceComponent, HelperFunctions.EDestination.TABLE, 0, true);
         console.log("Built?")
     }
 
-    /**
-     * A method used by the game state and external methods to enable/disable caching
-     */
     public setCachingEnabled(enable: boolean) {
         this.cachingEnabled = enable;
     }
@@ -1163,5 +1160,3 @@ export default class GameState {
         }
       }
 }
-
-

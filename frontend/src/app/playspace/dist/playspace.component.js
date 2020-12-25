@@ -47,8 +47,8 @@ var PlayspaceComponent = /** @class */ (function () {
         // 1. npm install -g peer
         // 2. peerjs --port 9000 --key peerjs --path /peerserver
         this.peer = new peerjs_1["default"](this.gameState.myPeerID, {
-            host: 'localhost',
-            // host: '35.215.71.108', // This is reserved for the external IP of the mongo DB instance. Replace this IP with the new IP generated when starting up the 
+            // host: 'localhost',
+            host: '35.215.71.108',
             port: 9000,
             path: '/peerserver' // Make sure this path matches the path you used to launch it
         });

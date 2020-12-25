@@ -13,7 +13,7 @@ var EDestination;
     EDestination["TABLE"] = "Table";
     EDestination["HAND"] = "Hand";
 })(EDestination = exports.EDestination || (exports.EDestination = {}));
-function createCard(card, playspaceComponent, destination, depth) {
+function createCard(card, playspaceComponent, destination, depth, base64) {
     // Need to ensure the card is added to table/hand, and not delayed by the cardCreationCallback
     if (destination === EDestination.TABLE) {
         playspaceComponent.gameState.addCardToTable(card);
@@ -36,9 +36,38 @@ function createCard(card, playspaceComponent, destination, depth) {
     }
     else {
         // Otherwise, we have to dynamically load it
-        playspaceComponent.phaserScene.load.image(card.imagePath, card.imagePath);
-        playspaceComponent.phaserScene.load.once("complete", cardCreationCallback.bind(this, card, playspaceComponent, destination, depth));
-        playspaceComponent.phaserScene.load.start();
+        if (base64 == true) {
+            var string = 'data:image/png;base64,';
+            // let counter = 0;
+            // playspaceComponent.phaserScene.textures.addBase64(String(card.id), string + card.imagePath);
+            // playspaceComponent.phaserScene.textures.on('onload', function() {
+            //     counter ++;
+            // });
+            // let customTimer = playspaceComponent.phaserScene.time.addEvent({ delay: 500, callback: function callback() {
+            //     if (counter === 1) {
+            //         customTimer.remove(false);
+            //         playspaceComponent.phaserScene.add.sprite(100, 100, String(card.id));
+            //     }
+            // }});
+            playspaceComponent.phaserScene.textures.once('addtexture', function () {
+                card.gameObject = playspaceComponent.phaserScene.add.image(400, 400, String(card.imagePath));
+                card.gameObject.setInteractive();
+                playspaceComponent.phaserScene.input.setDraggable(card.gameObject);
+                card.gameObject.on('dragstart', SA.updateRenderOrder.bind(this, card, playspaceComponent));
+                card.gameObject.on('drag', SA.onDragMove.bind(this, card, playspaceComponent));
+                card.gameObject.on('dragend', SA.onDragEnd.bind(this, card, playspaceComponent));
+                card.gameObject.displayWidth = 100;
+                card.gameObject.displayHeight = 150;
+                playspaceComponent.gameState.highestDepth++;
+                card.gameObject.setDepth(depth ? depth : playspaceComponent.gameState.highestDepth);
+            }, playspaceComponent.phaserScene);
+            playspaceComponent.phaserScene.textures.addBase64(String(card.imagePath), string + card.imagePath);
+        }
+        else {
+            playspaceComponent.phaserScene.load.image(card.imagePath, card.imagePath);
+            playspaceComponent.phaserScene.load.once("complete", cardCreationCallback.bind(this, card, playspaceComponent, destination, depth));
+            playspaceComponent.phaserScene.load.start();
+        }
     }
 }
 exports.createCard = createCard;

@@ -29,13 +29,10 @@ export class GameInstanceComponent implements OnInit {
 
   public saveGameStateEmitter: EventEmitter<string> = new EventEmitter<string>();
   public getAllSavedGameStatesEmitter: EventEmitter<SavedGameState> = new EventEmitter<SavedGameState>();
-<<<<<<< HEAD
   public uploadCardToGameStateEmitter: EventEmitter<Array<string>> = new EventEmitter<Array<string>>();
   
-=======
   public undoGameStateEmitter: EventEmitter<integer> = new EventEmitter<integer>();
 
->>>>>>> origin/dev-gameInstance
   constructor(
     private route: ActivatedRoute,
     private savedGameStateService: SavedGameStateService,
@@ -114,7 +111,7 @@ export class GameInstanceComponent implements OnInit {
   }
 
   uploadCard(){
-    this.fileService.list('TestDeck', 'test2').subscribe((data) => {
+    this.fileService.list('TestDeck2', 'test2').subscribe((data) => {
       console.log("GameInstance Componenet Pulled Files:")
       console.log(data)
       this.uploadCardToGameStateEmitter.emit(data);

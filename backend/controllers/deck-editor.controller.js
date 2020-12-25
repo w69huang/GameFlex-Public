@@ -7,7 +7,7 @@ const mongoose = require('mongoose');
 const config = require('../config');
 const fs = require('fs');
 const { resolve } = require('path');
-const Deck = mongoose.model.deck;
+
 
 module.exports = (upload) => {
     const url = config.mongoURI;
@@ -16,6 +16,7 @@ module.exports = (upload) => {
     let gfs;
 
     //Deck Model
+    const Deck = require('../database/models/userDeck');
 
     connect.once('open', () => {
         //initialize Gridfs datastream
@@ -127,7 +128,6 @@ module.exports = (upload) => {
                                         fileProcessCounter ++; 
                                         if(fileProcessCounter === files.length) {
                                             console.log("file array sent")
-                                            console.log("fileArray: ")
                                             res.send(fileArray);
                                         }
                                     });

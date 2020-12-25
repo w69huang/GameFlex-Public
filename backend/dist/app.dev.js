@@ -46,9 +46,8 @@ mysqlapp.use(cors());
 
 var List = require('./database/models/list');
 
-var Task = require('./database/models/task');
+var Task = require('./database/models/task'); // const Deck = require('./database/models/deck')
 
-var Deck = require('./database/models/deck');
 
 var Counter = require('./database/models/counter');
 
