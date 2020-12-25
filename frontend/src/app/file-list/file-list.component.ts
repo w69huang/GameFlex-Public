@@ -49,8 +49,19 @@ public fileList$: fileObject[] = [];
      outputImage.width = 200; 
      outputImage.src = 'data:image/jpg;base64,'+ image;
      document.getElementById("deckDisplay").appendChild(outputImage);
+     var deleteIcon = this.htmlToElement('<fa-icon [icon]="faCoffee" size="xs"></fa-icon>');
+     document.getElementById("deckDisplay").appendChild(deleteIcon);
+
+
   });
  } 
+
+ public htmlToElement(html) {
+   var template = document.createElement('template');
+   html = html.trim();
+   template.innerHTML = html;
+   return template.content.firstChild;
+ }
 
  ngOnInit(): void {
   const userID: string = this.middleWare.getUsername(); 

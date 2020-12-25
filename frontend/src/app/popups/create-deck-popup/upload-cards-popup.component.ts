@@ -2,6 +2,10 @@ import { Component, OnInit, ViewChild, ElementRef, EventEmitter } from '@angular
 import { MatDialogRef } from '@angular/material/dialog';
 import {MAT_DIALOG_DATA} from '@angular/material/dialog';
 import { Inject } from '@angular/core';
+// import { FontAwesomeModule, FaIconLibrary  } from '@fortawesome/angular-fontawesome';
+import { faCoffee, fas } from '@fortawesome/free-solid-svg-icons';
+import { FaIconLibrary } from '@fortawesome/angular-fontawesome';
+
 
 @Component({
   selector: 'app-create-deck-popup',
@@ -10,7 +14,8 @@ import { Inject } from '@angular/core';
 })
 export class UploadCardsPopupComponent implements OnInit {
   @ViewChild('errorsDiv') errorsDiv: ElementRef;
-  @ViewChild("fileUpload", {static: false}) fileUpload: ElementRef; 
+  @ViewChild("fileUpload", {static: false}) fileUpload: ElementRef;
+  faCoffee = faCoffee; 
 
   private files: any[] = [];
   deckNameData: string;
@@ -20,8 +25,12 @@ export class UploadCardsPopupComponent implements OnInit {
 
   constructor(
     private dialogRef: MatDialogRef<UploadCardsPopupComponent>,
-    @Inject(MAT_DIALOG_DATA) public data: any
-  ) { }
+    @Inject(MAT_DIALOG_DATA) public data: any,
+    library: FaIconLibrary
+  ) { 
+    library.addIconPacks(fas);
+    library.addIcons(faCoffee);
+  }
 
   ngOnInit(): void {
     this.deckNameData = this.data.deckNameData;

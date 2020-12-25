@@ -37,7 +37,7 @@ import { JoinByCodeComponent } from './join-by-code/join-by-code.component';
 import { GameInstanceComponent } from './game-instance/game-instance.component';
 import { LoadGameStatePopupComponent } from './popups/load-game-state-popup/load-game-state-popup.component';
 import { UploadCardsPopupComponent } from './popups/create-deck-popup/upload-cards-popup.component';
-
+import { FontAwesomeModule } from '@fortawesome/angular-fontawesome';
 
 @NgModule({
   declarations: [
@@ -79,7 +79,8 @@ import { UploadCardsPopupComponent } from './popups/create-deck-popup/upload-car
     MatSelectModule,
     FormsModule,
     ReactiveFormsModule,
-    NgxMatSelectSearchModule
+    NgxMatSelectSearchModule,
+    FontAwesomeModule
   ],
   entryComponents: [
     GameBrowserPopupComponent,
