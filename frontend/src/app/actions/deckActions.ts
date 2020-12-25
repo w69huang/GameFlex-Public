@@ -57,7 +57,8 @@ export function retrieveTopCard(popupScene: PopupScene, deck: Deck, playspaceCom
                             type: EGameObjectType.CARD,
                             x: deck.x,
                             y: deck.y,
-                            destination: optionObjectConfig.destination
+                            flippedOver: card.flippedOver,
+                            destination: optionObjectConfig.destination,
                         }                  
                     );
                 }

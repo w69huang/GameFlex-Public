@@ -79,6 +79,7 @@ export class GameObjectExtraProperties {
     finishedMoving?: boolean;
     destination?: HelperFunctions.EDestination;
     highestDepth?: number;
+    flippedOver?: boolean;
 }
 
 /**
@@ -321,13 +322,6 @@ export default class GameState {
      * Used to save the current game state to the user's local storage
      */
 
-    // ISSUE 1: When the deck is rightclicked, and closed, it saved the state twice.
-    /* ISSUE 2: When the other player (Not the host) makes a move, the save seems weird. 
-            Its like the host saved the state between the desitnation and the origin of where the other player moved it 
-            since when it's the host's actions, they save properly.
-            Possibly has something to do with how currentMove is initialized in the constructor? Or just the delay of the 
-            data being sent between the host and the user? 
-    */
     public saveToCache(): void {
         if (this.cachingEnabled && this.amHost) {
             const cachedGameState = new CachedGameState(this);
@@ -443,13 +437,13 @@ export default class GameState {
                 this.cleanUp();
       
                 cache.gamestate.cardMins.forEach((cardMin: CardMin) => {
-                    const card: Card = new Card(cardMin.id, cardMin.imagePath, cardMin.x, cardMin.y);
+                    const card: Card = new Card(cardMin.id, cardMin.imagePath, cardMin.x, cardMin.y, cardMin.flippedOver);
                     HelperFunctions.createCard(card, playspaceComponent, HelperFunctions.EDestination.TABLE, cardMin.depth);
                 });
                 cache.gamestate.deckMins.forEach((deckMin: DeckMin) => {
                     let cardList: Card[] = [];
                     deckMin.cardMins.forEach((cardMin: CardMin) => {
-                        cardList.push(new Card(cardMin.id, cardMin.imagePath, cardMin.x, cardMin.y));
+                        cardList.push(new Card(cardMin.id, cardMin.imagePath, cardMin.x, cardMin.y, cardMin.flippedOver));
                     });
                     const deck: Deck = new Deck(deckMin.id, deckMin.imagePath, cardList, deckMin.x, deckMin.y);
                     HelperFunctions.createDeck(deck, playspaceComponent, deckMin.depth);
@@ -457,11 +451,11 @@ export default class GameState {
                 for (let i = 0; i < cache.gamestate.handMins.length; i++) {
                     cache.gamestate.handMins[i].cardMins.forEach((cardMin: CardMin) => {
                         if (cache.gamestate.handMins[i].playerID === this.playerID) {
-                            const card: Card = new Card(cardMin.id, cardMin.imagePath, cardMin.x, cardMin.y);
+                            const card: Card = new Card(cardMin.id, cardMin.imagePath, cardMin.x, cardMin.y, cardMin.flippedOver);
                             this.addCardToOwnHand(card);
                             HelperFunctions.createCard(card, playspaceComponent, HelperFunctions.EDestination.HAND, cardMin.depth);
                         } else {
-                            this.addCardToPlayerHand(new Card(cardMin.id, cardMin.imagePath, cardMin.x, cardMin.y), cache.gamestate.handMins[i].playerID);
+                            this.addCardToPlayerHand(new Card(cardMin.id, cardMin.imagePath, cardMin.x, cardMin.y, cardMin.flippedOver), cache.gamestate.handMins[i].playerID);
                         }
                     });
                 }
@@ -498,13 +492,13 @@ export default class GameState {
             this.cleanUp();
       
             savedGameState.cardMins.forEach((cardMin: CardMin) => {
-                const card: Card = new Card(cardMin.id, cardMin.imagePath, cardMin.x, cardMin.y);
+                const card: Card = new Card(cardMin.id, cardMin.imagePath, cardMin.x, cardMin.y, cardMin.flippedOver);
                 HelperFunctions.createCard(card, playspaceComponent, HelperFunctions.EDestination.TABLE, cardMin.depth);
             });
             savedGameState.deckMins.forEach((deckMin: DeckMin) => {
                 let cardList: Card[] = [];
                 deckMin.cardMins.forEach((cardMin: CardMin) => {
-                    cardList.push(new Card(cardMin.id, cardMin.imagePath, cardMin.x, cardMin.y));
+                    cardList.push(new Card(cardMin.id, cardMin.imagePath, cardMin.x, cardMin.y, cardMin.flippedOver));
                 });
                 const deck: Deck = new Deck(deckMin.id, deckMin.imagePath, cardList, deckMin.x, deckMin.y);
                 HelperFunctions.createDeck(deck, playspaceComponent, deckMin.depth);
@@ -512,11 +506,11 @@ export default class GameState {
             for (let i = 0; i < savedGameState.handMins.length; i++) {
                 savedGameState.handMins[i].cardMins.forEach((cardMin: CardMin) => {
                     if (savedGameState.handMins[i].playerID === this.playerID) {
-                        const card: Card = new Card(cardMin.id, cardMin.imagePath, cardMin.x, cardMin.y);
+                        const card: Card = new Card(cardMin.id, cardMin.imagePath, cardMin.x, cardMin.y, cardMin.flippedOver);
                         this.addCardToOwnHand(card);
                         HelperFunctions.createCard(card, playspaceComponent, HelperFunctions.EDestination.HAND, cardMin.depth);
                     } else {
-                        this.addCardToPlayerHand(new Card(cardMin.id, cardMin.imagePath, cardMin.x, cardMin.y), savedGameState.handMins[i].playerID);
+                        this.addCardToPlayerHand(new Card(cardMin.id, cardMin.imagePath, cardMin.x, cardMin.y, cardMin.flippedOver), savedGameState.handMins[i].playerID);
                     }
                 });
             }
@@ -720,6 +714,8 @@ export default class GameState {
                 card.gameObject.setTexture('flipped-card');
             }
             card.gameObject.setDisplaySize(100, 150);
+            // Hit area MUST be set to the texture size (NOT display size), which will equate to the width and height of the game object after the texture is loaded
+            card.gameObject.input.hitArea.setTo(0, 0, card.gameObject.width, card.gameObject.height);
             card.flippedOver = !card.flippedOver;
 
             this.delay(this.saveToCache());
@@ -921,7 +917,7 @@ export default class GameState {
             this.cleanUp();
     
             receivedGameState.cardMins.forEach((cardMin: CardMin) => {
-              let card: Card = new Card(cardMin.id, cardMin.imagePath, cardMin.x, cardMin.y);
+              let card: Card = new Card(cardMin.id, cardMin.imagePath, cardMin.x, cardMin.y, cardMin.flippedOver);
               HelperFunctions.createCard(card, playspaceComponent, HelperFunctions.EDestination.TABLE, cardMin.depth);
             });
             receivedGameState.deckMins.forEach((deckMin: DeckMin) => {
@@ -929,7 +925,7 @@ export default class GameState {
               HelperFunctions.createDeck(deck, playspaceComponent, deckMin.depth);
             });
             receivedGameState.handMin.cardMins.forEach((cardMin: CardMin) => {
-              let card: Card = new Card(cardMin.id, cardMin.imagePath, cardMin.x, cardMin.y, true);
+              let card: Card = new Card(cardMin.id, cardMin.imagePath, cardMin.x, cardMin.y, cardMin.flippedOver, true);
               HelperFunctions.createCard(card, playspaceComponent, HelperFunctions.EDestination.HAND, cardMin.depth);
             });
     
@@ -1011,6 +1007,7 @@ export default class GameState {
                       type: EGameObjectType.CARD,
                       x: card.x,
                       y: card.y,
+                      flippedOver: card.flippedOver,
                       imagePath: card.imagePath,
                       destination: data.extras.destination
                     },
@@ -1028,7 +1025,7 @@ export default class GameState {
     
               if (deck) {
     
-                let card: Card = new Card(data.extras.cardID, data.extras.imagePath, data.extras.x, data.extras.y);
+                let card: Card = new Card(data.extras.cardID, data.extras.imagePath, data.extras.x, data.extras.y, data.extras.flippedOver);
                 card.inDeck = false;
     
                 HelperFunctions.createCard(card, playspaceComponent, data.extras.destination);
@@ -1118,11 +1115,12 @@ export default class GameState {
                     imagePath: card.imagePath,
                     x: card.x,
                     y: card.y,
+                    flippedOver: card.flippedOver
                   },
                   [data.peerID]
                 );        
               } else {
-                card = new Card(data.extras.cardID, data.extras.imagePath, data.extras.x, data.extras.y);
+                card = new Card(data.extras.cardID, data.extras.imagePath, data.extras.x, data.extras.y, data.extras.flippedOver);
                 HelperFunctions.createCard(card, playspaceComponent, HelperFunctions.EDestination.TABLE);
               }
             }

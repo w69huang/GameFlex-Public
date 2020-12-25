@@ -33,7 +33,7 @@ export function createCard(card: Card, playspaceComponent: PlayspaceComponent, d
         card.gameObject.on('dragend', SA.onDragEnd.bind(this, card, playspaceComponent));
         card.gameObject.on('pointerdown', CA.cardRightClick.bind(this, card, playspaceComponent));
         card.gameObject.setDisplaySize(100, 150);
-        // card.gameObject.input.hitArea.setTo(0, 0, 200, 290);
+        card.gameObject.input.hitArea.setTo(0, 0, card.gameObject.width, card.gameObject.height);
         playspaceComponent.gameState.highestDepth++;
         card.gameObject.setDepth(depth ? depth : playspaceComponent.gameState.highestDepth);
     } else {
@@ -53,7 +53,7 @@ export function cardCreationCallback(card: Card, playspaceComponent: PlayspaceCo
     card.gameObject.on('dragend', SA.onDragEnd.bind(this, card, playspaceComponent));
     card.gameObject.on('pointerdown', CA.cardRightClick.bind(this, card, playspaceComponent));
     card.gameObject.setDisplaySize(100, 150);
-    // card.gameObject.input.hitArea.setTo(0, 0, 200, 290);
+    card.gameObject.input.hitArea.setTo(0, 0, card.gameObject.width, card.gameObject.height);
     playspaceComponent.gameState.highestDepth++;
     card.gameObject.setDepth(depth ? depth : playspaceComponent.gameState.highestDepth);
 }
@@ -73,8 +73,9 @@ export function createDeck(deck: Deck, component: PlayspaceComponent | ConfigEdi
         component.phaserScene.input.setDraggable(deck.gameObject);
         deck.gameObject.on('drag', SA.onDragMove.bind(this, deck, component));
         deck.gameObject.setDisplaySize(100, 150);
-        deck.gameObject.setDisplayOrigin(0, 0);
-        deck.gameObject.input.hitArea.setTo(0, 0, 100, 150);
+        deck.gameObject.input.hitArea.setTo(0, 0, deck.gameObject.width, deck.gameObject.height);
+
+        // deck.gameObject.setDisplayOrigin(0, 0);
 
         if (component instanceof PlayspaceComponent) {
             deck.gameObject.on('dragstart', SA.updateRenderOrder.bind(this, deck, component));
@@ -97,7 +98,7 @@ export function deckCreationCallback(deck: Deck, component: PlayspaceComponent |
     component.phaserScene.input.setDraggable(deck.gameObject);
     deck.gameObject.on('drag', SA.onDragMove.bind(this, deck, component));
     deck.gameObject.setDisplaySize(100, 150);
-    // deck.gameObject.input.hitArea.setSize(200, 290);
+    deck.gameObject.input.hitArea.setTo(0, 0, deck.gameObject.width, deck.gameObject.height);
 
     if (component instanceof PlayspaceComponent) {
         deck.gameObject.on('dragstart', SA.updateRenderOrder.bind(this, deck, component));
