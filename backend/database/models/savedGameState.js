@@ -16,6 +16,7 @@ const SavedGameStateSchema = new mongoose.Schema({
             imagePath: String,
             x: Number,
             y: Number,
+            flippedOver: Boolean,
             depth: Number
         }
     ],
@@ -32,6 +33,7 @@ const SavedGameStateSchema = new mongoose.Schema({
                     imagePath: String,
                     x: Number,
                     y: Number,
+                    flippedOver: Boolean,
                     depth: Number
                 }
             ]
@@ -46,6 +48,7 @@ const SavedGameStateSchema = new mongoose.Schema({
                     imagePath: String,
                     x: Number,
                     y: Number,
+                    flippedOver: Boolean,
                     depth: Number
                 }
             ]

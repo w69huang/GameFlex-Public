@@ -219,7 +219,6 @@ export default class GameState {
         return this._counters;
     }
 
-
     /**
      * My player ID
      */
@@ -270,7 +269,7 @@ export default class GameState {
             return object.id !== refObject.id;
         });
 
-        this.delay(this.saveToCache())
+        this.delay(this.saveToCache());
         return objectListToFilter;
     }
 
@@ -413,6 +412,8 @@ export default class GameState {
      * @param undo - The number of times undo has been called
      */
     public buildGameFromCache(playspaceComponent: PlayspaceComponent, initialBuild: boolean, undo: number = 0): void {
+        // TODO: DETECT IF A CARD WAS FLIPPED, AND IF SO, CHANGE TEXTURE
+
         if (this.amHost) {
             const cache = {gamestate: null};
             if (undo > 0) {
@@ -531,7 +532,7 @@ export default class GameState {
      */
     public addCardToTable(card: Card): void {
         this._cards.push(card);
-        this.delay(this.saveToCache())
+        this.delay(this.saveToCache());
     }
 
     /**
@@ -570,7 +571,7 @@ export default class GameState {
             }
         }
 
-        this.delay(this.saveToCache())
+        this.delay(this.saveToCache());
     }
 
     /**
@@ -579,7 +580,7 @@ export default class GameState {
      */
     public addDeckToTable(deck: Deck): void {
         this._decks.push(deck);
-        this.delay(this.saveToCache())
+        this.delay(this.saveToCache());
     }
 
     /**
@@ -642,7 +643,7 @@ export default class GameState {
 
             card.inHand = true;
     
-            this.delay(this.saveToCache())
+            this.delay(this.saveToCache());
         }
     }
 
@@ -665,7 +666,7 @@ export default class GameState {
     
                 card.inHand = false;
         
-                this.delay(this.saveToCache())
+                this.delay(this.saveToCache());
             }
         }
     }
@@ -685,7 +686,7 @@ export default class GameState {
                 deck.cards = this.filterOutID(deck.cards, card);
                 card.inDeck = false;
 
-                this.delay(this.saveToCache())
+                this.delay(this.saveToCache());
             }
             card.x = deck.x;
             card.y = deck.y;
@@ -705,7 +706,23 @@ export default class GameState {
         
         if (deck) {
             deck.cards = cardList;
-            this.delay(this.saveToCache())
+            this.delay(this.saveToCache());
+        }
+    }
+
+    public flipCard(cardID: number): void {
+        const card: Card = this.getCardByID(cardID, this.playerID).card;
+
+        if (card) {
+            if (card.flippedOver) {
+                card.gameObject.setTexture(card.imagePath);
+            } else {
+                card.gameObject.setTexture('flipped-card');
+            }
+            card.gameObject.setDisplaySize(100, 150);
+            card.flippedOver = !card.flippedOver;
+
+            this.delay(this.saveToCache());
         }
     }
 
@@ -749,12 +766,12 @@ export default class GameState {
                 this.removeCardFromOwnHand(card.id);
                 return { overlapType: EOverlapType.TABLE, wasInHand: true };
             } else {
-                this.delay(this.saveToCache())
+                this.delay(this.saveToCache());
                 return { overlapType: EOverlapType.TABLE, wasInHand: false };
             }
         } else {
             const deck: Deck = this.getDeckByID(id);
-            this.delay(this.saveToCache())
+            this.delay(this.saveToCache());
 
             return { overlapType: EOverlapType.TABLE };
         }
@@ -966,7 +983,7 @@ export default class GameState {
             }
     
             if (data.extras.finishedMoving) { // If they have finished moving a card/deck, save to cache
-                this.delay(this.saveToCache())
+                this.delay(this.saveToCache());
             }
             break;
     
