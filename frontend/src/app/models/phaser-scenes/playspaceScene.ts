@@ -13,6 +13,7 @@ export default class PlayspaceScene extends Phaser.Scene {
     handBeginY: number;
     initialCardList: Card[];
     initialDeckList: Deck[];
+    addHandButton: Phaser.GameObjects.Text;
   
     constructor(playspaceComponent: PlayspaceComponent, width: number, height: number, handBeginY: number) {
       super({ key: 'main' });
@@ -41,6 +42,29 @@ export default class PlayspaceScene extends Phaser.Scene {
       this.events.once('update', () => {
         this.playspaceComponent.startConnectionProcess();
       });
+
+      this.addHandButton = this.add.text(100, 100, 'Add Hand!', { fill: '#0f0' })
+        .setInteractive({ useHandCursor: true })
+        .on('pointerover', () => this.enterButtonHoverState() )
+        .on('pointerout', () => this.enterButtonRestState() )
+        .on('pointerdown', () => this.enterButtonActiveState() )
+        .on('pointerdown', () => this.enterButtonActiveState())
+        .on('pointerup', () => {
+          console.log('pointerup')
+          this.enterButtonHoverState();
+      });
+    }
+
+    enterButtonHoverState() {
+      this.addHandButton.setStyle({ fill: '#ff0'});
+    }
+  
+    enterButtonRestState() {
+      this.addHandButton.setStyle({ fill: '#0f0' });
+    }
+
+    enterButtonActiveState() {
+      this.addHandButton.setStyle({ fill: '#0ff' });
     }
   
     preload() {
