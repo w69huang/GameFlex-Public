@@ -30,7 +30,8 @@ export enum EActionTypes {
     sendTopCard = "sendTopCard",
     removeFromHand = "removeFromHand",
     importDeck = "importDeck",
-    updateRenderOrder = "updateRenderOrder"
+    updateRenderOrder = "updateRenderOrder",
+    flipCard = "flipCard"
 }
 
 /**
@@ -719,6 +720,16 @@ export default class GameState {
             card.flippedOver = !card.flippedOver;
 
             this.delay(this.saveToCache());
+
+            if (!card.inHand) {
+                this.sendPeerData(
+                    EActionTypes.flipCard,
+                    {
+                        cardID: cardID,
+                        flippedOver: card.flippedOver
+                    }
+                );
+            }
         }
     }
 
@@ -1165,6 +1176,35 @@ export default class GameState {
                     [data.peerID]
                   );
               }
+
+          case EActionTypes.flipCard:
+              let card: Card = this.getCardByID(data.extras.cardID, data.playerID)?.card;
+
+              if (card) {
+                if (data.extras.flippedOver) {
+                    card.gameObject.setTexture('flipped-card');
+                } else {
+                    card.gameObject.setTexture(card.imagePath);
+                }
+                card.gameObject.setDisplaySize(100, 150);
+                // Hit area MUST be set to the texture size (NOT display size), which will equate to the width and height of the game object after the texture is loaded
+                card.gameObject.input.hitArea.setTo(0, 0, card.gameObject.width, card.gameObject.height);
+                card.flippedOver = data.extras.flippedOver;
+    
+                this.delay(this.saveToCache());
+    
+                if (this.amHost) {
+                    this.sendPeerData(
+                        EActionTypes.flipCard,
+                        {
+                            cardID: card.id,
+                            flippedOver: card.flippedOver
+                        },
+                        [data.peerID]
+                    );
+                }
+              }
+              break;
     
           default:
             console.log('Received action did not match any existing action.');
