@@ -11,11 +11,11 @@
                 </ul>
             </mat-card>
             <mat-card class="saveButtonsContainer" *ngIf="middleware.isLoggedIn()">
-                <div class="btn btn-primary" (click)="getAllSavedGameStates()">Get Saved Games</div>
-                <div class="btn btn-primary" (click)="saveGameState()">Save Game</div>
-                <div class="btn btn-primary" (click)="deleteAllSaves()">Delete All Saves</div>
-                <div class="btn btn-primary" (click)="undo()">Undo Move</div>
-                <div class="btn btn-primary" (click)="clearCachedSave()">Clear Cached Save</div>
+                <button class="btn" (click)="getAllSavedGameStates()">Get Saved Games</button>
+                <button class="btn" (click)="saveGameState()">Save Game</button>
+                <button class="btn" (click)="deleteAllSaves()">Delete All Saves</button>
+                <button class="btn" (click)="undo()">Undo Move</button>
+                <button class="btn" (click)="clearCachedSave()">Clear Cached Save</button>
             </mat-card>
         </div>
     </div>

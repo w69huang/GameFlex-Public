@@ -247,6 +247,11 @@ export default class GameState {
     public highestDepth: number = 0;
 
     /**
+     * The number of moves that have been made, used to ensure that we don't ask the player to pull a game from the cache if it's one with no moves
+     */
+    public numCachedMoves: number = 0;
+
+    /**
      * The constructor for the game state
      * @param cards - The cards to add to the table at initialization time
      * @param decks - The decks to add to the table at initialization time
@@ -322,18 +327,21 @@ export default class GameState {
     /**
      * Used to save the current game state to the user's local storage
      */
-
     public saveToCache(): void {
         if (this.cachingEnabled && this.amHost) {
+            this.numCachedMoves++;
             const cachedGameState = new CachedGameState(this);
             localStorage.setItem('cachedGameState', JSON.stringify(cachedGameState)); 
             this.batchStateHistory.push(cachedGameState);
             clearTimeout(this.timerFunc);
-            this.timerFunc = setTimeout(this.saveGameHistory.bind(this), this.batchStateWaitTime);
+            this.timerFunc = setTimeout(this.cacheGameHistory.bind(this), this.batchStateWaitTime);
         }
     }
 
-    private saveGameHistory(): void  {
+    /**
+    * Used to cache the "entire" game state history (right now up to 10 moves)
+     */
+    private cacheGameHistory(): void  {
         this.currentMove = this.batchStateHistory.pop();
         this.batchStateHistory = [];
         if (this.currentMove != null || this.currentMove != undefined){
@@ -407,7 +415,6 @@ export default class GameState {
      * @param undo - The number of times undo has been called
      */
     public buildGameFromCache(playspaceComponent: PlayspaceComponent, initialBuild: boolean, undo: number = 0): void {
-        // TODO: DETECT IF A CARD WAS FLIPPED, AND IF SO, CHANGE TEXTURE
 
         if (this.amHost) {
             const cache = {gamestate: null};
@@ -461,11 +468,8 @@ export default class GameState {
                     });
                 }
             
-                // Just a temporary thing for now. Ask Zach where the host sends the game state on load.
-                if (undo > 0) {
-                    this.sendGameStateToPeers();
-                    this.currentMove = new CachedGameState(this); 
-                }        
+                this.sendGameStateToPeers();
+                this.currentMove = new CachedGameState(this);     
 
                 this.setCachingEnabled(true);
             }            
@@ -751,6 +755,7 @@ export default class GameState {
                     this.addCardToOwnHand(card);
                     return { overlapType: EOverlapType.HAND };
                 }
+                this.delay(this.saveToCache());
                 return { overlapType: EOverlapType.ALREADYINHAND };
             } else {
                 for (let i: number = 0; i < this._decks.length; i++) {

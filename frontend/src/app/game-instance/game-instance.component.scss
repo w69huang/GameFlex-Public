@@ -1,3 +1,5 @@
+@import '../../main.scss';
+
 .columnContainer {
     display: flex;
     column-count: 3;
@@ -11,7 +13,7 @@
             margin: 10px;
 
             .playerList {
-                background-color: #363636;
+                background-color: $themeDarkGray;
                 color: white;
                 margin-bottom: 10px;
             }
@@ -19,7 +21,7 @@
             .saveButtonsContainer {
                 display: flex;
                 flex-direction: column;
-                background-color: #363636;
+                background-color: $themeDarkGray;
     
                 div {
                     width: 70%;
@@ -44,12 +46,31 @@
             height: 100%;
 
             .chatContainer {
-                background-color: #363636;
+                background-color: $themeDarkGray;
                 color: white;
                 height: 80%;
             }
         }
-
-
     }
+}
+
+button {
+    width: 60%;
+    margin-left: 20%;
+    color: white;
+    background-color: $themePurple;
+    border: none;
+    margin-bottom: 10px;
+}
+
+button:focus {
+    color: white;
+    border: none;
+    box-shadow: none;
+}
+
+button:hover {
+    color: white;
+    background-color: $themeDarkestGray;
+    border: none;
 }

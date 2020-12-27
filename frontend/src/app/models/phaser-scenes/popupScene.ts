@@ -41,7 +41,6 @@ export default class PopupScene extends Phaser.Scene {
         this.optionSeparation = optionSeparation;
     }
     create () {
-        // if (this.x + this.width > this.component.screenwidth)
         this.cameras.main.setViewport(this.x, this.y, this.width, this.height);
 
         var popup = this.add.image(0, 0, 'grey-background').setOrigin(0);

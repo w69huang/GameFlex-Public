@@ -230,21 +230,25 @@ export class PlayspaceComponent implements OnInit {
   }
 
   buildFromCacheDialog(): void {
-    let dialogRef = this.dialog.open(LoadGameStatePopupComponent, {
-      height: '290px',
-      width: '350px',
-    });
-
-    dialogRef.afterClosed().subscribe(object => {
-      if (object.loadFromCache === true) {
-        this.gameState.buildGameFromCache(this, true);
-      } else if (object.loadFromCache === false) {
-        this.gameState.clearCache();
-      } else {
-        console.log('Error loading game from cache.');
-      }
-      this.gameState.setCachingEnabled(true);
-    });
+    if (JSON.parse(localStorage.getItem('cachedGameState')).numMoves > 0) {
+      let dialogRef = this.dialog.open(LoadGameStatePopupComponent, {
+        height: '290px',
+        width: '350px',
+      });
+  
+      dialogRef.afterClosed().subscribe(object => {
+        if (object.loadFromCache === true) {
+          this.gameState.buildGameFromCache(this, true);
+        } else if (object.loadFromCache === false) {
+          this.gameState.clearCache();
+        } else {
+          console.log('Error loading game from cache.');
+        }
+      });
+    } else {
+      this.gameState.clearCache();
+    }
+    this.gameState.setCachingEnabled(true);
   }
 
   finishConnectionProcess(): void {
