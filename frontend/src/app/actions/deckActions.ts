@@ -85,9 +85,18 @@ export function shuffleDeck(popupScene: PopupScene, deck: Deck, playspaceCompone
                                 .map((object) => object.card);
 
         playspaceComponent.gameState.replaceCardsInDeck(shuffled, deck.id);
+    } else {
+        playspaceComponent.gameState.sendPeerData(
+            EActionTypes.shuffleDeck,
+            {
+                deckID: deck.id
+            }
+        );
     }
 
-    popupClose(popupScene, deck, playspaceComponent);
+    if (popupScene) {
+        popupClose(popupScene, deck, playspaceComponent);
+    }
 }
 
 export function importDeck(popupScene: PopupScene, deck: Deck, playspaceComponent: PlayspaceComponent): void {
