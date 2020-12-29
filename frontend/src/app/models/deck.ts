@@ -1,4 +1,5 @@
 import Card from './card';
+import { EGameObjectType } from '../models/gameState';
 
 export default class Deck {
     /**
@@ -24,7 +25,7 @@ export default class Deck {
     /**
      * The deck's type in string form
      */
-    type: string = "deck";
+    type: string = EGameObjectType.DECK;
 
     /**
      * The x position of the deck - SHOULD BE UPDATED MANUALLY WHENEVER THE GAMEOBJECT'S POSITION CHANGES

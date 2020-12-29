@@ -41,6 +41,11 @@ CREATE TABLE `OnlineGameMySQL` (
     PRIMARY KEY (`id`)
 );
 
+CREATE TABLE `BannedUsers` {
+    `userID` char(50) NOT NULL,
+    `gameID` char(50) NOT NULL
+}
+
 CREATE TABLE `SavedGameStateMySQL` (
     `gameStateID` char(50) NOT NULL,
     `userID` char(50) NOT NULL,

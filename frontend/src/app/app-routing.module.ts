@@ -18,7 +18,7 @@ import { GameInstanceComponent } from './game-instance/game-instance.component';
 
 const routes: Routes = [
   { path: '', redirectTo: 'gameBrowser', pathMatch: 'full' },
-  { path: 'playspace', component: PlayspaceComponent, canActivate:[AuthGuard] },
+  { path: 'gameInstance', component: GameInstanceComponent, canActivate:[AuthGuard] },
   { path: 'deckEditor', component: DeckEditorComponent, canActivate:[AuthGuard] },
   { path: 'configeditor', component: ConfigEditorComponent, canActivate:[AuthGuard] },
   { path: 'gameBrowser', component: GameBrowserComponent, canActivate:[AuthGuard] },

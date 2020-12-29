@@ -9,16 +9,12 @@ import DeckMin from '../models/deckMin';
 import Counter from '../models/counter';
 import Configuration from '../models/configuration'
 import ConfigScene from '../models/phaser-scenes/configScene';
-import PopupScene from '../models/phaser-scenes/popupScene';
-import OptionObject from '../models/optionObject';
 
-import * as HelperFunctions from '../helper-functions';
-import * as SharedActions from '../actions/sharedActions';
-import * as DeckActions from '../actions/deckActions';
 import { CreateCounterPopupComponent } from '../popups/create-counter-popup/create-counter-popup.component';
 import { SaveConfigurationPopupComponent } from '../popups/save-configuration-popup/save-configuration-popup.component';
 import { MiddleWare } from '../services/middleware';
 
+import * as HelperFunctions from '../helper-functions';
 
 @Component({
   selector: 'app-config-editor',
@@ -68,6 +64,10 @@ export class ConfigEditorComponent implements OnInit {
     };
     this.phaserGame = new Phaser.Game(this.config);
 
+  }
+
+  ngOnDestroy() {
+    this.phaserGame.destroy(true);
   }
 
   // API CALLS
@@ -148,8 +148,8 @@ export class ConfigEditorComponent implements OnInit {
    * Creates a deck.
    */
   initDeck() {
-    let deck: Deck = new Deck(this.highestID++, "assets/images/playing-cards/deck.png", [], 400, 250);
-    HelperFunctions.createDeck(deck, this, SharedActions.onDragMove, SharedActions.onDragEnd, DeckActions.deckRightClick, deck.x, deck.y);
+    let deck: Deck = new Deck(this.highestID++, "assets/images/playing-cards-extras/deck.png", [], 400, 250);
+    HelperFunctions.createDeck(deck, this);
   }
 
   /**
@@ -190,7 +190,7 @@ export class ConfigEditorComponent implements OnInit {
 
       //TODO:  Move these to the model, I see no reason why they're here
       deckObj.type = "deck"; //TODO This is probably not needed later 
-      deckObj.imagePath = "assets/images/playing-cards/deck.png";
+      deckObj.imagePath = "assets/images/playing-cards-extras/deck.png";
       deckObj.id = this.highestID++;
     });
 
@@ -228,7 +228,7 @@ export class ConfigEditorComponent implements OnInit {
    this.clearConfig();
 
     configuration.decks.forEach(deck => {
-      HelperFunctions.createDeck(deck, this, SharedActions.onDragMove, SharedActions.onDragEnd, DeckActions.deckRightClick, deck.x, deck.y);
+      HelperFunctions.createDeck(deck, this);
     });
 
     // Counters are rendered by the html
