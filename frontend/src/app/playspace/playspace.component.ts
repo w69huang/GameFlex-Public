@@ -179,7 +179,7 @@ export class PlayspaceComponent implements OnInit {
         this.gameState.playerDataObjects.forEach((playerDataObject: PlayerData) => {
           if (playerDataObject.id != this.gameState.playerID) {      
             console.log("Sending updated state.");
-            this.gameState.sendGameStateToPeers(playerDataObject.peerID);
+            this.gameState.sendGameStateToPeers(false, playerDataObject.peerID);
           }
         });
       }
@@ -188,7 +188,9 @@ export class PlayspaceComponent implements OnInit {
 
   undoGameState(): void {
     this.undoGameStateEmitter.subscribe((count: integer) => {
-      this.gameState.buildGameFromCache(this, false, count);
+      if (!this.gameState.undoInProgress) {
+        this.gameState.buildGameFromCache(this, false, count);
+      }
     });
   }
 

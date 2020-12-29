@@ -22,9 +22,6 @@ export class GameInstanceComponent implements OnInit {
   public onlineGame: OnlineGame;
   public playerData: PlayerData[];
   public amHost: boolean = false;
-  public undoCounter = 0;
-  private timer = false;
-  private timerFunc: NodeJS.Timer;
 
   public saveGameStateEmitter: EventEmitter<string> = new EventEmitter<string>();
   public getAllSavedGameStatesEmitter: EventEmitter<SavedGameState> = new EventEmitter<SavedGameState>();
@@ -89,13 +86,8 @@ export class GameInstanceComponent implements OnInit {
   }
 
   undo(){
-    clearTimeout(this.timerFunc);
-    this.undoCounter +=1;
-    this.timerFunc = setTimeout((count) => {
-      this.undoGameStateEmitter.emit(count);
-      this.timer = false;
-      this.undoCounter = 0;
-    }, 2000, this.undoCounter);
+    // TODO: Emit number based on input field
+    this.undoGameStateEmitter.emit(1);
   }
 
   deleteAllSaves() {
