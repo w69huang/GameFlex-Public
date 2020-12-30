@@ -25,8 +25,8 @@ export class FileService {
     return this.webService.getWithArgs(`image/${fileName}`, {responseType: 'text'}, true);
   }
 
-  public remove(id: string): void {
-    this.webService.post('file/del', {"id": id}, true).subscribe();
+  public remove(id: string): any {
+    return this.webService.delete(`file/del?id=${id}`, true);
     //console.log('file/del/'+fileName);
     // this.fileList.splice(this.fileList.findIndex(name => name === fileName), 1);
     // this.fileList$.next(this.fileList);

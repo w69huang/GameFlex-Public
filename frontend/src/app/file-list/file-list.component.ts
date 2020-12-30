@@ -42,7 +42,11 @@ public fileList$: fileObject[] = [];
 
  public remove(id: string):  void {
    console.log("Delete image requested");
-   this.fileService.remove(id);
+   this.fileService.remove(id).subscribe((data) => {
+     if(data.success) {
+      document.getElementById(`imageDisplayContainer-${id}`).remove();
+     }
+   });
  }
 
  public renderImages(imageArray: {base64: string, id: string}[]): void {
@@ -68,7 +72,6 @@ public fileList$: fileObject[] = [];
      deleteImage.style.setProperty('left', '10px');
     deleteImage.onclick = () => {
       this.remove(image.id);
-      document.getElementById(`imageDisplayContainer-${image.id}`).remove();
     };
      
      imageDisplayContainer.appendChild(deleteImage);
