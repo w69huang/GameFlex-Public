@@ -21,25 +21,26 @@ export function updateRenderOrder(object: Card | Deck, playspaceComponent: Plays
 // Drag move callback for moving objects on the phaser canvas
 // Will be used for both the config editor and the playspace
 export function onDragMove(object: any, component: any, pointer: Phaser.Input.Pointer, dragX: number, dragY: number): void {
-    if (object.type == EGameObjectType.DECK || object.type == EGameObjectType.CARD) {
-      object.x = dragX;
-      object.y = dragY;
-      object.gameObject.setX(dragX);
-      object.gameObject.setY(dragY);
-      
-      if (component.gameState && !object.inHand) {
-        component.gameState.sendPeerData(
-          EActionTypes.move,
-            {
-              id: object.id,
-              type: object.type,
-              x: dragX,
-              y: dragY
-            }
-        );
-      }
+  if (object.type == EGameObjectType.DECK || object.type == EGameObjectType.CARD) {
+    object.x = dragX;
+    object.y = dragY;
+    object.gameObject.setX(dragX);
+    object.gameObject.setY(dragY);
+    
+    if (component.gameState && !object.inHand) {
+      component.gameState.sendPeerData(
+        EActionTypes.move,
+          {
+            id: object.id,
+            type: object.type,
+            x: dragX,
+            y: dragY
+          }
+      );
     }
+  }
 }
+
 
 // Drag end callback for finishing moving objects on the phaser canvas
 // Will only be used in the playspace as right now it only applies to cards

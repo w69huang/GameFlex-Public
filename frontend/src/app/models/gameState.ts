@@ -1,6 +1,7 @@
 import Card from './card';
 import Deck from './deck';
 import Hand from './hand';
+import Counter from './counter';
 import CachedGameState from './cachedGameState'
 import SavedGameState from './savedGameState';
 import CardMin from './cardMin';
@@ -176,6 +177,11 @@ export default class GameState {
     private _hands: Hand[];
 
     /**
+     * Holds all counters in the game instance
+     */
+    private _counters: Counter[];
+
+    /**
      * Holds information about this player's hand only
      */
     public myHands: Hand[];
@@ -191,7 +197,7 @@ export default class GameState {
     private amHost: boolean = false;
 
     /**
-     * A public accessor to get all cards, should not be used outside of other game state classes
+     * A public accessor to get all cards
      */
     public get cards(): Card[] {
         return this._cards;
@@ -205,18 +211,26 @@ export default class GameState {
     }
 
     /**
-     * A public accessor to get all decks, should not be used outside of other game state classes
+     * A public accessor to get all decks
      */
     public get decks(): Deck[] {
         return this._decks;
     }
 
     /**
-     * A public accessor to get all hands, should not be used outside of othergmae state classes
+     * A public accessor to get all hands
      */
     public get hands(): Hand[] {
         return this._hands;
     }
+
+    /**
+     * A public accessor to get all counters
+     */
+    public get counters(): Counter[] {
+        return this._counters;
+    }
+
 
     /**
      * My player ID
@@ -249,12 +263,14 @@ export default class GameState {
      * @param decks - The decks to add to the table at initialization time
      * @param hands - The hand information to record at initialization time
      * @param myHands - The player's hand information to record at initialization time
+     * @param counters - The counter information to record at initialization time
      */
-    constructor(cards: Card[], decks: Deck[], hands: Hand[]) {
+    constructor(cards: Card[], decks: Deck[], hands: Hand[], counters: Counter[]) {
         this._cards = cards;
         this._decks = decks;
         this._hands = hands;
         this.myHands = [new Hand(null, [])];
+        this._counters = counters;
     }
 
     /**
@@ -345,6 +361,61 @@ export default class GameState {
                 this.gameStateHistory.shift();
             }
             localStorage.setItem('gameStateHistory', JSON.stringify(this.gameStateHistory));
+        }
+    }
+
+    /**
+     * Used to send data to peer(s)
+     * @param action - The action to perform
+     * @param extras - An array of extra game object properties that the user wants to include
+     * @param doNotSendTo - a list of peerIDs not to send the data to
+     */
+    public sendPeerData(action: string, extras: GameObjectExtraProperties, doNotSendTo: string[] = [], onlySendTo: string[] = []): void {
+        this.connections.forEach((connection: DataConnection) => {
+            if (onlySendTo.length > 0) {
+                if (onlySendTo.includes(connection.peer)) {
+                    connection.send(new GameObjectProperties(this.amHost, action, this.myPeerID, this.playerID, extras));
+                }
+            } else if (!doNotSendTo.includes(connection.peer)) {
+                connection.send(new GameObjectProperties(this.amHost, action, this.myPeerID, this.playerID, extras));
+            }
+        });
+    }
+
+    /**
+     * Used to very quickly and easily send the current game state to all peers
+     * @param onlySendTo - An optional var specifying to only send data to a specific peer
+     * @param doNotSendTo - An optional var specfying not to send data to a specific peer
+     */
+    public sendGameStateToPeers(onlySendTo: string = "", doNotSendTo: string = ""): void {
+        if (this.amHost) {
+            // TODO: Make sentGameState from current gameState and send to all peers
+            this.playerDataObjects.forEach((playerData: PlayerData) => {
+                for (let i: number = 0; i < this.connections.length; i++) {
+                    if (playerData.peerID === this.connections[i].peer) {
+                        if (((onlySendTo !== "" && onlySendTo === playerData.peerID) || onlySendTo === "") && (doNotSendTo === "" || (doNotSendTo !== playerData.peerID))) {
+                            let sentGameState: SentGameState = new SentGameState(this, playerData.id);
+                            this.connections[i].send(new GameObjectProperties(this.amHost, 'replicateState', this.myPeerID, this.playerID, { 'state': sentGameState }));
+                            break; 
+                        }
+                    }
+                }
+            });
+        }
+    }
+
+    /**
+     * Used to send a pre-made sentGameState object to a peer
+     * @param sentGameState 
+     * @param peerID 
+     */
+    public sendAlreadyMadeGameStateToPeer(sentGameState: SentGameState, peerID: string): void {
+        if (this.amHost) {
+            for (let i: number = 0; i < this.connections.length; i++) {
+                if (this.connections[i].peer === peerID) {
+                    this.connections[i].send(new GameObjectProperties(this.amHost, 'replicateState', this.myPeerID, this.playerID, { 'state': sentGameState }));
+                }
+            }
         }
     }
 
@@ -463,6 +534,7 @@ export default class GameState {
             }
             
             this.cachingEnabled = true;
+            this.delay(this.saveToCache());
         }
     }
 
@@ -801,61 +873,8 @@ export default class GameState {
             myHand.cards = [];
         })
         this._hands = [];
-    }
-
-    /**
-     * Used to send data to peer(s)
-     * @param action - The action to perform
-     * @param extras - An array of extra game object properties that the user wants to include
-     * @param doNotSendTo - a list of peerIDs not to send the data to
-     */
-    public sendPeerData(action: string, extras: GameObjectExtraProperties, doNotSendTo: string[] = [], onlySendTo: string[] = []): void {
-        this.connections.forEach((connection: DataConnection) => {
-            if (onlySendTo.length > 0) {
-                if (onlySendTo.includes(connection.peer)) {
-                    connection.send(new GameObjectProperties(this.amHost, action, this.myPeerID, this.playerID, extras));
-                }
-            } else if (!doNotSendTo.includes(connection.peer)) {
-                connection.send(new GameObjectProperties(this.amHost, action, this.myPeerID, this.playerID, extras));
-            }
-        });
-    }
-
-    /**
-     * Used to very quickly and easily send the current game state to all peers
-     * @param onlySendTo - An optional var specifying to only send data to a specific peer
-     * @param doNotSendTo - An optional var specfying not to send data to a specific peer
-     */
-    public sendGameStateToPeers(onlySendTo: string = "", doNotSendTo: string = ""): void {
-        if (this.amHost) {
-            // TODO: Make sentGameState from current gameState and send to all peers
-            this.playerDataObjects.forEach((playerData: PlayerData) => {
-                for (let i: number = 0; i < this.connections.length; i++) {
-                    if (playerData.peerID === this.connections[i].peer) {
-                        if (((onlySendTo !== "" && onlySendTo === playerData.peerID) || onlySendTo === "") && (doNotSendTo === "" || (doNotSendTo !== playerData.peerID))) {
-                            let sentGameState: SentGameState = new SentGameState(this, playerData.id);
-                            this.connections[i].send(new GameObjectProperties(this.amHost, 'replicateState', this.myPeerID, this.playerID, { 'state': sentGameState }));
-                            break; 
-                        }
-                    }
-                }
-            });
-        }
-    }
-
-    /**
-     * Used to send a pre-made sentGameState object to a peer
-     * @param sentGameState 
-     * @param peerID 
-     */
-    public sendAlreadyMadeGameStateToPeer(sentGameState: SentGameState, peerID: string): void {
-        if (this.amHost) {
-            for (let i: number = 0; i < this.connections.length; i++) {
-                if (this.connections[i].peer === peerID) {
-                    this.connections[i].send(new GameObjectProperties(this.amHost, 'replicateState', this.myPeerID, this.playerID, { 'state': sentGameState }));
-                }
-            }
-        }
+        this.myHand.cards = [];
+        this._counters = [];
     }
 
     /**
@@ -1137,6 +1156,18 @@ export default class GameState {
               if (object) {
                 this.highestDepth = data.extras.highestDepth;
                 object.gameObject.setDepth(this.highestDepth);
+              }
+
+              if (this.amHost) {
+                playspaceComponent.gameState.sendPeerData(
+                    EActionTypes.updateRenderOrder,
+                    {
+                      id: object.id,
+                      type: object.type,
+                      highestDepth: playspaceComponent.gameState.highestDepth
+                    },
+                    [data.peerID]
+                  );
               }
     
           default:

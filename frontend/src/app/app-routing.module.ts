@@ -5,6 +5,7 @@ import { NewListComponent } from './pages/new-list/new-list.component';
 import { NewTaskComponent } from './pages/new-task/new-task.component';
 import { PlayspaceComponent } from './playspace/playspace.component';
 import { DeckEditorComponent } from './deck-editor/deck-editor.component';
+import { ConfigEditorComponent } from './config-editor/config-editor.component';
 import { GameBrowserComponent } from './game-browser/game-browser.component';
 import { DummyComponent } from './dummy/dummy.component';
 import { SignupComponent } from './signup/signup.component';
@@ -16,11 +17,12 @@ import { GameInstanceComponent } from './game-instance/game-instance.component';
 
 
 const routes: Routes = [
-  { path: '', redirectTo: 'joinByCode', pathMatch: 'full' },
-  { path: 'gameInstance', component: GameInstanceComponent },
-  { path: 'deckEditor', component: DeckEditorComponent },
-  { path: 'gameBrowser', component: GameBrowserComponent },
-  { path: 'joinByCode', component: JoinByCodeComponent },
+  { path: '', redirectTo: 'gameBrowser', pathMatch: 'full' },
+  { path: 'gameInstance', component: GameInstanceComponent, canActivate:[AuthGuard] },
+  { path: 'deckEditor', component: DeckEditorComponent, canActivate:[AuthGuard] },
+  { path: 'configeditor', component: ConfigEditorComponent, canActivate:[AuthGuard] },
+  { path: 'gameBrowser', component: GameBrowserComponent, canActivate:[AuthGuard] },
+  { path: 'joinByCode', component: JoinByCodeComponent, canActivate:[AuthGuard] },
   
   { path: 'dummy', component: DummyComponent},
   { path: 'signup', component: SignupComponent,canActivate:[AuthGuard] },
