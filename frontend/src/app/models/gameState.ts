@@ -1155,7 +1155,7 @@ export default class GameState {
         } else {
             this.myCurrHand = this.myHands.length -1;
         }
-        this.renderHand(myLastHand);
+        this.renderHand(myLastHand, this.myCurrHand);
     }
 
     /**
@@ -1168,7 +1168,7 @@ export default class GameState {
         } else {
             this.myCurrHand = 0;
         }
-        this.renderHand(myLastHand);
+        this.renderHand(myLastHand, this.myCurrHand);
     }
 
     /**
@@ -1195,14 +1195,46 @@ export default class GameState {
     }
 
     /**
+     * Deletes the current hand hand. Sends alert if there are cards in the hand.
+     */
+    public deleteMyHand() {
+
+        let myHandToDel = this.myCurrHand;
+
+        if( this.myHands.length <= 1 ) {
+            // Do not delete the last hand
+            return
+        }
+
+        if ( this.myHand.cards.length > 0 ) {
+            alert('Error: Cannot del hand with cards');
+            return 
+        }
+
+        // Move to the previous hand on delete or stay on first hand
+        if( this.myCurrHand > 0) {
+            this.myCurrHand = this.myCurrHand - 1;
+            // Change render order before hand is deleted 
+            this.renderHand(myHandToDel, this.myCurrHand);
+        } else {
+            this.myCurrHand = 0;
+            // Change render order before hand is deleted to +1 since we are deleting the current 0
+            this.renderHand(myHandToDel, this.myCurrHand + 1);
+        }
+
+        this.myHands.splice(myHandToDel, 1);
+    }
+
+
+    /**
      * Hides cards for the last hand shown, and displays the new hands cards
      */
-    public renderHand(myLastHand: integer) {
-        if(!(myLastHand == this.myCurrHand)) {
+    public renderHand(myLastHand: integer, myNewHand: integer) {
+        if(!(myLastHand == myNewHand)) {
             this.myHands[myLastHand].cards.forEach(card => {
                 card.gameObject.setVisible(false);
             })
-            this.myHands[this.myCurrHand].cards.forEach(card => {
+            this.myHands[myNewHand].cards.forEach(card => {
                 card.gameObject.setVisible(true);
             })
         }

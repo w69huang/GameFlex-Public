@@ -109,7 +109,6 @@ export function createPhaserImageButton(scene: Phaser.Scene, x : integer, y : in
         .on('pointerout', () => enterButtonRestState() )
         .on('pointerdown', () => enterButtonActiveState() )
         .on('pointerup', () => {
-            console.log('pointerup')
             enterButtonHoverState();
             func();
         });
