@@ -1,12 +1,8 @@
+import { PlayspaceComponent } from './playspace/playspace.component';
 import Card from './models/card';
 import Deck from './models/deck';
-import Counter from './models/counter';
 import * as SA from './actions/sharedActions';
 import * as DA from './actions/deckActions';
-import { PlayspaceComponent } from './playspace/playspace.component';
-import { ConfigEditorComponent } from './config-editor/config-editor.component';
-import { DeckEditorComponent } from './deck-editor/deck-editor.component';
-import { Config } from 'protractor';
 
 /**
  * An enum representing the possible destinations for a card after being moved/retrieved from a deck/etc
@@ -17,13 +13,6 @@ export enum EDestination {
 }
 
 export function createCard(card: Card, playspaceComponent: PlayspaceComponent, destination: string, depth?: number): void {
-    // Need to ensure the card is added to table/hand, and not delayed by the cardCreationCallback
-    if (destination === EDestination.TABLE) {
-        playspaceComponent.gameState.addCardToTable(card);
-    } else {
-        playspaceComponent.gameState.addCardToOwnHand(card);
-    }
-
     if (playspaceComponent.phaserScene.textures.exists(card.imagePath)) {
         // If the image already exists in the texture manager's cache, we can create the object now
 
@@ -37,6 +26,11 @@ export function createCard(card: Card, playspaceComponent: PlayspaceComponent, d
         card.gameObject.displayHeight = 150;
         playspaceComponent.gameState.highestDepth++;
         card.gameObject.setDepth(depth ? depth : playspaceComponent.gameState.highestDepth);
+        if (destination === EDestination.TABLE) {
+            playspaceComponent.gameState.addCardToTable(card);
+        } else {
+            playspaceComponent.gameState.addCardToOwnHand(card);
+        }
     } else {
         // Otherwise, we have to dynamically load it
         playspaceComponent.phaserScene.load.image(card.imagePath, card.imagePath);
@@ -56,48 +50,47 @@ export function cardCreationCallback(card: Card, playspaceComponent: PlayspaceCo
     card.gameObject.displayHeight = 150;
     playspaceComponent.gameState.highestDepth++;
     card.gameObject.setDepth(depth ? depth : playspaceComponent.gameState.highestDepth);
+    if (destination === EDestination.TABLE) {
+        playspaceComponent.gameState.addCardToTable(card);
+    } else {
+        playspaceComponent.gameState.addCardToOwnHand(card);
+    }
 }
 
-export function createDeck(deck: Deck, component: PlayspaceComponent | ConfigEditorComponent, depth?: number): void {
-    if (component instanceof PlayspaceComponent) {
-        component.gameState.addDeckToTable(deck);
-    } else if (component instanceof ConfigEditorComponent) {
-        component.configuration.decks.push(deck);
-    }
-
-    if (component.phaserScene.textures.exists(deck.imagePath)) {
+export function createDeck(deck: Deck, playspaceComponent: PlayspaceComponent, depth?: number): void {
+    if (playspaceComponent.phaserScene.textures.exists(deck.imagePath)) {
         // If the image already exists in the texture manager's cache, we can create the object now
 
-        deck.gameObject = component.phaserScene.add.image(deck.x, deck.y, deck.imagePath);
+        deck.gameObject = playspaceComponent.phaserScene.add.image(deck.x, deck.y, deck.imagePath);
         deck.gameObject.setInteractive();
-        component.phaserScene.input.setDraggable(deck.gameObject);
-        deck.gameObject.on('drag', SA.onDragMove.bind(this, deck, component));
+        playspaceComponent.phaserScene.input.setDraggable(deck.gameObject);
+        deck.gameObject.on('dragstart', SA.updateRenderOrder.bind(this, deck, playspaceComponent));
+        deck.gameObject.on('drag', SA.onDragMove.bind(this, deck, playspaceComponent));
+        deck.gameObject.on('dragend', SA.onDragEnd.bind(this, deck, playspaceComponent));
+        deck.gameObject.on('pointerdown', DA.deckRightClick.bind(this, deck, playspaceComponent));
         deck.gameObject.displayWidth = 100;
         deck.gameObject.displayHeight = 150;
-
-        if (component instanceof PlayspaceComponent) {
-            deck.gameObject.on('dragstart', SA.updateRenderOrder.bind(this, deck, component));
-            deck.gameObject.on('dragend', SA.onDragEnd.bind(this, deck, component));
-            deck.gameObject.on('pointerdown', DA.deckRightClick.bind(this, deck, component));
-            component.gameState.highestDepth++;
-            deck.gameObject.setDepth(depth ? depth : component.gameState.highestDepth);
-        }
+        playspaceComponent.gameState.highestDepth++;
+        deck.gameObject.setDepth(depth ? depth : playspaceComponent.gameState.highestDepth);
+        playspaceComponent.gameState.addDeckToTable(deck);
     } else {
         // Otherwise, we have to dynamically load it
-        component.phaserScene.load.image(deck.imagePath, deck.imagePath);
-        component.phaserScene.load.once("complete", deckCreationCallback.bind(this, deck, component, depth));
-        component.phaserScene.load.start();
+        playspaceComponent.phaserScene.load.image(deck.imagePath, deck.imagePath);
+        playspaceComponent.phaserScene.load.once("complete", deckCreationCallback.bind(this, deck, playspaceComponent, depth));
+        playspaceComponent.phaserScene.load.start();
     }
 }
 
-export function deckCreationCallback(deck: Deck, component: PlayspaceComponent | ConfigEditorComponent, depth?: number): void {
-    deck.gameObject = component.phaserScene.add.image(deck.x, deck.y, deck.imagePath);
+export function deckCreationCallback(deck: Deck, playspaceComponent: PlayspaceComponent, depth?: number): void {
+    deck.gameObject = playspaceComponent.phaserScene.add.image(deck.x, deck.y, deck.imagePath);
     deck.gameObject.setInteractive();
-    component.phaserScene.input.setDraggable(deck.gameObject);
-    deck.gameObject.on('drag', SA.onDragMove.bind(this, deck, component));
+    playspaceComponent.phaserScene.input.setDraggable(deck.gameObject);
+    deck.gameObject.on('dragstart', SA.updateRenderOrder.bind(this, deck, playspaceComponent));
+    deck.gameObject.on('drag', SA.onDragMove.bind(this, deck, playspaceComponent));
+    deck.gameObject.on('dragend', SA.onDragEnd.bind(this, deck, playspaceComponent));
+    deck.gameObject.on('pointerdown', DA.deckRightClick.bind(this, deck, playspaceComponent));
     deck.gameObject.displayWidth = 100;
     deck.gameObject.displayHeight = 150;
-<<<<<<< HEAD
     playspaceComponent.gameState.highestDepth++;
     deck.gameObject.setDepth(depth ? depth : playspaceComponent.gameState.highestDepth);
     playspaceComponent.gameState.addDeckToTable(deck);
@@ -122,14 +115,3 @@ export function createPhaserImageButton(scene: Phaser.Scene, x : integer, y : in
 
     return button;
 }
-=======
-
-    if (component instanceof PlayspaceComponent) {
-        deck.gameObject.on('dragstart', SA.updateRenderOrder.bind(this, deck, component));
-        deck.gameObject.on('dragend', SA.onDragEnd.bind(this, deck, component));
-        deck.gameObject.on('pointerdown', DA.deckRightClick.bind(this, deck, component));
-        component.gameState.highestDepth++;
-        deck.gameObject.setDepth(depth ? depth : component.gameState.highestDepth);
-    }
-}
->>>>>>> develop

@@ -8,8 +8,8 @@ import { MiddleWare } from './middleware';
 export class HostService {
   hostID: string = null;
 
-  constructor(private router: Router, private middleware: MiddleWare) {
-    this.hostID = Math.round(Math.random() * 10000).toString();
+  constructor(private router: Router, private middleware: MiddleWare) { 
+    this.hostID = Math.round(Math.random()*10000).toString();
   }
 
   getHostID() {

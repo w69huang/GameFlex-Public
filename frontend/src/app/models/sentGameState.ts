@@ -5,6 +5,8 @@ import GameState from './gameState';
 import CardMin from './cardMin';
 import DeckMin from './deckMin';
 import HandMin from './handMin';
+import SavedGameState from './savedGameState';
+import CachedGameState from './cachedGameState';
 
 export default class SentGameState {
     playerID: number
@@ -34,5 +36,25 @@ export default class SentGameState {
         if (!handFound) {
             this.handMin = new HandMin(new Hand(this.playerID, []));
         }
+    }
+
+    /**
+     * Used to build a SentGameState object from a savedGameState or cachedGameState object
+     * @param incGameState - The game state to build from
+     * @param playerID - The player ID to build it for, used to select the correct hand cards
+     */
+    public static buildSentGameStateFromSaveOrCache(incGameState: SavedGameState | CachedGameState, playerID: number): SentGameState {
+        const sentGameState: SentGameState = new SentGameState(null, playerID);
+        sentGameState.cardMins = incGameState.cardMins;
+        sentGameState.deckMins = incGameState.deckMins;
+        sentGameState.deckMins.forEach((deckMin: DeckMin) => {
+            deckMin.cardMins = [];
+        });
+        for (let i: number = 0; i < incGameState.handMins.length; i++) {
+            if (incGameState.handMins[i].playerID === playerID) {
+                sentGameState.handMin = incGameState.handMins[i];
+            }
+        }
+        return sentGameState;
     }
 }

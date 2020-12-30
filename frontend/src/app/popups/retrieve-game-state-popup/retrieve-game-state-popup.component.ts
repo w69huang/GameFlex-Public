@@ -34,8 +34,11 @@ export class RetrieveGameStatePopupComponent implements OnInit {
       savedGameStates?.forEach((savedGameState) => {
         savedGameState.date = new Date(savedGameState.date);
       });
-
+      
       this.saves = savedGameStates;
+      
+      // set initial selection
+      // this.saveCtrl.setValue(this.saves[0]);
 
       // load the initial save list
       this.filteredSaves.next(this.saves.slice());
@@ -58,9 +61,9 @@ export class RetrieveGameStatePopupComponent implements OnInit {
     this._onDestroy.complete();
   }
 
-  /**
-  * Sets the initial value after the filteredSaves are loaded initially
-  */
+   /**
+   * Sets the initial value after the filteredSaves are loaded initially
+   */
   protected setInitialValue() {
     this.filteredSaves
       .pipe(take(1), takeUntil(this._onDestroy))
