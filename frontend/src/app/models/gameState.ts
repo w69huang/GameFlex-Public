@@ -1207,7 +1207,7 @@ export default class GameState {
         }
 
         if ( this.myHand.cards.length > 0 ) {
-            alert('Error: Cannot del hand with cards');
+            alert('Error: Cannot delete hand with cards');
             return 
         }
 
