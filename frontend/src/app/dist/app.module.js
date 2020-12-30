@@ -50,6 +50,7 @@ var undo_game_state_popup_component_1 = require("./popups/undo-game-state-popup/
 var create_counter_popup_component_1 = require("./popups/create-counter-popup/create-counter-popup.component");
 var config_editor_component_1 = require("./config-editor/config-editor.component");
 var save_configuration_popup_component_1 = require("./popups/save-configuration-popup/save-configuration-popup.component");
+var load_cards_popup_component_1 = require("./popups/load-cards-popup/load-cards-popup.component");
 var AppModule = /** @class */ (function () {
     function AppModule() {
     }
@@ -81,7 +82,8 @@ var AppModule = /** @class */ (function () {
                 undo_game_state_popup_component_1.UndoGameStatePopupComponent,
                 config_editor_component_1.ConfigEditorComponent,
                 save_configuration_popup_component_1.SaveConfigurationPopupComponent,
-                upload_cards_popup_component_1.UploadCardsPopupComponent
+                upload_cards_popup_component_1.UploadCardsPopupComponent,
+                load_cards_popup_component_1.LoadCardsPopupComponent
             ],
             imports: [
                 platform_browser_1.BrowserModule,
@@ -101,6 +103,7 @@ var AppModule = /** @class */ (function () {
                 ngx_mat_select_search_1.NgxMatSelectSearchModule
             ],
             entryComponents: [
+                load_cards_popup_component_1.LoadCardsPopupComponent,
                 save_configuration_popup_component_1.SaveConfigurationPopupComponent,
                 game_browser_password_popup_component_1.GameBrowserPopupComponent,
                 game_setup_popup_component_1.GameSetupPopupComponent,

@@ -5,6 +5,7 @@ import { ActivatedRoute } from '@angular/router';
 import OnlineGame from '../models/onlineGame';
 import PlayerData from '../models/playerData';
 import SavedGameState from '../models/savedGameState';
+import { LoadCardsPopupComponent } from '../popups/load-cards-popup/load-cards-popup.component';
 import { RetrieveGameStatePopupComponent } from '../popups/retrieve-game-state-popup/retrieve-game-state-popup.component';
 import { SaveGameStatePopupComponent } from '../popups/save-game-state-popup/save-game-state-popup.component';
 import { FileService } from '../services/file.service';
@@ -111,11 +112,21 @@ export class GameInstanceComponent implements OnInit {
   }
 
   uploadCard(){
-    this.fileService.list('TestDeck2', 'test2').subscribe((data) => {
-      console.log("GameInstance Componenet Pulled Files:")
-      console.log(data)
-      this.uploadCardToGameStateEmitter.emit(data);
+    let dialogRef = this.dialog.open(LoadCardsPopupComponent, {
+      height: '70%',
+      width: '40%',
+    });
 
-    })
+    dialogRef.afterClosed().subscribe(formData => {
+      // if (formData.name) {
+
+      // }
+    });
+    // this.fileService.list('TestDeck2', 'test2').subscribe((data) => {
+    //   console.log("GameInstance Componenet Pulled Files:")
+    //   console.log(data)
+    //   this.uploadCardToGameStateEmitter.emit(data);
+
+    // })
   }
 }

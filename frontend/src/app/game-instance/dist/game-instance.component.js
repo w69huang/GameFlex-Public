@@ -8,6 +8,7 @@ var __decorate = (this && this.__decorate) || function (decorators, target, key,
 exports.__esModule = true;
 exports.GameInstanceComponent = void 0;
 var core_1 = require("@angular/core");
+var load_cards_popup_component_1 = require("../popups/load-cards-popup/load-cards-popup.component");
 var retrieve_game_state_popup_component_1 = require("../popups/retrieve-game-state-popup/retrieve-game-state-popup.component");
 var save_game_state_popup_component_1 = require("../popups/save-game-state-popup/save-game-state-popup.component");
 var GameInstanceComponent = /** @class */ (function () {
@@ -86,12 +87,19 @@ var GameInstanceComponent = /** @class */ (function () {
         localStorage.removeItem('cachedGameState');
     };
     GameInstanceComponent.prototype.uploadCard = function () {
-        var _this = this;
-        this.fileService.list('TestDeck2', 'test2').subscribe(function (data) {
-            console.log("GameInstance Componenet Pulled Files:");
-            console.log(data);
-            _this.uploadCardToGameStateEmitter.emit(data);
+        var dialogRef = this.dialog.open(load_cards_popup_component_1.LoadCardsPopupComponent, {
+            height: '70%',
+            width: '40%'
         });
+        dialogRef.afterClosed().subscribe(function (formData) {
+            // if (formData.name) {
+            // }
+        });
+        // this.fileService.list('TestDeck2', 'test2').subscribe((data) => {
+        //   console.log("GameInstance Componenet Pulled Files:")
+        //   console.log(data)
+        //   this.uploadCardToGameStateEmitter.emit(data);
+        // })
     };
     GameInstanceComponent = __decorate([
         core_1.Component({

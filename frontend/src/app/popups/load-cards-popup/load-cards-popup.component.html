@@ -1,0 +1,26 @@
+<div id=loadCardsMain >
+    <h1 class="loadHeader"> Loadeable Decks:</h1>
+    <div id="def">
+        <div *ngFor="let deckData of decks" class="container row mx-auto flex justify-between items-center deckcontainer">
+            <input type="checkbox" id="deckData.deckName" name="deckData.deckName" class="inline-flex rounded text-black ">
+            <span class="inline-flex items-center px-2 rounded text-black"> {{deckData.deckName}}</span>
+            <button (click)="viewDeck(deckData.deckName)" class="viewButton"> View Deck </button>
+        </div>
+    </div>
+    <div id="loadedCards">
+
+    </div>
+
+   
+</div>
+<div class="row mr-4">
+    <mat-card >
+        <button mat-button (click)="select()">Select</button>
+    </mat-card>
+    <mat-card>
+        <button mat-button (click)="cancel()">Cancel</button>
+    </mat-card>
+</div>
+<app-file-list
+[deckNameEmitter] = "deckNameEmitter"
+></app-file-list>

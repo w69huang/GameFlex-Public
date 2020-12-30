@@ -1,0 +1,19 @@
+.loadHeader {
+  background-color: #883988;
+  color: white;
+}
+
+.loadCardsMain {
+  background-color: white !important;
+}
+
+.deckcontainer {
+  border: 5px grey;
+  border-radius: 10px;
+}
+
+.viewButton {
+  background-color: white;
+  border-radius: 10px;
+  height: 70%;
+}

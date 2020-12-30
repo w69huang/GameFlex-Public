@@ -42,6 +42,7 @@ import { UndoGameStatePopupComponent } from './popups/undo-game-state-popup/undo
 import { CreateCounterPopupComponent } from './popups/create-counter-popup/create-counter-popup.component';
 import { ConfigEditorComponent } from './config-editor/config-editor.component';
 import { SaveConfigurationPopupComponent } from './popups/save-configuration-popup/save-configuration-popup.component';
+import { LoadCardsPopupComponent } from './popups/load-cards-popup/load-cards-popup.component';
 
 
 @NgModule({
@@ -71,7 +72,8 @@ import { SaveConfigurationPopupComponent } from './popups/save-configuration-pop
     UndoGameStatePopupComponent,
     ConfigEditorComponent,
     SaveConfigurationPopupComponent,
-    UploadCardsPopupComponent
+    UploadCardsPopupComponent,
+    LoadCardsPopupComponent
   ],
   imports: [
     BrowserModule,
@@ -91,6 +93,7 @@ import { SaveConfigurationPopupComponent } from './popups/save-configuration-pop
     NgxMatSelectSearchModule
   ],
   entryComponents: [
+    LoadCardsPopupComponent,
     SaveConfigurationPopupComponent,
     GameBrowserPopupComponent,
     GameSetupPopupComponent,
