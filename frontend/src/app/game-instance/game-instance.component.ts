@@ -80,21 +80,13 @@ export class GameInstanceComponent implements OnInit {
     });
   }
 
-  clearCache(){
-    localStorage.removeItem('gameStateHistory');
-    console.log("Cleared")
-  }
-
-  undo(){
-    // TODO: Emit number based on input field
-    this.undoGameStateEmitter.emit(1);
+  undo(undoCount: any){
+    if (!isNaN(undoCount)) {
+      this.undoGameStateEmitter.emit(parseInt(undoCount));
+    }
   }
 
   deleteAllSaves() {
     this.savedGameStateService.deleteAll().subscribe();
-  }
-
-  clearCachedSave() {
-    localStorage.removeItem('cachedGameState');
   }
 }

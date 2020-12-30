@@ -232,7 +232,7 @@ export class PlayspaceComponent implements OnInit {
   }
 
   buildFromCacheDialog(): void {
-    if (JSON.parse(localStorage.getItem('cachedGameState')).numMoves > 0) {
+    if (JSON.parse(localStorage.getItem('cachedGameState'))?.numMoves > 0) {
       let dialogRef = this.dialog.open(LoadGameStatePopupComponent, {
         height: '290px',
         width: '350px',

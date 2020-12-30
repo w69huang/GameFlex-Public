@@ -141,7 +141,7 @@ export default class GameState {
     /**
      * Controls the maximum number of game states that can be cahced
      */
-    private maxNumOfCachedStates: number = 10;
+    private maxNumOfCachedStates: number = 100;
 
     /**
      * Because of how actions are set up, it is possible that a single action could involve 2 writes to the cache: for example, removing a card from a deck and then adding it to the table
