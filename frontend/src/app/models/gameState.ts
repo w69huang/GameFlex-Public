@@ -336,17 +336,18 @@ export default class GameState {
      */
     private checkUndoConfirmations(): void {
         if (this.undoRequests.length > 0) {
-
-        }
-        this.undoRequestCount++;
-        if (this.undoRequestCount >= 3) {
+            this.undoRequestCount++;
+            if (this.undoRequestCount >= 3) {
+                clearInterval(this.undoCheckInInterval);
+                this.undoRequests.forEach((connection: DataConnection) => {
+                    connection.close();
+                    this.filterOutPeer(this.connections, connection);
+                });
+                this.undoRequests = [];
+                this.undoInProgress = false;
+            }
+        } else {
             clearInterval(this.undoCheckInInterval);
-            this.undoRequests.forEach((connection: DataConnection) => {
-                connection.close();
-                this.filterOutPeer(this.connections, connection);
-            });
-            this.undoRequests = [];
-            this.undoInProgress = false;
         }
     }
 
@@ -466,6 +467,7 @@ export default class GameState {
                         cache.gamestate = this.gameStateHistory[this.gameStateHistory.length - 1];
                         this.undoInProgress = true;
                         this.undoRequests = this.connections;
+                        clearInterval(this.undoCheckInInterval);
                         this.undoCheckInInterval = setInterval(this.checkUndoConfirmations.bind(this), 200);
                     }
                 }
