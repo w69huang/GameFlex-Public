@@ -95,3 +95,24 @@ export function deckCreationCallback(deck: Deck, playspaceComponent: PlayspaceCo
     deck.gameObject.setDepth(depth ? depth : playspaceComponent.gameState.highestDepth);
     playspaceComponent.gameState.addDeckToTable(deck);
 }
+
+export function createPhaserImageButton(scene: Phaser.Scene, x : integer, y : integer, width: integer, height: integer, image : string, func : Function): Phaser.GameObjects.Image {
+
+    var enterButtonHoverState = () => button.setTintFill(0xB4B4B4);
+    var enterButtonRestState = () => button.clearTint();
+    var enterButtonActiveState = () => button.setTintFill(0x551A8B);
+
+    var button = scene.add.image(x, y, image)
+        .setDisplaySize(width, height)
+        .setInteractive({ useHandCursor: true })
+        .on('pointerover', () => enterButtonHoverState() )
+        .on('pointerout', () => enterButtonRestState() )
+        .on('pointerdown', () => enterButtonActiveState() )
+        .on('pointerup', () => {
+            console.log('pointerup')
+            enterButtonHoverState();
+            func();
+        });
+
+    return button;
+}

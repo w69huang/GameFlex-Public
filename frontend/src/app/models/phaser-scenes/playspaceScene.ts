@@ -13,7 +13,11 @@ export default class PlayspaceScene extends Phaser.Scene {
     handBeginY: number;
     initialCardList: Card[];
     initialDeckList: Deck[];
-    addHandButton: Phaser.GameObjects.Text;
+    addHandButton: Phaser.GameObjects.Image;
+    delHandButton: Phaser.GameObjects.Image;
+    nextHandButton: Phaser.GameObjects.Image;
+    prevHandButton: Phaser.GameObjects.Image;
+
   
     constructor(playspaceComponent: PlayspaceComponent, width: number, height: number, handBeginY: number) {
       super({ key: 'main' });
@@ -43,28 +47,11 @@ export default class PlayspaceScene extends Phaser.Scene {
         this.playspaceComponent.startConnectionProcess();
       });
 
-      this.addHandButton = this.add.text(100, 100, 'Add Hand!', { fill: '#0f0' })
-        .setInteractive({ useHandCursor: true })
-        .on('pointerover', () => this.enterButtonHoverState() )
-        .on('pointerout', () => this.enterButtonRestState() )
-        .on('pointerdown', () => this.enterButtonActiveState() )
-        .on('pointerdown', () => this.enterButtonActiveState())
-        .on('pointerup', () => {
-          console.log('pointerup')
-          this.enterButtonHoverState();
-      });
-    }
+      this.addHandButton = HelperFunctions.createPhaserImageButton(this, 960, 630, 30, 30, 'del-hand', this.playspaceComponent.gameState.createMyHand);
+      this.delHandButton = HelperFunctions.createPhaserImageButton(this, 30, 630, 30, 30, 'del-hand', () => {} );
+      this.nextHandButton = HelperFunctions.createPhaserImageButton(this, 960, 820, 30, 30, 'next-hand', this.playspaceComponent.gameState.nextHand);
+      this.prevHandButton = HelperFunctions.createPhaserImageButton(this, 30, 820, 30, 30, 'prev-hand', this.playspaceComponent.gameState.previousHand);
 
-    enterButtonHoverState() {
-      this.addHandButton.setStyle({ fill: '#ff0'});
-    }
-  
-    enterButtonRestState() {
-      this.addHandButton.setStyle({ fill: '#0f0' });
-    }
-
-    enterButtonActiveState() {
-      this.addHandButton.setStyle({ fill: '#0ff' });
     }
   
     preload() {
@@ -79,6 +66,11 @@ export default class PlayspaceScene extends Phaser.Scene {
         this.load.image(deck.imagePath, deck.imagePath);
       });
       this.load.image('grey-background', 'assets/images/backgrounds/grey.png');
+      this.load.image('del-hand', 'assets/images/buttons/cancel.png');
+      this.load.image('next-hand', 'assets/images/buttons/right-arrow.png');
+      this.load.image('prev-hand', 'assets/images/buttons/left-arrow.png');
     }
+
+
   }
   
