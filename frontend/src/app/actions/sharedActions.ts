@@ -92,6 +92,7 @@ export function onDragEnd(object: any, playspaceComponent: PlayspaceComponent, p
           imagePath: object.imagePath,
           x: object.x,
           y: object.y,
+          flippedOver: object.flippedOver,
           finishedMoving: true
         }
       );

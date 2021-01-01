@@ -10,6 +10,7 @@ export default class CachedGameState {
     cardMins: CardMin[] = [];
     deckMins: DeckMin[] = [];
     handMins: HandMin[] = [];
+    numMoves: number;
 
     constructor(gameState: GameState) { 
         gameState.cards.forEach((card: Card) => {
@@ -21,5 +22,6 @@ export default class CachedGameState {
         gameState.hands.forEach((hand: Hand) => {
             this.handMins.push(new HandMin(hand));
         });
+        this.numMoves = gameState.numCachedMoves;
     }
 }

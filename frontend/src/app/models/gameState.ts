@@ -6,9 +6,9 @@ import CachedGameState from './cachedGameState'
 import SavedGameState from './savedGameState';
 import CardMin from './cardMin';
 import DeckMin from './deckMin';
-import * as HelperFunctions from '../helper-functions';
-import * as SharedActions from '../actions/sharedActions';
-import * as DeckActions from '../actions/deckActions';
+import * as HF from '../helper-functions';
+import * as SA from '../actions/sharedActions';
+import * as DA from '../actions/deckActions';
 import { PlayspaceComponent } from '../playspace/playspace.component';
 import { DataConnection } from 'peerjs';
 import SentGameState from './sentGameState';
@@ -30,7 +30,9 @@ export enum EActionTypes {
     sendTopCard = "sendTopCard",
     removeFromHand = "removeFromHand",
     importDeck = "importDeck",
-    updateRenderOrder = "updateRenderOrder"
+    updateRenderOrder = "updateRenderOrder",
+    flipCard = "flipCard",
+    shuffleDeck = "shuffleDeck"
 }
 
 /**
@@ -77,8 +79,9 @@ export class GameObjectExtraProperties {
     imagePath?: string;
     imagePaths? : string[];
     finishedMoving?: boolean;
-    destination?: HelperFunctions.EDestination;
+    destination?: HF.EDestination;
     highestDepth?: number;
+    flippedOver?: boolean;
 }
 
 /**
@@ -219,7 +222,6 @@ export default class GameState {
         return this._counters;
     }
 
-
     /**
      * My player ID
      */
@@ -246,6 +248,11 @@ export default class GameState {
     public highestDepth: number = 0;
 
     /**
+     * The number of moves that have been made, used to ensure that we don't ask the player to pull a game from the cache if it's one with no moves
+     */
+    public numCachedMoves: number = 0;
+
+    /**
      * The constructor for the game state
      * @param cards - The cards to add to the table at initialization time
      * @param decks - The decks to add to the table at initialization time
@@ -270,7 +277,7 @@ export default class GameState {
             return object.id !== refObject.id;
         });
 
-        this.delay(this.saveToCache())
+        this.delay(this.saveToCache());
         return objectListToFilter;
     }
 
@@ -321,25 +328,21 @@ export default class GameState {
     /**
      * Used to save the current game state to the user's local storage
      */
-
-    // ISSUE 1: When the deck is rightclicked, and closed, it saved the state twice.
-    /* ISSUE 2: When the other player (Not the host) makes a move, the save seems weird. 
-            Its like the host saved the state between the desitnation and the origin of where the other player moved it 
-            since when it's the host's actions, they save properly.
-            Possibly has something to do with how currentMove is initialized in the constructor? Or just the delay of the 
-            data being sent between the host and the user? 
-    */
     public saveToCache(): void {
         if (this.cachingEnabled && this.amHost) {
+            this.numCachedMoves++;
             const cachedGameState = new CachedGameState(this);
             localStorage.setItem('cachedGameState', JSON.stringify(cachedGameState)); 
             this.batchStateHistory.push(cachedGameState);
             clearTimeout(this.timerFunc);
-            this.timerFunc = setTimeout(this.saveGameHistory.bind(this), this.batchStateWaitTime);
+            this.timerFunc = setTimeout(this.cacheGameHistory.bind(this), this.batchStateWaitTime);
         }
     }
 
-    private saveGameHistory(): void  {
+    /**
+    * Used to cache the "entire" game state history (right now up to 10 moves)
+     */
+    private cacheGameHistory(): void  {
         this.currentMove = this.batchStateHistory.pop();
         this.batchStateHistory = [];
         if (this.currentMove != null || this.currentMove != undefined){
@@ -392,27 +395,13 @@ export default class GameState {
     }
 
     /**
-     * Used to send a pre-made sentGameState object to a peer
-     * @param sentGameState 
-     * @param peerID 
-     */
-    public sendAlreadyMadeGameStateToPeer(sentGameState: SentGameState, peerID: string): void {
-        if (this.amHost) {
-            for (let i: number = 0; i < this.connections.length; i++) {
-                if (this.connections[i].peer === peerID) {
-                    this.connections[i].send(new GameObjectProperties(this.amHost, 'replicateState', this.myPeerID, this.playerID, { 'state': sentGameState }));
-                }
-            }
-        }
-    }
-
-    /**
      * A method to build the game state from the cache
      * @param playspaceComponent - A reference to the playspace component, needed to create the cards and decks
      * @param initialBuild - If this is the very first time we're building from the cache in this browser session
      * @param undo - The number of times undo has been called
      */
     public buildGameFromCache(playspaceComponent: PlayspaceComponent, initialBuild: boolean, undo: number = 0): void {
+
         if (this.amHost) {
             const cache = {gamestate: null};
             if (undo > 0) {
@@ -442,34 +431,31 @@ export default class GameState {
                 this.cleanUp();
       
                 cache.gamestate.cardMins.forEach((cardMin: CardMin) => {
-                    const card: Card = new Card(cardMin.id, cardMin.imagePath, cardMin.x, cardMin.y);
-                    HelperFunctions.createCard(card, playspaceComponent, HelperFunctions.EDestination.TABLE, cardMin.depth);
+                    const card: Card = new Card(cardMin.id, cardMin.imagePath, cardMin.x, cardMin.y, cardMin.flippedOver);
+                    HF.createCard(card, playspaceComponent, HF.EDestination.TABLE, cardMin.depth);
                 });
                 cache.gamestate.deckMins.forEach((deckMin: DeckMin) => {
                     let cardList: Card[] = [];
                     deckMin.cardMins.forEach((cardMin: CardMin) => {
-                        cardList.push(new Card(cardMin.id, cardMin.imagePath, cardMin.x, cardMin.y));
+                        cardList.push(new Card(cardMin.id, cardMin.imagePath, cardMin.x, cardMin.y, cardMin.flippedOver));
                     });
                     const deck: Deck = new Deck(deckMin.id, deckMin.imagePath, cardList, deckMin.x, deckMin.y);
-                    HelperFunctions.createDeck(deck, playspaceComponent, deckMin.depth);
+                    HF.createDeck(deck, playspaceComponent, deckMin.depth);
                 });
                 for (let i = 0; i < cache.gamestate.handMins.length; i++) {
                     cache.gamestate.handMins[i].cardMins.forEach((cardMin: CardMin) => {
                         if (cache.gamestate.handMins[i].playerID === this.playerID) {
-                            const card: Card = new Card(cardMin.id, cardMin.imagePath, cardMin.x, cardMin.y);
+                            const card: Card = new Card(cardMin.id, cardMin.imagePath, cardMin.x, cardMin.y, cardMin.flippedOver);
                             this.addCardToOwnHand(card);
-                            HelperFunctions.createCard(card, playspaceComponent, HelperFunctions.EDestination.HAND, cardMin.depth);
+                            HF.createCard(card, playspaceComponent, HF.EDestination.HAND, cardMin.depth);
                         } else {
-                            this.addCardToPlayerHand(new Card(cardMin.id, cardMin.imagePath, cardMin.x, cardMin.y), cache.gamestate.handMins[i].playerID);
+                            this.addCardToPlayerHand(new Card(cardMin.id, cardMin.imagePath, cardMin.x, cardMin.y, cardMin.flippedOver), cache.gamestate.handMins[i].playerID);
                         }
                     });
                 }
             
-                // Just a temporary thing for now. Ask Zach where the host sends the game state on load.
-                if (undo > 0) {
-                    this.sendGameStateToPeers();
-                    this.currentMove = new CachedGameState(this); 
-                }        
+                this.sendGameStateToPeers();
+                this.currentMove = new CachedGameState(this);     
 
                 this.setCachingEnabled(true);
             }            
@@ -497,25 +483,25 @@ export default class GameState {
             this.cleanUp();
       
             savedGameState.cardMins.forEach((cardMin: CardMin) => {
-                const card: Card = new Card(cardMin.id, cardMin.imagePath, cardMin.x, cardMin.y);
-                HelperFunctions.createCard(card, playspaceComponent, HelperFunctions.EDestination.TABLE, cardMin.depth);
+                const card: Card = new Card(cardMin.id, cardMin.imagePath, cardMin.x, cardMin.y, cardMin.flippedOver);
+                HF.createCard(card, playspaceComponent, HF.EDestination.TABLE, cardMin.depth);
             });
             savedGameState.deckMins.forEach((deckMin: DeckMin) => {
                 let cardList: Card[] = [];
                 deckMin.cardMins.forEach((cardMin: CardMin) => {
-                    cardList.push(new Card(cardMin.id, cardMin.imagePath, cardMin.x, cardMin.y));
+                    cardList.push(new Card(cardMin.id, cardMin.imagePath, cardMin.x, cardMin.y, cardMin.flippedOver));
                 });
                 const deck: Deck = new Deck(deckMin.id, deckMin.imagePath, cardList, deckMin.x, deckMin.y);
-                HelperFunctions.createDeck(deck, playspaceComponent, deckMin.depth);
+                HF.createDeck(deck, playspaceComponent, deckMin.depth);
             });
             for (let i = 0; i < savedGameState.handMins.length; i++) {
                 savedGameState.handMins[i].cardMins.forEach((cardMin: CardMin) => {
                     if (savedGameState.handMins[i].playerID === this.playerID) {
-                        const card: Card = new Card(cardMin.id, cardMin.imagePath, cardMin.x, cardMin.y);
+                        const card: Card = new Card(cardMin.id, cardMin.imagePath, cardMin.x, cardMin.y, cardMin.flippedOver);
                         this.addCardToOwnHand(card);
-                        HelperFunctions.createCard(card, playspaceComponent, HelperFunctions.EDestination.HAND, cardMin.depth);
+                        HF.createCard(card, playspaceComponent, HF.EDestination.HAND, cardMin.depth);
                     } else {
-                        this.addCardToPlayerHand(new Card(cardMin.id, cardMin.imagePath, cardMin.x, cardMin.y), savedGameState.handMins[i].playerID);
+                        this.addCardToPlayerHand(new Card(cardMin.id, cardMin.imagePath, cardMin.x, cardMin.y, cardMin.flippedOver), savedGameState.handMins[i].playerID);
                     }
                 });
             }
@@ -531,7 +517,7 @@ export default class GameState {
      */
     public addCardToTable(card: Card): void {
         this._cards.push(card);
-        this.delay(this.saveToCache())
+        this.delay(this.saveToCache());
     }
 
     /**
@@ -570,7 +556,7 @@ export default class GameState {
             }
         }
 
-        this.delay(this.saveToCache())
+        this.delay(this.saveToCache());
     }
 
     /**
@@ -579,7 +565,7 @@ export default class GameState {
      */
     public addDeckToTable(deck: Deck): void {
         this._decks.push(deck);
-        this.delay(this.saveToCache())
+        this.delay(this.saveToCache());
     }
 
     /**
@@ -642,7 +628,7 @@ export default class GameState {
 
             card.inHand = true;
     
-            this.delay(this.saveToCache())
+            this.delay(this.saveToCache());
         }
     }
 
@@ -665,7 +651,7 @@ export default class GameState {
     
                 card.inHand = false;
         
-                this.delay(this.saveToCache())
+                this.delay(this.saveToCache());
             }
         }
     }
@@ -685,7 +671,7 @@ export default class GameState {
                 deck.cards = this.filterOutID(deck.cards, card);
                 card.inDeck = false;
 
-                this.delay(this.saveToCache())
+                this.delay(this.saveToCache());
             }
             card.x = deck.x;
             card.y = deck.y;
@@ -705,7 +691,35 @@ export default class GameState {
         
         if (deck) {
             deck.cards = cardList;
-            this.delay(this.saveToCache())
+            this.delay(this.saveToCache());
+        }
+    }
+
+    public flipCard(cardID: number): void {
+        const card: Card = this.getCardByID(cardID, this.playerID).card;
+
+        if (card) {
+            if (card.flippedOver) {
+                card.gameObject.setTexture(card.imagePath);
+            } else {
+                card.gameObject.setTexture('flipped-card');
+            }
+            card.gameObject.setDisplaySize(100, 150);
+            // Hit area MUST be set to the texture size (NOT display size), which will equate to the width and height of the game object after the texture is loaded
+            card.gameObject.input.hitArea.setTo(0, 0, card.gameObject.width, card.gameObject.height);
+            card.flippedOver = !card.flippedOver;
+
+            this.delay(this.saveToCache());
+
+            if (!card.inHand) {
+                this.sendPeerData(
+                    EActionTypes.flipCard,
+                    {
+                        cardID: cardID,
+                        flippedOver: card.flippedOver
+                    }
+                );
+            }
         }
     }
 
@@ -727,6 +741,7 @@ export default class GameState {
                     this.addCardToOwnHand(card);
                     return { overlapType: EOverlapType.HAND };
                 }
+                this.delay(this.saveToCache());
                 return { overlapType: EOverlapType.ALREADYINHAND };
             } else {
                 for (let i: number = 0; i < this._decks.length; i++) {
@@ -749,12 +764,12 @@ export default class GameState {
                 this.removeCardFromOwnHand(card.id);
                 return { overlapType: EOverlapType.TABLE, wasInHand: true };
             } else {
-                this.delay(this.saveToCache())
+                this.delay(this.saveToCache());
                 return { overlapType: EOverlapType.TABLE, wasInHand: false };
             }
         } else {
             const deck: Deck = this.getDeckByID(id);
-            this.delay(this.saveToCache())
+            this.delay(this.saveToCache());
 
             return { overlapType: EOverlapType.TABLE };
         }
@@ -904,16 +919,16 @@ export default class GameState {
             this.cleanUp();
     
             receivedGameState.cardMins.forEach((cardMin: CardMin) => {
-              let card: Card = new Card(cardMin.id, cardMin.imagePath, cardMin.x, cardMin.y);
-              HelperFunctions.createCard(card, playspaceComponent, HelperFunctions.EDestination.TABLE, cardMin.depth);
+              let card: Card = new Card(cardMin.id, cardMin.imagePath, cardMin.x, cardMin.y, cardMin.flippedOver);
+              HF.createCard(card, playspaceComponent, HF.EDestination.TABLE, cardMin.depth);
             });
             receivedGameState.deckMins.forEach((deckMin: DeckMin) => {
               let deck: Deck = new Deck(deckMin.id, deckMin.imagePath, [], deckMin.x, deckMin.y);
-              HelperFunctions.createDeck(deck, playspaceComponent, deckMin.depth);
+              HF.createDeck(deck, playspaceComponent, deckMin.depth);
             });
             receivedGameState.handMin.cardMins.forEach((cardMin: CardMin) => {
-              let card: Card = new Card(cardMin.id, cardMin.imagePath, cardMin.x, cardMin.y, true);
-              HelperFunctions.createCard(card, playspaceComponent, HelperFunctions.EDestination.HAND, cardMin.depth);
+              let card: Card = new Card(cardMin.id, cardMin.imagePath, cardMin.x, cardMin.y, cardMin.flippedOver, true);
+              HF.createCard(card, playspaceComponent, HF.EDestination.HAND, cardMin.depth);
             });
     
             document.getElementById('loading').style.display = "none";
@@ -966,7 +981,7 @@ export default class GameState {
             }
     
             if (data.extras.finishedMoving) { // If they have finished moving a card/deck, save to cache
-                this.delay(this.saveToCache())
+                this.delay(this.saveToCache());
             }
             break;
     
@@ -977,12 +992,12 @@ export default class GameState {
     
               if (deck && deck.cards.length > 0) {
                 let card: Card = this.getCardFromDeck(deck.cards.length - 1, deck.id, true);
-                card.x = data.extras.destination === HelperFunctions.EDestination.TABLE ? deck.x : playspaceComponent.gameState.myHand.gameObject.x + 150;
-                card.y = data.extras.destination === HelperFunctions.EDestination.TABLE ? deck.y : playspaceComponent.gameState.myHand.gameObject.y + 200;
+                card.x = data.extras.destination === HF.EDestination.TABLE ? deck.x : playspaceComponent.gameState.myHand.gameObject.x + 150;
+                card.y = data.extras.destination === HF.EDestination.TABLE ? deck.y : playspaceComponent.gameState.myHand.gameObject.y + 200;
     
-                if (data.extras.destination === HelperFunctions.EDestination.TABLE) {
-                    HelperFunctions.createCard(card, playspaceComponent, HelperFunctions.EDestination.TABLE);
-                } else if (data.extras.destination === HelperFunctions.EDestination.HAND) {
+                if (data.extras.destination === HF.EDestination.TABLE) {
+                    HF.createCard(card, playspaceComponent, HF.EDestination.TABLE);
+                } else if (data.extras.destination === HF.EDestination.HAND) {
                     this.addCardToPlayerHand(card, data.playerID);
                 }
     
@@ -994,11 +1009,12 @@ export default class GameState {
                       type: EGameObjectType.CARD,
                       x: card.x,
                       y: card.y,
+                      flippedOver: card.flippedOver,
                       imagePath: card.imagePath,
                       destination: data.extras.destination
                     },
                     [],
-                    data.extras.destination === HelperFunctions.EDestination.HAND ? [data.peerID] : []
+                    data.extras.destination === HF.EDestination.HAND ? [data.peerID] : []
                 );
               }
             }
@@ -1011,10 +1027,10 @@ export default class GameState {
     
               if (deck) {
     
-                let card: Card = new Card(data.extras.cardID, data.extras.imagePath, data.extras.x, data.extras.y);
+                let card: Card = new Card(data.extras.cardID, data.extras.imagePath, data.extras.x, data.extras.y, data.extras.flippedOver);
                 card.inDeck = false;
     
-                HelperFunctions.createCard(card, playspaceComponent, data.extras.destination);
+                HF.createCard(card, playspaceComponent, data.extras.destination);
               }
             }
             break;
@@ -1090,7 +1106,7 @@ export default class GameState {
                 card.x = data.extras.x;
                 card.y = data.extras.y;
     
-                HelperFunctions.createCard(card, playspaceComponent, HelperFunctions.EDestination.TABLE)
+                HF.createCard(card, playspaceComponent, HF.EDestination.TABLE)
     
                 // Tell other possible peers that this card was removed from a hand
                 this.sendPeerData(
@@ -1101,12 +1117,13 @@ export default class GameState {
                     imagePath: card.imagePath,
                     x: card.x,
                     y: card.y,
+                    flippedOver: card.flippedOver
                   },
                   [data.peerID]
                 );        
               } else {
-                card = new Card(data.extras.cardID, data.extras.imagePath, data.extras.x, data.extras.y);
-                HelperFunctions.createCard(card, playspaceComponent, HelperFunctions.EDestination.TABLE);
+                card = new Card(data.extras.cardID, data.extras.imagePath, data.extras.x, data.extras.y, data.extras.flippedOver);
+                HF.createCard(card, playspaceComponent, HF.EDestination.TABLE);
               }
             }
     
@@ -1149,6 +1166,44 @@ export default class GameState {
                     },
                     [data.peerID]
                   );
+              }
+              break;
+
+          case EActionTypes.flipCard:
+              let card: Card = this.getCardByID(data.extras.cardID, data.playerID)?.card;
+
+              if (card) {
+                if (data.extras.flippedOver) {
+                    card.gameObject.setTexture('flipped-card');
+                } else {
+                    card.gameObject.setTexture(card.imagePath);
+                }
+                card.gameObject.setDisplaySize(100, 150);
+                // Hit area MUST be set to the texture size (NOT display size), which will equate to the width and height of the game object after the texture is loaded
+                card.gameObject.input.hitArea.setTo(0, 0, card.gameObject.width, card.gameObject.height);
+                card.flippedOver = data.extras.flippedOver;
+    
+                this.delay(this.saveToCache());
+    
+                if (this.amHost) {
+                    this.sendPeerData(
+                        EActionTypes.flipCard,
+                        {
+                            cardID: card.id,
+                            flippedOver: card.flippedOver
+                        },
+                        [data.peerID]
+                    );
+                }
+              }
+              break;
+
+          case EActionTypes.shuffleDeck:
+              if (this.amHost) {
+                  const deck: Deck = this.getDeckByID(data.extras.deckID);
+                  if (deck) {
+                    DA.shuffleDeck(null, deck, playspaceComponent, null);
+                  }
               }
     
           default:

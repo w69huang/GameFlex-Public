@@ -55,6 +55,7 @@ export default class PlayspaceScene extends Phaser.Scene {
         this.load.image(deck.imagePath, deck.imagePath);
       });
       this.load.image('grey-background', 'assets/images/backgrounds/grey.png');
+      this.load.image('flipped-card', 'assets/images/playing-cards-extras/flipped-card.png');
     }
   }
   
