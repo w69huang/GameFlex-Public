@@ -11,8 +11,7 @@ export function updateRenderOrder(object: Card | Deck, playspaceComponent: Plays
       EActionTypes.updateRenderOrder,
       {
         id: object.id,
-        type: object.type,
-        highestDepth: playspaceComponent.gameState.highestDepth
+        type: object.type
       }
     );
   }

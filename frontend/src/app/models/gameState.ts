@@ -450,6 +450,70 @@ export default class GameState {
     }
 
     /**
+     * A method to clear the cache of the cached game state
+     */
+    public clearCache(): void {
+        localStorage.removeItem('cachedGameState');
+        this.gameStateHistory.push(new CachedGameState(this));
+        localStorage.setItem('gameStateHistory', JSON.stringify(this.gameStateHistory));
+    }
+
+    /**
+     * Taking in a minified game state of type CachedGameState or SavedGameState, this method updates the current game state to match it
+     * @param gameStateMin - The minified game state being taken in
+     * @param playspaceComponent - The playspace component reference
+     * @param undo - The number of undos, if applicable
+     */
+    public buildGame(gameStateMin: CachedGameState | SavedGameState, playspaceComponent: PlayspaceComponent, undo?: number): void {
+        this.setCachingEnabled(false);
+
+        this.cleanUp();
+        let highestDepth: number = 0;
+
+        gameStateMin.cardMins.forEach((cardMin: CardMin) => {
+            const card: Card = new Card(cardMin.id, cardMin.imagePath, cardMin.x, cardMin.y, cardMin.flippedOver);
+            HF.createCard(card, playspaceComponent, HF.EDestination.TABLE, cardMin.depth);
+            if (cardMin.depth > highestDepth) {
+                highestDepth = cardMin.depth;
+            }
+        });
+        gameStateMin.deckMins.forEach((deckMin: DeckMin) => {
+            let cardList: Card[] = [];
+            deckMin.cardMins.forEach((cardMin: CardMin) => {
+                cardList.push(new Card(cardMin.id, cardMin.imagePath, cardMin.x, cardMin.y, cardMin.flippedOver));
+            });
+            const deck: Deck = new Deck(deckMin.id, deckMin.imagePath, cardList, deckMin.x, deckMin.y);
+            HF.createDeck(deck, playspaceComponent, deckMin.depth);
+            if (deckMin.depth > highestDepth) {
+                highestDepth = deckMin.depth;
+            }
+        });
+        for (let i = 0; i < gameStateMin.handMins.length; i++) {
+            gameStateMin.handMins[i].cardMins.forEach((cardMin: CardMin) => {
+                if (gameStateMin.handMins[i].playerID === this.playerID) {
+                    const card: Card = new Card(cardMin.id, cardMin.imagePath, cardMin.x, cardMin.y, cardMin.flippedOver);
+                    HF.createCard(card, playspaceComponent, HF.EDestination.HAND, cardMin.depth);
+                } else {
+                    this.addCardToPlayerHand(new Card(cardMin.id, cardMin.imagePath, cardMin.x, cardMin.y, cardMin.flippedOver), gameStateMin.handMins[i].playerID);
+                }
+                if (cardMin.depth > highestDepth) {
+                    highestDepth = cardMin.depth;
+                }
+            });
+        }
+    
+        this.highestDepth = highestDepth;
+        this.sendGameStateToPeers(undo > 0 ? true : false);
+        this.currentMove = new CachedGameState(this);     
+
+        this.setCachingEnabled(true);
+
+        if (!undo) {
+            this.delay(this.saveToCache());
+        }
+    }
+
+    /**
      * A method to build the game state from the cache
      * @param playspaceComponent - A reference to the playspace component, needed to create the cards and decks
      * @param initialBuild - If this is the very first time we're building from the cache in this browser session
@@ -484,49 +548,9 @@ export default class GameState {
                 }
             }
             if (cache.gamestate != null) {
-                this.setCachingEnabled(false);
-
-                this.cleanUp();
-      
-                cache.gamestate.cardMins.forEach((cardMin: CardMin) => {
-                    const card: Card = new Card(cardMin.id, cardMin.imagePath, cardMin.x, cardMin.y, cardMin.flippedOver);
-                    HF.createCard(card, playspaceComponent, HF.EDestination.TABLE, cardMin.depth);
-                });
-                cache.gamestate.deckMins.forEach((deckMin: DeckMin) => {
-                    let cardList: Card[] = [];
-                    deckMin.cardMins.forEach((cardMin: CardMin) => {
-                        cardList.push(new Card(cardMin.id, cardMin.imagePath, cardMin.x, cardMin.y, cardMin.flippedOver));
-                    });
-                    const deck: Deck = new Deck(deckMin.id, deckMin.imagePath, cardList, deckMin.x, deckMin.y);
-                    HF.createDeck(deck, playspaceComponent, deckMin.depth);
-                });
-                for (let i = 0; i < cache.gamestate.handMins.length; i++) {
-                    cache.gamestate.handMins[i].cardMins.forEach((cardMin: CardMin) => {
-                        if (cache.gamestate.handMins[i].playerID === this.playerID) {
-                            const card: Card = new Card(cardMin.id, cardMin.imagePath, cardMin.x, cardMin.y, cardMin.flippedOver);
-                            this.addCardToOwnHand(card);
-                            HF.createCard(card, playspaceComponent, HF.EDestination.HAND, cardMin.depth);
-                        } else {
-                            this.addCardToPlayerHand(new Card(cardMin.id, cardMin.imagePath, cardMin.x, cardMin.y, cardMin.flippedOver), cache.gamestate.handMins[i].playerID);
-                        }
-                    });
-                }
-            
-                this.sendGameStateToPeers(undo > 0 ? true : false);
-                this.currentMove = new CachedGameState(this);     
-
-                this.setCachingEnabled(true);
+                this.buildGame(cache.gamestate, playspaceComponent, undo);
             }            
         }        
-    }
-
-    /**
-     * A method to clear the cache of the cached game state
-     */
-    public clearCache(): void {
-        localStorage.removeItem('cachedGameState');
-        this.gameStateHistory.push(new CachedGameState(this));
-        localStorage.setItem('gameStateHistory', JSON.stringify(this.gameStateHistory));
     }
 
     /**
@@ -535,38 +559,49 @@ export default class GameState {
      * @param playspaceComponent - A reference to the playspace component, needed to create cards and decks
      */
     public buildGameStateFromSavedState(savedGameState: SavedGameState, playspaceComponent: PlayspaceComponent): void {
-        if (this.amHost) {
-            this.cachingEnabled = false;
-
-            this.cleanUp();
-      
-            savedGameState.cardMins.forEach((cardMin: CardMin) => {
-                const card: Card = new Card(cardMin.id, cardMin.imagePath, cardMin.x, cardMin.y, cardMin.flippedOver);
-                HF.createCard(card, playspaceComponent, HF.EDestination.TABLE, cardMin.depth);
-            });
-            savedGameState.deckMins.forEach((deckMin: DeckMin) => {
-                let cardList: Card[] = [];
-                deckMin.cardMins.forEach((cardMin: CardMin) => {
-                    cardList.push(new Card(cardMin.id, cardMin.imagePath, cardMin.x, cardMin.y, cardMin.flippedOver));
-                });
-                const deck: Deck = new Deck(deckMin.id, deckMin.imagePath, cardList, deckMin.x, deckMin.y);
-                HF.createDeck(deck, playspaceComponent, deckMin.depth);
-            });
-            for (let i = 0; i < savedGameState.handMins.length; i++) {
-                savedGameState.handMins[i].cardMins.forEach((cardMin: CardMin) => {
-                    if (savedGameState.handMins[i].playerID === this.playerID) {
-                        const card: Card = new Card(cardMin.id, cardMin.imagePath, cardMin.x, cardMin.y, cardMin.flippedOver);
-                        this.addCardToOwnHand(card);
-                        HF.createCard(card, playspaceComponent, HF.EDestination.HAND, cardMin.depth);
-                    } else {
-                        this.addCardToPlayerHand(new Card(cardMin.id, cardMin.imagePath, cardMin.x, cardMin.y, cardMin.flippedOver), savedGameState.handMins[i].playerID);
-                    }
-                });
-            }
-            
-            this.cachingEnabled = true;
-            this.delay(this.saveToCache());
-        }
+        this.buildGame(savedGameState, playspaceComponent);
+        //if (this.amHost) {
+        //    this.cachingEnabled = false;
+        //
+        //    this.cleanUp();
+        //    let highestDepth: number = 0;
+        //
+        //    savedGameState.cardMins.forEach((cardMin: CardMin) => {
+        //        const card: Card = new Card(cardMin.id, cardMin.imagePath, cardMin.x, cardMin.y, cardMin.flippedOver);
+        //        HF.createCard(card, playspaceComponent, HF.EDestination.TABLE, cardMin.depth);
+        //        if (cardMin.depth > highestDepth) {
+        //            highestDepth = cardMin.depth;
+        //        }
+        //    });
+        //    savedGameState.deckMins.forEach((deckMin: DeckMin) => {
+        //        let cardList: Card[] = [];
+        //        deckMin.cardMins.forEach((cardMin: CardMin) => {
+        //            cardList.push(new Card(cardMin.id, cardMin.imagePath, cardMin.x, cardMin.y, cardMin.flippedOver));
+        //        });
+        //        const deck: Deck = new Deck(deckMin.id, deckMin.imagePath, cardList, deckMin.x, deckMin.y);
+        //        HF.createDeck(deck, playspaceComponent, deckMin.depth);
+        //        if (deckMin.depth > highestDepth) {
+        //            highestDepth = deckMin.depth;
+        //        }
+        //    });
+        //    for (let i = 0; i < savedGameState.handMins.length; i++) {
+        //        savedGameState.handMins[i].cardMins.forEach((cardMin: CardMin) => {
+        //            if (savedGameState.handMins[i].playerID === this.playerID) {
+        //                const card: Card = new Card(cardMin.id, cardMin.imagePath, cardMin.x, cardMin.y, cardMin.flippedOver);
+        //                this.addCardToOwnHand(card);
+        //                HF.createCard(card, playspaceComponent, HF.EDestination.HAND, cardMin.depth);
+        //            } else {
+        //                this.addCardToPlayerHand(new Card(cardMin.id, cardMin.imagePath, cardMin.x, cardMin.y, cardMin.flippedOver), savedGameState.handMins[i].playerID);
+        //            }
+        //            if (cardMin.depth > highestDepth) {
+        //                highestDepth = cardMin.depth;
+        //            }
+        //        });
+        //    }
+           
+        //    this.cachingEnabled = true;
+        //    this.delay(this.saveToCache());
+        // }
     }
 
     /**
@@ -769,7 +804,7 @@ export default class GameState {
 
             this.delay(this.saveToCache());
 
-            if (!card.inHand) {
+            if (!(this.amHost && card.inHand)) {
                 this.sendPeerData(
                     EActionTypes.flipCard,
                     {
@@ -1213,7 +1248,7 @@ export default class GameState {
                 }
 
                 if (object) {
-                    this.highestDepth = data.extras.highestDepth;
+                    this.highestDepth++;
                     object.gameObject.setDepth(this.highestDepth);
                 }
 
@@ -1222,8 +1257,7 @@ export default class GameState {
                         EActionTypes.updateRenderOrder,
                         {
                             id: object.id,
-                            type: object.type,
-                            highestDepth: playspaceComponent.gameState.highestDepth
+                            type: object.type
                         },
                         [data.peerID]
                     );
@@ -1234,14 +1268,16 @@ export default class GameState {
                 let card: Card = this.getCardByID(data.extras.cardID, data.playerID)?.card;
 
                 if (card) {
-                    if (data.extras.flippedOver) {
-                        card.gameObject.setTexture('flipped-card');
-                    } else {
-                        card.gameObject.setTexture(card.imagePath);
+                    if (!(this.amHost && card.inHand)) {
+                        if (data.extras.flippedOver) {
+                            card.gameObject.setTexture('flipped-card');
+                        } else {
+                            card.gameObject.setTexture(card.imagePath);
+                        }
+                        card.gameObject.setDisplaySize(100, 150);
+                        // Hit area MUST be set to the texture size (NOT display size), which will equate to the width and height of the game object after the texture is loaded
+                        card.gameObject.input.hitArea.setTo(0, 0, card.gameObject.width, card.gameObject.height);
                     }
-                    card.gameObject.setDisplaySize(100, 150);
-                    // Hit area MUST be set to the texture size (NOT display size), which will equate to the width and height of the game object after the texture is loaded
-                    card.gameObject.input.hitArea.setTo(0, 0, card.gameObject.width, card.gameObject.height);
                     card.flippedOver = data.extras.flippedOver;
         
                     this.delay(this.saveToCache());
