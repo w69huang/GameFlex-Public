@@ -313,8 +313,14 @@ export default class GameState {
 
     public addCardToGame(cardData, playspaceComponent) {
         const card: Card = new Card(Math.floor(Math.random() *100000000 ), cardData, 50, 50);
+        card.base64 = true;
+        console.log(card);
         HelperFunctions.createCard(card, playspaceComponent, HelperFunctions.EDestination.TABLE, 0, true);
         console.log("Built?")
+    }
+
+    public addDeckToGame(deckName, cards, playspaceComponent) {
+        
     }
 
     public setCachingEnabled(enable: boolean) {
@@ -352,6 +358,15 @@ export default class GameState {
             }
             localStorage.setItem('gameStateHistory', JSON.stringify(this.gameStateHistory));
         }
+    }
+
+    private removeBase64(cachedGameState) {
+        // var i;
+        // for(i=0; i < cachedGameState.cardMins.length; i ++) {
+        //     if(cachedGameState.cardMins[i].base64 == true) {
+        //         cachedGameState.cardMins.splice(i, 1);
+        //     }
+        // }
     }
 
     /**

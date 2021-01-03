@@ -147,11 +147,13 @@ var PlayspaceComponent = /** @class */ (function () {
     PlayspaceComponent.prototype.uploadCards = function () {
         var _this = this;
         console.log("Uploaded?");
-        this.uploadCardToGameStateEmitter.subscribe(function (cards) {
-            cards.map(function (card) {
+        this.uploadCardToGameStateEmitter.subscribe(function (data) {
+            var i;
+            for (i = 0; i < data.cards.length; i++) {
                 console.log("Card data?");
-                _this.gameState.addCardToGame(card, _this);
-            });
+                // this.gameState.addCardToGame(cards[i], this);
+                _this.gameState.addDeckToGame(data.deckName, data.cards, _this);
+            }
         });
     };
     PlayspaceComponent.prototype.undoGameState = function () {

@@ -6,6 +6,7 @@ import { DeckService } from 'src/app/services/deck.service';
 import { MiddleWare } from 'src/app/services/middleware';
 import { UploadCardsPopupComponent } from '../create-deck-popup/upload-cards-popup.component';
 import { DeckEditorComponent } from 'src/app/deck-editor/deck-editor.component';
+import { $ } from 'protractor';
 
 
 class deckObject {
@@ -25,6 +26,8 @@ export class LoadCardsPopupComponent implements OnInit {
   public decks: deckObject[] = [];
   private deckNameData: string;
   private selectedDecks: string[] = [];
+  public viewDeckBool: boolean = false;
+  public selectedDeck: string = null;
 
   public deckNameEmitter: EventEmitter<string> = new EventEmitter<string>();
 
@@ -52,8 +55,14 @@ export class LoadCardsPopupComponent implements OnInit {
 
   }
 
-  addToSelected(deckName: string) {
-    this.selectedDecks.push(deckName)
+  selected(deckName: string) {
+    var index = this.selectedDecks.indexOf(deckName);
+    if (index != -1) {
+      this.selectedDecks.splice(index, 1);
+    } else {
+      this.selectedDecks.push(deckName)
+    }
+    console.log(this.selectedDecks);
   }
 
   removeFromSelecred(deckName: string) {
@@ -64,14 +73,27 @@ export class LoadCardsPopupComponent implements OnInit {
   }
 
   cancel(): void {
-    this.dialogRef.close();
+    this.dialogRef.close({name: null});
   }
 
   select(): void {
     this.dialogRef.close({ name: this.selectedDecks });
   }
 
+  back():void {
+    document.getElementById("def").style.display = "block";
+    document.getElementById("loadedCards").style.display = "none";
+    this.viewDeckBool = false; 
+  }
+
   viewDeck(deckName: string) {
+    document.getElementById("deckDisplay").innerHTML = '';
+    this.selectedDeck = deckName;
+    this.deckNameEmitter.emit(deckName);
+    document.getElementById("def").style.display = "none";
+    document.getElementById("loadedCards").style.display = "block";
+    this.viewDeckBool = true;
+    // $("#loadedCards").show();
     
     // const username: string = this.middleWare.getUsername();
 

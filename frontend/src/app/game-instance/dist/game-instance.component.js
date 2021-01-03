@@ -87,19 +87,33 @@ var GameInstanceComponent = /** @class */ (function () {
         localStorage.removeItem('cachedGameState');
     };
     GameInstanceComponent.prototype.uploadCard = function () {
+        var _this = this;
         var dialogRef = this.dialog.open(load_cards_popup_component_1.LoadCardsPopupComponent, {
-            height: '70%',
-            width: '40%'
+            height: 'auto',
+            width: 'auto'
         });
         dialogRef.afterClosed().subscribe(function (formData) {
-            // if (formData.name) {
-            // }
+            console.log("Closed Data:");
+            console.log(formData.name);
+            if (formData.name != null) {
+                var username = _this.middleware.getUsername();
+                var i;
+                for (i = 0; i < formData.name.length; i++) {
+                    _this.fileService.list(formData.name[i], username).subscribe(function (data) {
+                        console.log("GameInstance Componenet Pulled Files:");
+                        console.log(data);
+                        _this.uploadCardToGameStateEmitter.emit(data);
+                    });
+                }
+            }
         });
         // this.fileService.list('TestDeck2', 'test2').subscribe((data) => {
         //   console.log("GameInstance Componenet Pulled Files:")
         //   console.log(data)
         //   this.uploadCardToGameStateEmitter.emit(data);
         // })
+    };
+    GameInstanceComponent.prototype.createCards = function (username, deck) {
     };
     GameInstanceComponent = __decorate([
         core_1.Component({

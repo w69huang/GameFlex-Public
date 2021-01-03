@@ -10,7 +10,9 @@ export default class HandMin {
         this.playerID = hand.playerID;
         this.cardMins = [];
         hand.cards.forEach((card: Card) => {
-            this.cardMins.push(new CardMin(card));
+            if(card.base64 == false) {
+                this.cardMins.push(new CardMin(card));
+            }
         });
     }
 }

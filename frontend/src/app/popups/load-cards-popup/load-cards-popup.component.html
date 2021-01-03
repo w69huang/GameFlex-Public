@@ -1,19 +1,23 @@
 <div id=loadCardsMain >
-    <h1 class="loadHeader"> Loadeable Decks:</h1>
+    <h1 *ngIf="!viewDeckBool" class="loadHeader"> Loadeable Decks:</h1>
+    <h1 *ngIf="viewDeckBool" class="loadHeader"> {{selectedDeck}}:</h1>
     <div id="def">
         <div *ngFor="let deckData of decks" class="container row mx-auto flex justify-between items-center deckcontainer">
-            <input type="checkbox" id="deckData.deckName" name="deckData.deckName" class="inline-flex rounded text-black ">
+            <input type="checkbox" id="deckData.deckName" name="deckData.deckName" class="inline-flex rounded text-black " (click)="selected(deckData.deckName)">
             <span class="inline-flex items-center px-2 rounded text-black"> {{deckData.deckName}}</span>
             <button (click)="viewDeck(deckData.deckName)" class="viewButton"> View Deck </button>
         </div>
     </div>
     <div id="loadedCards">
-
+        <div id = "deckDisplay"></div>
     </div>
 
    
 </div>
 <div class="row mr-4">
+    <mat-card *ngIf="viewDeckBool">
+        <button mat-button (click)="back()">Back</button>
+    </mat-card>
     <mat-card >
         <button mat-button (click)="select()">Select</button>
     </mat-card>

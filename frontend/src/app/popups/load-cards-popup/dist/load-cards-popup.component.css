@@ -1,6 +1,6 @@
 .loadHeader {
-  background-color: #883988;
-  color: white;
+  border-bottom: 5px #883988;
+  color: black;
 }
 
 .loadCardsMain {
@@ -10,6 +10,7 @@
 .deckcontainer {
   border: 5px grey;
   border-radius: 10px;
+  margin-top: 10px;
 }
 
 .viewButton {

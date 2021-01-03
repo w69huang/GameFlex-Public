@@ -13,7 +13,9 @@ export default class CachedGameState {
 
     constructor(gameState: GameState) { 
         gameState.cards.forEach((card: Card) => {
-            this.cardMins.push(new CardMin(card));
+            if (card.base64 == false) {
+                this.cardMins.push(new CardMin(card));
+            }
         });
         gameState.decks.forEach((deck: Deck) => {
             this.deckMins.push(new DeckMin(deck));

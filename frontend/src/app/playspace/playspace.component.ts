@@ -191,11 +191,13 @@ export class PlayspaceComponent implements OnInit {
 
   uploadCards() {
     console.log("Uploaded?")
-    this.uploadCardToGameStateEmitter.subscribe(cards => {
-      cards.map(card => {
+    this.uploadCardToGameStateEmitter.subscribe(data => {
+      var i; 
+      for (i=0; i < data.cards.length; i ++) {
         console.log("Card data?")
-        this.gameState.addCardToGame(card, this);
-      })
+        // this.gameState.addCardToGame(cards[i], this);
+        this.gameState.addDeckToGame(data.deckName, data.cards, this);
+      }
     })
   }
 

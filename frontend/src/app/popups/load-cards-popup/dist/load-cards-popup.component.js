@@ -27,6 +27,8 @@ var LoadCardsPopupComponent = /** @class */ (function () {
         this.middleWare = middleWare;
         this.decks = [];
         this.selectedDecks = [];
+        this.viewDeckBool = false;
+        this.selectedDeck = null;
         this.deckNameEmitter = new core_1.EventEmitter();
         var username = this.middleWare.getUsername();
         this.deckService.list(username).subscribe(function (data) {
@@ -41,8 +43,15 @@ var LoadCardsPopupComponent = /** @class */ (function () {
     LoadCardsPopupComponent.prototype.ngOnInit = function () {
         // setTimeout(() => {this.deckNameEmitter.emit(this.deckNameData)} ,100); 
     };
-    LoadCardsPopupComponent.prototype.addToSelected = function (deckName) {
-        this.selectedDecks.push(deckName);
+    LoadCardsPopupComponent.prototype.selected = function (deckName) {
+        var index = this.selectedDecks.indexOf(deckName);
+        if (index != -1) {
+            this.selectedDecks.splice(index, 1);
+        }
+        else {
+            this.selectedDecks.push(deckName);
+        }
+        console.log(this.selectedDecks);
     };
     LoadCardsPopupComponent.prototype.removeFromSelecred = function (deckName) {
         var index = this.selectedDecks.indexOf(deckName);
@@ -51,12 +60,24 @@ var LoadCardsPopupComponent = /** @class */ (function () {
         }
     };
     LoadCardsPopupComponent.prototype.cancel = function () {
-        this.dialogRef.close();
+        this.dialogRef.close({ name: null });
     };
     LoadCardsPopupComponent.prototype.select = function () {
         this.dialogRef.close({ name: this.selectedDecks });
     };
+    LoadCardsPopupComponent.prototype.back = function () {
+        document.getElementById("def").style.display = "block";
+        document.getElementById("loadedCards").style.display = "none";
+        this.viewDeckBool = false;
+    };
     LoadCardsPopupComponent.prototype.viewDeck = function (deckName) {
+        document.getElementById("deckDisplay").innerHTML = '';
+        this.selectedDeck = deckName;
+        this.deckNameEmitter.emit(deckName);
+        document.getElementById("def").style.display = "none";
+        document.getElementById("loadedCards").style.display = "block";
+        this.viewDeckBool = true;
+        // $("#loadedCards").show();
         // const username: string = this.middleWare.getUsername();
         // let dialogRef = this.dialog.open(UploadCardsPopupComponent, {
         //   height: '70%',

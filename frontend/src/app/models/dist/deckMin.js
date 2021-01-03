@@ -17,7 +17,9 @@ var DeckMin = /** @class */ (function () {
         this.depth = deck.gameObject ? deck.gameObject.depth : 0;
         this.cardMins = [];
         (_a = deck.cards) === null || _a === void 0 ? void 0 : _a.forEach(function (card) {
-            _this.cardMins.push(new cardMin_1["default"](card));
+            if (card.base64 == false) {
+                _this.cardMins.push(new cardMin_1["default"](card));
+            }
         });
     }
     return DeckMin;

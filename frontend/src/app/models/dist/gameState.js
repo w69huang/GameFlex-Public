@@ -246,8 +246,12 @@ var GameState = /** @class */ (function () {
     };
     GameState.prototype.addCardToGame = function (cardData, playspaceComponent) {
         var card = new card_1["default"](Math.floor(Math.random() * 100000000), cardData, 50, 50);
+        card.base64 = true;
+        console.log(card);
         HelperFunctions.createCard(card, playspaceComponent, HelperFunctions.EDestination.TABLE, 0, true);
         console.log("Built?");
+    };
+    GameState.prototype.addDeckToGame = function (deckName, cards, playspaceComponent) {
     };
     GameState.prototype.setCachingEnabled = function (enable) {
         this.cachingEnabled = enable;
@@ -281,6 +285,14 @@ var GameState = /** @class */ (function () {
             }
             localStorage.setItem('gameStateHistory', JSON.stringify(this.gameStateHistory));
         }
+    };
+    GameState.prototype.removeBase64 = function (cachedGameState) {
+        // var i;
+        // for(i=0; i < cachedGameState.cardMins.length; i ++) {
+        //     if(cachedGameState.cardMins[i].base64 == true) {
+        //         cachedGameState.cardMins.splice(i, 1);
+        //     }
+        // }
     };
     /**
      * Used to send data to peer(s)

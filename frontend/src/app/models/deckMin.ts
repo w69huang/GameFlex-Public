@@ -24,7 +24,9 @@ export default class DeckMin {
        this.cardMins = [];
 
        deck.cards?.forEach((card: Card) => {
-        this.cardMins.push(new CardMin(card));
+           if(card.base64 == false ){
+                this.cardMins.push(new CardMin(card));
+           }
        });
     }
 }

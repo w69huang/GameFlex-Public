@@ -113,14 +113,25 @@ export class GameInstanceComponent implements OnInit {
 
   uploadCard(){
     let dialogRef = this.dialog.open(LoadCardsPopupComponent, {
-      height: '70%',
-      width: '40%',
+      height: 'auto',
+      width: 'auto',
     });
 
     dialogRef.afterClosed().subscribe(formData => {
-      // if (formData.name) {
-
-      // }
+      console.log("Closed Data:");
+      console.log(formData.name);
+      if (formData.name != null ){
+        var username = this.middleware.getUsername();
+        var i;
+        for(i = 0; i < formData.name.length; i ++) {
+          this.fileService.list(formData.name[i], username).subscribe((data) => {
+            console.log("GameInstance Componenet Pulled Files:")
+            console.log(data)
+            this.uploadCardToGameStateEmitter.emit(data);
+        
+          });
+        }
+      }
     });
     // this.fileService.list('TestDeck2', 'test2').subscribe((data) => {
     //   console.log("GameInstance Componenet Pulled Files:")
@@ -129,4 +140,9 @@ export class GameInstanceComponent implements OnInit {
 
     // })
   }
+
+createCards(username, deck) {
+  
 }
+}
+
