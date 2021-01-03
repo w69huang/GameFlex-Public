@@ -40,7 +40,7 @@ export default class Deck {
     /**
      * Boolean used to determine whether or not a deck's right click menu is already open
      */
-    rightClick: boolean;
+    rightClick: boolean = false;
 
     /**
      * Used to create a new deck
@@ -55,7 +55,6 @@ export default class Deck {
         this.imagePath = imagePath;
         this.x = x;
         this.y = y;
-        this.rightClick = false;
 
         if (cards) {
             this.cards = cards;

@@ -2,12 +2,12 @@
 
 mat-card {
     margin: 10px;
-    background-color: #363636;
+    background-color: $themeDarkGray;
 }
 
 .contentContainer {
     margin: 20px;
-    color: lightgray;
+    color: $themeLightGray;
 
     .actionButtons {
         margin-top: 20px;

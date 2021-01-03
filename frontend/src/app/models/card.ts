@@ -1,5 +1,8 @@
 import { EGameObjectType } from '../models/gameState';
 
+/**
+ * The class that defines everything to do with a single card
+ */
 export default class Card {
     /**
      * The phaser game object for the card
@@ -32,6 +35,11 @@ export default class Card {
     y: number;
 
     /**
+     * Whether the card is flipped over or not
+     */
+    flippedOver: boolean;
+
+    /**
      * Whether the card is in a deck
      */
     inDeck: boolean;
@@ -42,6 +50,11 @@ export default class Card {
     inHand: boolean;
 
     /**
+     * Boolean used to determine whether or not a deck's right click menu is already open
+     */
+    rightClick: boolean = false;
+
+    /**
      * Used to create a new card
      * @param id - The ID for the card
      * @param imagePath - The image path for the card's phaser game object
@@ -50,11 +63,12 @@ export default class Card {
      * @param inHand - Whether or not the card is in a hand at creation time
      * @param inDeck - Whether or not the card is in a deck at creation time
      */
-    constructor(id: number, imagePath: string, x: number, y: number, inHand: boolean = false, inDeck: boolean = false) {
+    constructor(id: number, imagePath: string, x: number, y: number, flippedOver: boolean = false, inHand: boolean = false, inDeck: boolean = false) {
         this.id = id;
         this.imagePath = imagePath;
         this.x = x;
         this.y = y;
+        this.flippedOver = flippedOver
         this.inHand = inHand;
         this.inDeck = inDeck;
     }

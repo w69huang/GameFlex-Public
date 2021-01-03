@@ -70,6 +70,7 @@ export default class PlayspaceScene extends Phaser.Scene {
       this.load.image('add-hand', 'assets/images/buttons/plus.png');
       this.load.image('next-hand', 'assets/images/buttons/right-arrow.png');
       this.load.image('prev-hand', 'assets/images/buttons/left-arrow.png');
+      this.load.image('flipped-card', 'assets/images/playing-cards-extras/flipped-card.png');
     }
 
 
