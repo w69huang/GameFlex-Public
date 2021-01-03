@@ -1,6 +1,5 @@
 import Card from './card';
 import { EGameObjectType } from '../models/gameState';
-import SubHand from './subHand';
 
 export default class Hand {
     /**
@@ -16,7 +15,7 @@ export default class Hand {
     /**
      * The list of cards the hand holds - SHOULD ONLY BE MODIFIED IN THE GAMESTATE CLASS IN ORDER TO ALLOW CACHING TO WORK
      */
-    subHands: SubHand[];
+    cards: Card[];
 
     /**
      * The hand's type in string form
@@ -28,13 +27,13 @@ export default class Hand {
      * @param playerID - The ID of the player who owns the hand
      * @param cards - The cards to put in the hand at creation time
      */
-    constructor(playerID: number, subHands: SubHand[]) {
+    constructor(playerID: number, cards: Card[]) {
         this.playerID = playerID;
 
-        // if (cards) {
-        //     this.cards = cards;
-        // } else {
-        //     this.cards = [];
-        // }
+        if (cards) {
+            this.cards = cards;
+        } else {
+            this.cards = [];
+        }
     }
 }
