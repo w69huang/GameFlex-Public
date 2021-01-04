@@ -82,7 +82,7 @@ export class PlayspaceComponent implements OnInit {
       port: 9000,
       path: '/peerserver' // Make sure this path matches the path you used to launch it
     });
-    
+
     this.peer.on('connection', (conn: DataConnection) => { 
       console.log(`Received connection request from peer with id ${conn.peer}.`);
 
@@ -180,13 +180,6 @@ export class PlayspaceComponent implements OnInit {
     this.getAllSavedGameStatesEmitter.subscribe((savedGameState: SavedGameState) => {
       if (savedGameState) { // If they actually chose a saved game state
         this.gameState.buildGameStateFromSavedState(savedGameState, this);      
-  
-        // this.gameState.playerDataObjects.forEach((playerDataObject: PlayerData) => {
-        //   if (playerDataObject.id != this.gameState.playerID) {      
-        //     console.log("Sending updated state.");
-        //     this.gameState.sendGameStateToPeers(false, playerDataObject.peerID);
-        //   }
-        // });
       }
     });
   }
