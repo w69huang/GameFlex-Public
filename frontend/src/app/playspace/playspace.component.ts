@@ -77,8 +77,8 @@ export class PlayspaceComponent implements OnInit {
     // 1. npm install -g peer
     // 2. peerjs --port 9000 --key peerjs --path /peerserver
     this.peer = new Peer(this.gameState.myPeerID, { // You can pass in a specific ID as the first argument if you want to hardcode the peer ID
-      // host: 'localhost',
-      host: '35.215.71.108', // This is reserved for the external IP of the mongo DB instance. Replace this IP with the new IP generated when starting up the 
+      host: 'localhost',
+      // host: '35.215.71.108', // This is reserved for the external IP of the mongo DB instance. Replace this IP with the new IP generated when starting up the 
       port: 9000,
       path: '/peerserver' // Make sure this path matches the path you used to launch it
     });
@@ -107,6 +107,10 @@ export class PlayspaceComponent implements OnInit {
       }
       conn.on('close', () => {
         console.log("Peer-to-Peer Error 2: Other party disconnected.");
+        this.hostHandleConnectionClose(conn);
+      });
+      conn.on('disconnected', () => {
+        console.log('Peer-to-Peer Error 3: Peer disconnected from signalling server.');
         this.hostHandleConnectionClose(conn);
       });
       conn.on('error', (err) => {
@@ -341,13 +345,17 @@ export class PlayspaceComponent implements OnInit {
       // Catches the case where the browser is closed
       conn.peerConnection.oniceconnectionstatechange = () => {
         if(conn.peerConnection.iceConnectionState == 'disconnected') {
-          console.log("Peer-to-Peer Error 3: Other party disconnected.");
+          console.log("Peer-to-Peer Error 4: Other party disconnected.");
           this.clientHandleConnectionClose(conn);
         }
       }
       conn.on('close', () => {
-        console.log("Peer-to-Peer Error 4: Other party disconnected.");
+        console.log("Peer-to-Peer Error 5: Other party disconnected.");
         this.clientHandleConnectionClose(conn);
+      });
+      conn.on('disconnected', () => {
+        console.log('Peer-to-Peer Error 6: Peer disconnected from signalling server.');
+        this.hostHandleConnectionClose(conn);
       });
       conn.on('error', (err) => {
         console.log("Unspecified Peer-to-Peer Error: ");
