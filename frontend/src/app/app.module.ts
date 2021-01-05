@@ -39,6 +39,7 @@ import { UndoGameStatePopupComponent } from './popups/undo-game-state-popup/undo
 import { CreateCounterPopupComponent } from './popups/create-counter-popup/create-counter-popup.component';
 import { ConfigEditorComponent } from './config-editor/config-editor.component';
 import { SaveConfigurationPopupComponent } from './popups/save-configuration-popup/save-configuration-popup.component';
+import { CounterComponent } from './counter/counter.component';
 
 
 @NgModule({
@@ -66,6 +67,7 @@ import { SaveConfigurationPopupComponent } from './popups/save-configuration-pop
     UndoGameStatePopupComponent,
     ConfigEditorComponent,
     SaveConfigurationPopupComponent,
+    CounterComponent,
   ],
   imports: [
     BrowserModule,

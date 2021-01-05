@@ -8,6 +8,12 @@
                     {{ player.id }}
                 </p>
             </mat-card>
+            <app-game-instance
+                (countersEmitter)="receiveCounters($event)"
+                (requestCounterIdEmitter)="receiveIdRequest($event)"
+                [counterIdEmitter]="counterIdEmitter"
+            >
+            </app-game-instance>
             <mat-card class="saveContainer">
                 <h3>Save Options</h3>
                 <div class="buttonsContainer">
@@ -30,9 +36,11 @@
         (amHostEmitter)="receiveAmHost($event)"
         (playerDataEmitter)="receivePlayerData($event)"
         (onlineGameEmitter)="receiveOnlineGameData($event)"
+        (counterIdEmitter)="receiveCounterId($event)"
         [undoGameStateEmitter]="undoGameStateEmitter"
         [saveGameStateEmitter]="saveGameStateEmitter"
         [getAllSavedGameStatesEmitter]="getAllSavedGameStatesEmitter"
+        [requestCounterIdEmitter]="requestCounterIdEmitter"
         [mainHostID]="mainHostID"
         [onlineGameID]="onlineGameID"
     ></app-playspace>

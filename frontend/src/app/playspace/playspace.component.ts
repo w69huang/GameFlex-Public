@@ -17,6 +17,8 @@ import OnlineGame from '../models/onlineGame';
 import PlayspaceScene from '../models/phaser-scenes/playspaceScene';
 import { MatDialog } from '@angular/material/dialog';
 import SentGameState from '../models/sentGameState';
+import { CounterInitData } from '../counter/counter.component';
+import Counter from '../models/counter';
 
 @Component({
   selector: 'app-playspace',
@@ -39,11 +41,14 @@ export class PlayspaceComponent implements OnInit {
   @Input() private onlineGameID: string;
   @Input() private saveGameStateEmitter: EventEmitter<string> = new EventEmitter<string>();
   @Input() private getAllSavedGameStatesEmitter: EventEmitter<SavedGameState> = new EventEmitter<SavedGameState>();
-  @Input() private undoGameStateEmitter: EventEmitter<integer> = new EventEmitter<integer>();
+  @Input() private undoGameStateEmitter: EventEmitter<number> = new EventEmitter<number>();
+  @Input() private requestCounterIdEmitter: EventEmitter<CounterInitData> = new EventEmitter<CounterInitData>();
+
   // To Game Instance
   @Output() public playerDataEmitter: EventEmitter<PlayerData[]> = new EventEmitter<PlayerData[]>();
   @Output() private onlineGameEmitter: EventEmitter<OnlineGame> = new EventEmitter<OnlineGame>();
   @Output() private amHostEmitter: EventEmitter<boolean> = new EventEmitter<boolean>();
+  @Output() private counterIdEmitter: EventEmitter<CounterInitData> = new EventEmitter<CounterInitData>();
 
   // Peer
   public peer: any;
@@ -77,8 +82,8 @@ export class PlayspaceComponent implements OnInit {
     // 1. npm install -g peer
     // 2. peerjs --port 9000 --key peerjs --path /peerserver
     this.peer = new Peer(this.gameState.myPeerID, { // You can pass in a specific ID as the first argument if you want to hardcode the peer ID
-      // host: 'localhost',
-      host: '35.215.71.108', // This is reserved for the external IP of the mongo DB instance. Replace this IP with the new IP generated when starting up the 
+      host: 'localhost',
+      // host: '35.215.71.108', // This is reserved for the external IP of the mongo DB instance. Replace this IP with the new IP generated when starting up the 
       port: 9000,
       path: '/peerserver' // Make sure this path matches the path you used to launch it
     });
@@ -121,7 +126,7 @@ export class PlayspaceComponent implements OnInit {
     });
   }
 
-  hostHandleConnectionClose(conn: DataConnection) {
+  hostHandleConnectionClose(conn: DataConnection): void {
     conn.close();
     this.gameState.connections = this.filterOutPeer(this.gameState.connections, conn);
     
@@ -141,16 +146,14 @@ export class PlayspaceComponent implements OnInit {
     }
   }
 
-  ngOnInit() {
+  ngOnInit(): void {
     // TODO: Band-aid solution, find a better one at some point
     setTimeout(_ => this.initialize(), 100);
     this.checkIfCanOpenConnectionInterval = setInterval(this.checkIfCanOpenConnection.bind(this), 5000);
-    this.getAllSavedGameStates();
-    this.saveGameState();
-    this.undoGameState();
+    this.setUpEmitters();
   }
 
-  ngOnDestroy() {
+  ngOnDestroy(): void {
     this.connectionClosedIntentionally = true;
     clearInterval(this.updateOnlineGameInterval);
     this.finishConnectionProcess();
@@ -176,25 +179,27 @@ export class PlayspaceComponent implements OnInit {
     this.phaserGame = new Phaser.Game(this.config);
   }
 
-  getAllSavedGameStates() {
+  setUpEmitters(): void {
     this.getAllSavedGameStatesEmitter.subscribe((savedGameState: SavedGameState) => {
       if (savedGameState) { // If they actually chose a saved game state
         this.gameState.buildGameStateFromSavedState(savedGameState, this);      
       }
     });
-  }
 
-  undoGameState(): void {
-    this.undoGameStateEmitter.subscribe((count: integer) => {
+    this.undoGameStateEmitter.subscribe((count: number) => {
       if (!this.gameState.undoInProgress) {
         this.gameState.buildGameFromCache(this, false, count);
       }
     });
-  }
 
-  saveGameState(): void {
     this.saveGameStateEmitter.subscribe((name: string) => {
       this.savedGameStateService.create(new SavedGameState(this.middleware.getUsername(), name, this.gameState, this.gameState.playerDataObjects));
+    });
+
+    this.requestCounterIdEmitter.subscribe((counterInitData: CounterInitData) => {
+      this.highestID++;
+      counterInitData.id = this.highestID;
+      this.counterIdEmitter.emit(counterInitData);
     });
   }
 
