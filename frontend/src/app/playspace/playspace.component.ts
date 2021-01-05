@@ -77,8 +77,8 @@ export class PlayspaceComponent implements OnInit {
     // 1. npm install -g peer
     // 2. peerjs --port 9000 --key peerjs --path /peerserver
     this.peer = new Peer(this.gameState.myPeerID, { // You can pass in a specific ID as the first argument if you want to hardcode the peer ID
-      host: 'localhost',
-      // host: '35.215.71.108', // This is reserved for the external IP of the mongo DB instance. Replace this IP with the new IP generated when starting up the 
+      // host: 'localhost',
+      host: '35.215.71.108', // This is reserved for the external IP of the mongo DB instance. Replace this IP with the new IP generated when starting up the 
       port: 9000,
       path: '/peerserver' // Make sure this path matches the path you used to launch it
     });
@@ -101,12 +101,16 @@ export class PlayspaceComponent implements OnInit {
       // Catches the case of a browser being closed
       conn.peerConnection.oniceconnectionstatechange = () => {
         if(conn.peerConnection.iceConnectionState == 'disconnected') {
-          console.log("Peer-to-Peer Error: Other party disconnected.");
+          console.log("Peer-to-Peer Error 1: Other party disconnected.");
           this.hostHandleConnectionClose(conn);
         }
       }
       conn.on('close', () => {
-        console.log("Peer-to-Peer Error: Other party disconnected.");
+        console.log("Peer-to-Peer Error 2: Other party disconnected.");
+        this.hostHandleConnectionClose(conn);
+      });
+      conn.on('disconnected', () => {
+        console.log('Peer-to-Peer Error 3: Peer disconnected from signalling server.');
         this.hostHandleConnectionClose(conn);
       });
       conn.on('error', (err) => {
@@ -118,6 +122,7 @@ export class PlayspaceComponent implements OnInit {
   }
 
   hostHandleConnectionClose(conn: DataConnection) {
+    conn.close();
     this.gameState.connections = this.filterOutPeer(this.gameState.connections, conn);
     
     let playerData: PlayerData = null;
@@ -175,20 +180,15 @@ export class PlayspaceComponent implements OnInit {
     this.getAllSavedGameStatesEmitter.subscribe((savedGameState: SavedGameState) => {
       if (savedGameState) { // If they actually chose a saved game state
         this.gameState.buildGameStateFromSavedState(savedGameState, this);      
-  
-        this.gameState.playerDataObjects.forEach((playerDataObject: PlayerData) => {
-          if (playerDataObject.id != this.gameState.playerID) {      
-            console.log("Sending updated state.");
-            this.gameState.sendGameStateToPeers(playerDataObject.peerID);
-          }
-        });
       }
     });
   }
 
   undoGameState(): void {
     this.undoGameStateEmitter.subscribe((count: integer) => {
-      this.gameState.buildGameFromCache(this, false, count);
+      if (!this.gameState.undoInProgress) {
+        this.gameState.buildGameFromCache(this, false, count);
+      }
     });
   }
 
@@ -230,7 +230,7 @@ export class PlayspaceComponent implements OnInit {
   }
 
   buildFromCacheDialog(): void {
-    if (JSON.parse(localStorage.getItem('cachedGameState')).numMoves > 0) {
+    if (JSON.parse(localStorage.getItem('cachedGameState'))?.numMoves > 0) {
       let dialogRef = this.dialog.open(LoadGameStatePopupComponent, {
         height: '290px',
         width: '350px',
@@ -338,13 +338,17 @@ export class PlayspaceComponent implements OnInit {
       // Catches the case where the browser is closed
       conn.peerConnection.oniceconnectionstatechange = () => {
         if(conn.peerConnection.iceConnectionState == 'disconnected') {
-          console.log("Peer-to-Peer Error: Other party disconnected.");
+          console.log("Peer-to-Peer Error 4: Other party disconnected.");
           this.clientHandleConnectionClose(conn);
         }
       }
       conn.on('close', () => {
-        console.log("Peer-to-Peer Error: Other party disconnected.");
+        console.log("Peer-to-Peer Error 5: Other party disconnected.");
         this.clientHandleConnectionClose(conn);
+      });
+      conn.on('disconnected', () => {
+        console.log('Peer-to-Peer Error 6: Peer disconnected from signalling server.');
+        this.hostHandleConnectionClose(conn);
       });
       conn.on('error', (err) => {
         console.log("Unspecified Peer-to-Peer Error: ");
