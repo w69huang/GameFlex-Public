@@ -560,48 +560,6 @@ export default class GameState {
      */
     public buildGameStateFromSavedState(savedGameState: SavedGameState, playspaceComponent: PlayspaceComponent): void {
         this.buildGame(savedGameState, playspaceComponent);
-        //if (this.amHost) {
-        //    this.cachingEnabled = false;
-        //
-        //    this.cleanUp();
-        //    let highestDepth: number = 0;
-        //
-        //    savedGameState.cardMins.forEach((cardMin: CardMin) => {
-        //        const card: Card = new Card(cardMin.id, cardMin.imagePath, cardMin.x, cardMin.y, cardMin.flippedOver);
-        //        HF.createCard(card, playspaceComponent, HF.EDestination.TABLE, cardMin.depth);
-        //        if (cardMin.depth > highestDepth) {
-        //            highestDepth = cardMin.depth;
-        //        }
-        //    });
-        //    savedGameState.deckMins.forEach((deckMin: DeckMin) => {
-        //        let cardList: Card[] = [];
-        //        deckMin.cardMins.forEach((cardMin: CardMin) => {
-        //            cardList.push(new Card(cardMin.id, cardMin.imagePath, cardMin.x, cardMin.y, cardMin.flippedOver));
-        //        });
-        //        const deck: Deck = new Deck(deckMin.id, deckMin.imagePath, cardList, deckMin.x, deckMin.y);
-        //        HF.createDeck(deck, playspaceComponent, deckMin.depth);
-        //        if (deckMin.depth > highestDepth) {
-        //            highestDepth = deckMin.depth;
-        //        }
-        //    });
-        //    for (let i = 0; i < savedGameState.handMins.length; i++) {
-        //        savedGameState.handMins[i].cardMins.forEach((cardMin: CardMin) => {
-        //            if (savedGameState.handMins[i].playerID === this.playerID) {
-        //                const card: Card = new Card(cardMin.id, cardMin.imagePath, cardMin.x, cardMin.y, cardMin.flippedOver);
-        //                this.addCardToOwnHand(card);
-        //                HF.createCard(card, playspaceComponent, HF.EDestination.HAND, cardMin.depth);
-        //            } else {
-        //                this.addCardToPlayerHand(new Card(cardMin.id, cardMin.imagePath, cardMin.x, cardMin.y, cardMin.flippedOver), savedGameState.handMins[i].playerID);
-        //            }
-        //            if (cardMin.depth > highestDepth) {
-        //                highestDepth = cardMin.depth;
-        //            }
-        //        });
-        //    }
-           
-        //    this.cachingEnabled = true;
-        //    this.delay(this.saveToCache());
-        // }
     }
 
     /**
