@@ -14,6 +14,7 @@ import { DataConnection } from 'peerjs';
 import SentGameState from './sentGameState';
 import PlayerData from './playerData';
 import { EventEmitter, OnInit } from '@angular/core';
+import { ECounterActions, CounterActionObject } from '../counter/counter.component';
 
 /**
  * An enum representing all types of actions
@@ -277,6 +278,12 @@ export default class GameState {
     public numCachedMoves: number = 0;
 
     /**
+     * ======================================
+     * Game State Creation & Removal
+     * ======================================
+     */
+
+    /**
      * The constructor for the game state
      * @param cards - The cards to add to the table at initialization time
      * @param decks - The decks to add to the table at initialization time
@@ -290,6 +297,32 @@ export default class GameState {
         this.myHand = new Hand(null, []);
         this._counters = counters;
     }
+
+    /**
+     * Used to clean up the game state, i.e. destroy all game objects and wipe all arrays
+     */
+    public cleanUp(): void {
+        this._cards.forEach((card: Card) => {
+            card.gameObject?.destroy();
+        });
+        this._cards = [];
+        this._decks.forEach((deck: Deck) => {
+            deck.gameObject?.destroy();
+        });
+        this._decks = [];
+        this.myHand.cards.forEach((card: Card) => {
+            card.gameObject?.destroy();
+        });
+        this._hands = [];
+        this.myHand.cards = [];
+        this._counters = [];
+    }
+
+    /**
+     * ======================================
+     * Helper Functions
+     * ======================================
+     */
 
     /**
      * Used to filter objects out of an object list that match an ID
@@ -314,42 +347,13 @@ export default class GameState {
         return connectionListToFilter.filter( (refConnection: DataConnection) => {
           return connection.peer !== refConnection.peer;
         });
-      }
-
-    /**
-     * Used to remove a card from the general hands array that the host keeps track of
-     * @param card - The card to remove
-     */
-    private removeFromHandsArray(card: Card): void {
-        this._hands.forEach((hand: Hand) => {
-            for (let i: number = 0; i < hand.cards.length; i++) {
-                if (hand.cards[i].id === card.id) {
-                    hand.cards = this.filterOutID(hand.cards, card);
-                    return;
-                }
-            }
-        });
     }
 
     /**
-     * A method used to check the status of undo confirmations, and resend replicate state requests if necessary
+     * ======================================
+     * Host Information
+     * ======================================
      */
-    private checkUndoConfirmations(): void {
-        if (this.undoRequests.length > 0) {
-            this.undoRequestCount++;
-            if (this.undoRequestCount >= 3) {
-                clearInterval(this.undoCheckInInterval);
-                this.undoRequests.forEach((connection: DataConnection) => {
-                    connection.close();
-                    this.filterOutPeer(this.connections, connection);
-                });
-                this.undoRequests = [];
-                this.undoInProgress = false;
-            }
-        } else {
-            clearInterval(this.undoCheckInInterval);
-        }
-    }
 
     /**
      * A method used to set yourself as the host, taking care of anything required to make this happen
@@ -371,6 +375,20 @@ export default class GameState {
      */
     public getAmHost(): boolean {
         return this.amHost;
+    }
+
+    /**
+     * ======================================
+     * Saving & Caching
+     * ======================================
+     */
+
+     /**
+      * Used to delay function execution by a certain amount of time
+      * @param func - The function to delay execution of
+      */
+    public delay(func: void) {
+        setTimeout(() => { func }, 200);
     }
 
     /**
@@ -410,52 +428,32 @@ export default class GameState {
     }
 
     /**
-     * Used to send data to peer(s)
-     * @param action - The action to perform
-     * @param extras - An array of extra game object properties that the user wants to include
-     * @param doNotSendTo - a list of peerIDs not to send the data to
-     */
-    public sendPeerData(action: string, extras: GameObjectExtraProperties = {}, doNotSendTo: string[] = [], onlySendTo: string[] = []): void {
-        this.connections.forEach((connection: DataConnection) => {
-            if (onlySendTo.length > 0) {
-                if (onlySendTo.includes(connection.peer)) {
-                    connection.send(new GameObjectProperties(this.amHost, action, this.myPeerID, this.playerID, extras));
-                }
-            } else if (!doNotSendTo.includes(connection.peer)) {
-                connection.send(new GameObjectProperties(this.amHost, action, this.myPeerID, this.playerID, extras));
-            }
-        });
-    }
-
-    /**
-     * Used to very quickly and easily send the current game state to all peers
-     * @param onlySendTo - An optional var specifying to only send data to a specific peer
-     * @param doNotSendTo - An optional var specfying not to send data to a specific peer
-     */
-    public sendGameStateToPeers(undo: boolean = false, onlySendTo: string = "", doNotSendTo: string = ""): void {
-        if (this.amHost) {
-            // TODO: Make sentGameState from current gameState and send to all peers
-            this.playerDataObjects.forEach((playerData: PlayerData) => {
-                for (let i: number = 0; i < this.connections.length; i++) {
-                    if (playerData.peerID === this.connections[i].peer) {
-                        if (((onlySendTo !== "" && onlySendTo === playerData.peerID) || onlySendTo === "") && (doNotSendTo === "" || (doNotSendTo !== playerData.peerID))) {
-                            let sentGameState: SentGameState = new SentGameState(this, playerData.id);
-                            this.connections[i].send(new GameObjectProperties(this.amHost, EActionTypes.replicateState, this.myPeerID, this.playerID, { 'state': sentGameState, 'undo': undo }));
-                            break; 
-                        }
-                    }
-                }
-            });
-        }
-    }
-
-    /**
      * A method to clear the cache of the cached game state
      */
     public clearCache(): void {
         localStorage.removeItem('cachedGameState');
         this.gameStateHistory.push(new CachedGameState(this));
         localStorage.setItem('gameStateHistory', JSON.stringify(this.gameStateHistory));
+    }
+
+    /**
+     * A method used to check the status of undo confirmations, and resend replicate state requests if necessary
+     */
+    private checkUndoConfirmations(): void {
+        if (this.undoRequests.length > 0) {
+            this.undoRequestCount++;
+            if (this.undoRequestCount >= 3) {
+                clearInterval(this.undoCheckInInterval);
+                this.undoRequests.forEach((connection: DataConnection) => {
+                    connection.close();
+                    this.filterOutPeer(this.connections, connection);
+                });
+                this.undoRequests = [];
+                this.undoInProgress = false;
+            }
+        } else {
+            clearInterval(this.undoCheckInInterval);
+        }
     }
 
     /**
@@ -501,6 +499,7 @@ export default class GameState {
                 }
             });
         }
+        this.replaceCounters(gameStateMin.counters, playspaceComponent.counterActionOutputEmitter);
     
         this.highestDepth = highestDepth;
         this.sendGameStateToPeers(undo > 0 ? true : false);
@@ -560,49 +559,13 @@ export default class GameState {
      */
     public buildGameStateFromSavedState(savedGameState: SavedGameState, playspaceComponent: PlayspaceComponent): void {
         this.buildGame(savedGameState, playspaceComponent);
-        //if (this.amHost) {
-        //    this.cachingEnabled = false;
-        //
-        //    this.cleanUp();
-        //    let highestDepth: number = 0;
-        //
-        //    savedGameState.cardMins.forEach((cardMin: CardMin) => {
-        //        const card: Card = new Card(cardMin.id, cardMin.imagePath, cardMin.x, cardMin.y, cardMin.flippedOver);
-        //        HF.createCard(card, playspaceComponent, HF.EDestination.TABLE, cardMin.depth);
-        //        if (cardMin.depth > highestDepth) {
-        //            highestDepth = cardMin.depth;
-        //        }
-        //    });
-        //    savedGameState.deckMins.forEach((deckMin: DeckMin) => {
-        //        let cardList: Card[] = [];
-        //        deckMin.cardMins.forEach((cardMin: CardMin) => {
-        //            cardList.push(new Card(cardMin.id, cardMin.imagePath, cardMin.x, cardMin.y, cardMin.flippedOver));
-        //        });
-        //        const deck: Deck = new Deck(deckMin.id, deckMin.imagePath, cardList, deckMin.x, deckMin.y);
-        //        HF.createDeck(deck, playspaceComponent, deckMin.depth);
-        //        if (deckMin.depth > highestDepth) {
-        //            highestDepth = deckMin.depth;
-        //        }
-        //    });
-        //    for (let i = 0; i < savedGameState.handMins.length; i++) {
-        //        savedGameState.handMins[i].cardMins.forEach((cardMin: CardMin) => {
-        //            if (savedGameState.handMins[i].playerID === this.playerID) {
-        //                const card: Card = new Card(cardMin.id, cardMin.imagePath, cardMin.x, cardMin.y, cardMin.flippedOver);
-        //                this.addCardToOwnHand(card);
-        //                HF.createCard(card, playspaceComponent, HF.EDestination.HAND, cardMin.depth);
-        //            } else {
-        //                this.addCardToPlayerHand(new Card(cardMin.id, cardMin.imagePath, cardMin.x, cardMin.y, cardMin.flippedOver), savedGameState.handMins[i].playerID);
-        //            }
-        //            if (cardMin.depth > highestDepth) {
-        //                highestDepth = cardMin.depth;
-        //            }
-        //        });
-        //    }
-           
-        //    this.cachingEnabled = true;
-        //    this.delay(this.saveToCache());
-        // }
     }
+
+    /**
+     * ======================================
+     * Game Objects - Addition
+     * ======================================
+     */    
 
     /**
      * Used to add a card to the table
@@ -611,26 +574,6 @@ export default class GameState {
     public addCardToTable(card: Card): void {
         this._cards.push(card);
         this.delay(this.saveToCache());
-    }
-
-    /**
-     * Used to remove a card fom the table
-     * @param cardID - The ID of the card to remove
-     * @param destroy - Whether or not to destroy the game object associated with the card
-     */
-    public removeCardFromTable(cardID: number, destroy: boolean = false): void {
-        const card: Card = this.getCardByID(cardID, this.playerID).card;
-
-        if (card) {
-            this._cards = this.filterOutID(this._cards, card);
-
-            if (destroy && card.gameObject) {
-                card.gameObject.destroy();
-                card.gameObject = null;
-            }
-
-            this.delay(this.saveToCache());
-        }
     }
 
     /**
@@ -676,29 +619,6 @@ export default class GameState {
     }
 
     /**
-     * Used to remove a card from the player's own hand, which also removes the card from the overall hands array if the player is the host
-     * @param cardID - The ID of the card to remove
-     * @param destroy - Whether or not to destroy the game object associated with that card
-     */
-    public removeCardFromOwnHand(cardID: number, destroy: boolean = false): void {
-        const card: Card = this.getCardByID(cardID, this.playerID).card;
-
-        if (card) {
-            card.inHand = false;
-            this.myHand.cards = this.filterOutID(this.myHand.cards, card);
-
-            if (destroy && card.gameObject) {
-                card.gameObject.destroy();
-                card.gameObject = null;
-            }
-
-            if (this.amHost) {
-                this.removeCardFromPlayerHand(cardID, this.playerID);
-            }
-        }
-    }
-
-    /**
      * Used to add a card to the overall hands array, used by hosts
      * @param card - The card to add
      * @param playerID - The ID of the player whose hand is being added to
@@ -725,7 +645,66 @@ export default class GameState {
         }
     }
 
-     /**
+    /**
+     * Used to add a counter to the overall counters array
+     * @param counter - The counter to add
+     */
+    public addCounter(counter: Counter): void {
+        this._counters.push(counter);
+        this.delay(this.saveToCache());
+    }
+
+    /**
+     * ======================================
+     * Game Objects - Removal
+     * ======================================
+     */  
+
+    /**
+     * Used to remove a card fom the table
+     * @param cardID - The ID of the card to remove
+     * @param destroy - Whether or not to destroy the game object associated with the card
+     */
+    public removeCardFromTable(cardID: number, destroy: boolean = false): void {
+        const card: Card = this.getCardByID(cardID, this.playerID).card;
+
+        if (card) {
+            this._cards = this.filterOutID(this._cards, card);
+
+            if (destroy && card.gameObject) {
+                card.gameObject.destroy();
+                card.gameObject = null;
+            }
+
+            this.delay(this.saveToCache());
+        }
+    }
+
+    /**
+     * Used to remove a card from the player's own hand, which also removes the card from the overall hands array if the player is the host
+     * @param cardID - The ID of the card to remove
+     * @param destroy - Whether or not to destroy the game object associated with that card
+     */
+    public removeCardFromOwnHand(cardID: number, destroy: boolean = false): void {
+        const card: Card = this.getCardByID(cardID, this.playerID).card;
+
+        if (card) {
+            card.inHand = false;
+            this.myHand.cards = this.filterOutID(this.myHand.cards, card);
+
+            if (destroy && card.gameObject) {
+                card.gameObject.destroy();
+                card.gameObject = null;
+            }
+
+            if (this.amHost) {
+                this.removeCardFromPlayerHand(cardID, this.playerID);
+            }
+        }
+    }
+
+    
+    /**
      * Used to remove a card to the overall hands array, used by hosts
      * @param card - The card to remove
      * @param playerID - The ID of the player whose hand is being removed from
@@ -750,6 +729,20 @@ export default class GameState {
     }
 
     /**
+     * Used to remove a counter
+     * @param counter - The counter to remove
+     */
+    public removeCounter(counter: Counter) {
+        this._counters = this.filterOutID(this._counters, counter);
+    }
+
+    /**
+     * ======================================
+     * Game Objects - Retrieval
+     * ======================================
+     */ 
+
+    /**
      * Used to retrieve a card from a deck
      * @param index - The index of the card in the deck that is wanted
      * @param deckID - The deck to retrieve the card from
@@ -772,105 +765,6 @@ export default class GameState {
         } else {
             return null;
         }
-    }
-
-    /**
-     * Used to replace all the cards in a deck
-     * @param cardList - The cards to replace the deck's cards with
-     * @param deckID - The ID of the deck to have its cards replaced
-     */
-    public replaceCardsInDeck(cardList: Card[], deckID: number): void {
-        const deck: Deck = this.getDeckByID(deckID);
-        
-        if (deck) {
-            deck.cards = cardList;
-            this.delay(this.saveToCache());
-        }
-    }
-
-    public flipCard(cardID: number): void {
-        const card: Card = this.getCardByID(cardID, this.playerID).card;
-
-        if (card) {
-            if (card.flippedOver) {
-                card.gameObject.setTexture(card.imagePath);
-            } else {
-                card.gameObject.setTexture('flipped-card');
-            }
-            card.gameObject.setDisplaySize(100, 150);
-            // Hit area MUST be set to the texture size (NOT display size), which will equate to the width and height of the game object after the texture is loaded
-            card.gameObject.input.hitArea.setTo(0, 0, card.gameObject.width, card.gameObject.height);
-            card.flippedOver = !card.flippedOver;
-
-            this.delay(this.saveToCache());
-
-            if (!(this.amHost && card.inHand)) {
-                this.sendPeerData(
-                    EActionTypes.flipCard,
-                    {
-                        cardID: cardID,
-                        flippedOver: card.flippedOver
-                    }
-                );
-            }
-        }
-    }
-
-    /**
-     * Used to check overlap of an object on hands and decks
-     * @param id - The id of the object overlap is being checked for (card/deck)
-     * @param playerID - The id of the player responsible for firing this check
-     */
-    public checkForOverlap(id: number): OverlapObject {
-        const cardLocationObject: CardLocationObject = this.getCardByID(id, this.playerID);
-        const card: Card = cardLocationObject?.card;
-        const cardLocation: ECardLocation = cardLocationObject?.location;
-        let image: Phaser.GameObjects.Image = this.myHand.gameObject;
-
-        if (card) {
-            if (card.gameObject.x > image.x && card.gameObject.x < image.x + image.displayWidth && card.gameObject.y > image.y && card.gameObject.y < image.y + image.displayHeight) {
-                if (cardLocation !== ECardLocation.MYHAND) {
-                    this._cards = this.filterOutID(this._cards, card);
-                    this.addCardToOwnHand(card);
-                    return { overlapType: EOverlapType.HAND };
-                }
-                this.delay(this.saveToCache());
-                return { overlapType: EOverlapType.ALREADYINHAND };
-            } else {
-                for (let i: number = 0; i < this._decks.length; i++) {
-                    image = this.decks[i].gameObject;
-
-                    if (card.gameObject.x > image.x - image.displayWidth && card.gameObject.x < image.x + image.displayWidth && card.gameObject.y > image.y - image.displayHeight && card.gameObject.y < image.y + image.displayHeight) {
-                        if (cardLocation === ECardLocation.MYHAND) {
-                            this.removeCardFromOwnHand(card.id, true);
-                        } else if (cardLocation === ECardLocation.TABLE) {
-                            this.removeCardFromTable(card.id, true);
-                        }
-                        this.addCardToDeck(card, this.decks[i].id);
-                        return { overlapType: EOverlapType.DECK, deckID: this.decks[i].id };
-                    }
-                }
-            }
-
-            if (cardLocation === ECardLocation.MYHAND) {
-                this.addCardToTable(card);
-                this.removeCardFromOwnHand(card.id);
-                return { overlapType: EOverlapType.TABLE, wasInHand: true };
-            } else {
-                this.delay(this.saveToCache());
-                return { overlapType: EOverlapType.TABLE, wasInHand: false };
-            }
-        } else {
-            const deck: Deck = this.getDeckByID(id);
-            this.delay(this.saveToCache());
-
-            return { overlapType: EOverlapType.TABLE };
-        }
-
-    }
-
-    public delay(func: void) {
-        setTimeout(() => { func }, 200);
     }
  
     /**
@@ -946,27 +840,193 @@ export default class GameState {
     }
 
     /**
-     * Used to clean up the game state, i.e. destroy all game objects and wipe all arrays
+     * Used to check overlap of an object on hands and decks
+     * @param id - The id of the object overlap is being checked for (card/deck)
+     * @param playerID - The id of the player responsible for firing this check
      */
-    public cleanUp(): void {
-        this._cards.forEach((card: Card) => {
-            card.gameObject?.destroy();
-        });
-        this._cards = [];
-        this._decks.forEach((deck: Deck) => {
-            deck.gameObject?.destroy();
-        });
-        this._decks = [];
-        this.myHand.cards.forEach((card: Card) => {
-            card.gameObject?.destroy();
-        });
-        this._hands = [];
-        this.myHand.cards = [];
-        this._counters = [];
+    public checkForOverlap(id: number): OverlapObject {
+        const cardLocationObject: CardLocationObject = this.getCardByID(id, this.playerID);
+        const card: Card = cardLocationObject?.card;
+        const cardLocation: ECardLocation = cardLocationObject?.location;
+        let image: Phaser.GameObjects.Image = this.myHand.gameObject;
+
+        if (card) {
+            if (card.gameObject.x > image.x && card.gameObject.x < image.x + image.displayWidth && card.gameObject.y > image.y && card.gameObject.y < image.y + image.displayHeight) {
+                if (cardLocation !== ECardLocation.MYHAND) {
+                    this._cards = this.filterOutID(this._cards, card);
+                    this.addCardToOwnHand(card);
+                    return { overlapType: EOverlapType.HAND };
+                }
+                this.delay(this.saveToCache());
+                return { overlapType: EOverlapType.ALREADYINHAND };
+            } else {
+                for (let i: number = 0; i < this._decks.length; i++) {
+                    image = this.decks[i].gameObject;
+
+                    if (card.gameObject.x > image.x - image.displayWidth && card.gameObject.x < image.x + image.displayWidth && card.gameObject.y > image.y - image.displayHeight && card.gameObject.y < image.y + image.displayHeight) {
+                        if (cardLocation === ECardLocation.MYHAND) {
+                            this.removeCardFromOwnHand(card.id, true);
+                        } else if (cardLocation === ECardLocation.TABLE) {
+                            this.removeCardFromTable(card.id, true);
+                        }
+                        this.addCardToDeck(card, this.decks[i].id);
+                        return { overlapType: EOverlapType.DECK, deckID: this.decks[i].id };
+                    }
+                }
+            }
+
+            if (cardLocation === ECardLocation.MYHAND) {
+                this.addCardToTable(card);
+                this.removeCardFromOwnHand(card.id);
+                return { overlapType: EOverlapType.TABLE, wasInHand: true };
+            } else {
+                this.delay(this.saveToCache());
+                return { overlapType: EOverlapType.TABLE, wasInHand: false };
+            }
+        } else {
+            const deck: Deck = this.getDeckByID(id);
+            this.delay(this.saveToCache());
+
+            return { overlapType: EOverlapType.TABLE };
+        }
     }
 
     /**
-     * Used to handle data received from P2P connections
+     * Used to get a counter by its ID
+     * @param counterID - The ID to get the counter by
+     */
+    public getCounterByID(counterID: number) {
+        for (let i: number = 0; i < this._counters.length; i++) {
+            if (counterID === this._counters[i].id) {
+                return this._counters[i];
+            }
+        }
+    }
+
+    /**
+     * ======================================
+     * Game Objects - Modification
+     * ======================================
+     */ 
+
+    /**
+     * Used to replace all the cards in a deck
+     * @param cardList - The cards to replace the deck's cards with
+     * @param deckID - The ID of the deck to have its cards replaced
+     */
+    public replaceCardsInDeck(cardList: Card[], deckID: number): void {
+        const deck: Deck = this.getDeckByID(deckID);
+        
+        if (deck) {
+            deck.cards = cardList;
+            this.delay(this.saveToCache());
+        }
+    }
+
+    /**
+     * Used to replace existing counters with the current counters
+     * @param counters - The counters to replace the current ones with
+     * @param eventEmitter - The 
+     */
+    public replaceCounters(counters: Counter[], eventEmitter: EventEmitter<CounterActionObject>): void {
+        this._counters = counters;
+        this.delay(this.saveToCache());
+        eventEmitter.emit({ counterAction: ECounterActions.replaceCounters, counters: this._counters });
+    }
+
+    /**
+     * Used to change a counter's value
+     * @param counter - The ID of the counter to change
+     */
+    public changeCounterValue(counter: Counter): void {
+        const retrievedCounter: Counter = this.getCounterByID(counter.id);
+        retrievedCounter.value = counter.value;
+        retrievedCounter.minValue = counter.minValue;
+        retrievedCounter.maxValue = counter.maxValue;
+    }
+
+    /**
+     * Used to flip a card
+     * @param cardID - The ID of the card to flip
+     */
+    public flipCard(cardID: number): void {
+        const card: Card = this.getCardByID(cardID, this.playerID).card;
+
+        if (card) {
+            if (card.flippedOver) {
+                card.gameObject.setTexture(card.imagePath);
+            } else {
+                card.gameObject.setTexture('flipped-card');
+            }
+            card.gameObject.setDisplaySize(100, 150);
+            // Hit area MUST be set to the texture size (NOT display size), which will equate to the width and height of the game object after the texture is loaded
+            card.gameObject.input.hitArea.setTo(0, 0, card.gameObject.width, card.gameObject.height);
+            card.flippedOver = !card.flippedOver;
+
+            this.delay(this.saveToCache());
+
+            if (!(this.amHost && card.inHand)) {
+                this.sendPeerData(
+                    EActionTypes.flipCard,
+                    {
+                        cardID: cardID,
+                        flippedOver: card.flippedOver
+                    }
+                );
+            }
+        }
+    }
+    
+    /**
+     * ======================================
+     * Peer-to-Peer Connection
+     * ======================================
+     */ 
+
+    /**
+     * Used to send data to peer(s)
+     * @param action - The action to perform
+     * @param extras - An array of extra game object properties that the user wants to include
+     * @param doNotSendTo - a list of peerIDs not to send the data to
+     */
+    public sendPeerData(action: string, extras: GameObjectExtraProperties = {}, doNotSendTo: string[] = [], onlySendTo: string[] = []): void {
+        this.connections.forEach((connection: DataConnection) => {
+            if (onlySendTo.length > 0) {
+                if (onlySendTo.includes(connection.peer)) {
+                    connection.send(new GameObjectProperties(this.amHost, action, this.myPeerID, this.playerID, extras));
+                }
+            } else if (!doNotSendTo.includes(connection.peer)) {
+                connection.send(new GameObjectProperties(this.amHost, action, this.myPeerID, this.playerID, extras));
+            }
+        });
+    }
+
+    /**
+     * Used to very quickly and easily send the current game state to all peers
+     * @param onlySendTo - An optional var specifying to only send data to a specific peer
+     * @param doNotSendTo - An optional var specfying not to send data to a specific peer
+     */
+    public sendGameStateToPeers(undo: boolean = false, onlySendTo: string = "", doNotSendTo: string = ""): void {
+        if (this.amHost) {
+            // TODO: Make sentGameState from current gameState and send to all peers
+            this.playerDataObjects.forEach((playerData: PlayerData) => {
+                for (let i: number = 0; i < this.connections.length; i++) {
+                    if (playerData.peerID === this.connections[i].peer) {
+                        if (((onlySendTo !== "" && onlySendTo === playerData.peerID) || onlySendTo === "") && (doNotSendTo === "" || (doNotSendTo !== playerData.peerID))) {
+                            let sentGameState: SentGameState = new SentGameState(this, playerData.id);
+                            this.connections[i].send(new GameObjectProperties(this.amHost, EActionTypes.replicateState, this.myPeerID, this.playerID, { 'state': sentGameState, 'undo': undo }));
+                            break; 
+                        }
+                    }
+                }
+            });
+        }
+    }
+
+    /**
+     * Used to handle data received from P2P connections (primarily carrying out requested actions)
+     * @param data - An object that holds all the data needed to handle the requested action
+     * @param playspaceComponent - A reference to the playspace component
      */
     handleData(data: GameObjectProperties, playspaceComponent: PlayspaceComponent): void {
         if (this.amHost && data.amHost) {
@@ -975,7 +1035,7 @@ export default class GameState {
           return;
         }
     
-        switch(data.action) {
+        switch (data.action) {
     
             // Received by the host after being sent by the player upon connection to the host, in which the player asks for the game state
             case EActionTypes.sendState:

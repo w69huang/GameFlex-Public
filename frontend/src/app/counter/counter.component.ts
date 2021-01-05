@@ -9,6 +9,19 @@ export class CounterInitData {
   defaultValue: string;
 }
 
+export enum ECounterActions {
+  addCounter = "addCounter",
+  removeCounter = "removeCounter",
+  replaceCounters = "replaceCounters",
+  changeCounterValue = "changeCounterValue"
+}
+
+export class CounterActionObject {
+  counterAction: ECounterActions;
+  counter?: Counter;
+  counters?: Counter[];
+}
+
 @Component({
   selector: 'app-counter',
   templateUrl: './counter.component.html',
@@ -18,22 +31,22 @@ export class CounterComponent implements OnInit {
   /**
    * The event caught with this emitter is the parent sending an ID value for the newly created counter, requested via the requestIDEmitter
    */
-  @Input() private counterIdEmitter: EventEmitter<CounterInitData> = new EventEmitter<CounterInitData>();
+  @Input() private counterActionInputEmitter: EventEmitter<CounterActionObject> = new EventEmitter<CounterActionObject>();
 
   /**
    * This emitter is used to send the parent component all the current counter values
    */
-  @Output() private countersEmitter: EventEmitter<Counter[]> = new EventEmitter<Counter[]>();
- 
-  /**
-   * This emitter is used to request an ID for the newly created counter
-   */
-  @Output() private requestCounterIdEmitter: EventEmitter<CounterInitData> = new EventEmitter<CounterInitData>();
+  @Output() private counterActionOutputEmitter: EventEmitter<CounterActionObject> = new EventEmitter<CounterActionObject>();
 
   /**
    * The list of counters, rendered in an ngFor in the html
    */
-  counters: Counter[] = [];
+  public counters: Counter[] = [];
+
+  /**
+   * The highest counter ID currently being used (it increments every time, so 1 will be the first one used)
+   */
+  private highestCounterID: number = 0; 
 
   /**
    * The constructor
@@ -45,18 +58,21 @@ export class CounterComponent implements OnInit {
    * What to do upon initialization
    */
   ngOnInit(): void {
-    this.counterIdEmitter.subscribe((counterInitData: CounterInitData) => {
-        // Just for the create counter button
-        this.counters.push(new Counter(counterInitData.id, counterInitData.name, parseFloat(counterInitData.defaultValue))); //TODO: Take in meaningful names
-        this.countersEmitter.emit(this.counters);
-
+    this.counterActionInputEmitter.subscribe((counterActionObject: CounterActionObject) => {
+      switch(counterActionObject.counterAction) {
+        case ECounterActions.replaceCounters:
+          this.counters = counterActionObject.counters;
+          break;
+        default:
+          break;
+      }
     });
   }
 
   /**
-   * Creates a new counter.
+   * Creates a new counter
    */
-  initCounter() {
+  initCounter(): void {
     let dialogRef = this.dialog.open(CreateCounterPopupComponent, {
       height: '500px',
       width: '500px',
@@ -64,8 +80,19 @@ export class CounterComponent implements OnInit {
 
     dialogRef.afterClosed().subscribe((counterInitData: CounterInitData) => {
       if (counterInitData) {
-        this.requestCounterIdEmitter.emit(counterInitData);
+        this.highestCounterID++;
+        const newCounter: Counter = new Counter(this.highestCounterID, counterInitData.name, parseFloat(counterInitData.defaultValue));
+        this.counters.push(newCounter);
+        this.counterActionOutputEmitter.emit({ counterAction: ECounterActions.addCounter, counter: newCounter });
       }
     });
+  }
+
+  /**
+   * Fired when a counter's input field is modified
+   * @param counter - The counter whose input field was modified
+   */
+  onChangeCounterText(counter: Counter): void {
+    // TODO
   }
 }

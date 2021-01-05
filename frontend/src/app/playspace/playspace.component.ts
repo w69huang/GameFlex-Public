@@ -16,8 +16,7 @@ import SavedGameState from '../models/savedGameState';
 import OnlineGame from '../models/onlineGame';
 import PlayspaceScene from '../models/phaser-scenes/playspaceScene';
 import { MatDialog } from '@angular/material/dialog';
-import SentGameState from '../models/sentGameState';
-import { CounterInitData } from '../counter/counter.component';
+import { ECounterActions, CounterActionObject } from '../counter/counter.component';
 import Counter from '../models/counter';
 
 @Component({
@@ -42,13 +41,13 @@ export class PlayspaceComponent implements OnInit {
   @Input() private saveGameStateEmitter: EventEmitter<string> = new EventEmitter<string>();
   @Input() private getAllSavedGameStatesEmitter: EventEmitter<SavedGameState> = new EventEmitter<SavedGameState>();
   @Input() private undoGameStateEmitter: EventEmitter<number> = new EventEmitter<number>();
-  @Input() private requestCounterIdEmitter: EventEmitter<CounterInitData> = new EventEmitter<CounterInitData>();
+  @Input() private counterActionInputEmitter: EventEmitter<CounterActionObject> = new EventEmitter<CounterActionObject>();
 
   // To Game Instance
   @Output() public playerDataEmitter: EventEmitter<PlayerData[]> = new EventEmitter<PlayerData[]>();
   @Output() private onlineGameEmitter: EventEmitter<OnlineGame> = new EventEmitter<OnlineGame>();
   @Output() private amHostEmitter: EventEmitter<boolean> = new EventEmitter<boolean>();
-  @Output() private counterIdEmitter: EventEmitter<CounterInitData> = new EventEmitter<CounterInitData>();
+  @Output() public counterActionOutputEmitter: EventEmitter<CounterActionObject> = new EventEmitter<CounterActionObject>();
 
   // Peer
   public peer: any;
@@ -193,13 +192,26 @@ export class PlayspaceComponent implements OnInit {
     });
 
     this.saveGameStateEmitter.subscribe((name: string) => {
-      this.savedGameStateService.create(new SavedGameState(this.middleware.getUsername(), name, this.gameState, this.gameState.playerDataObjects));
+      this.savedGameStateService.create(new SavedGameState(this.middleware.getUsername(), name, this.gameState));
     });
 
-    this.requestCounterIdEmitter.subscribe((counterInitData: CounterInitData) => {
-      this.highestID++;
-      counterInitData.id = this.highestID;
-      this.counterIdEmitter.emit(counterInitData);
+    this.counterActionInputEmitter.subscribe((counterActionObject: CounterActionObject) => {
+      switch (counterActionObject.counterAction) {
+        case ECounterActions.addCounter:
+          this.gameState.addCounter(counterActionObject.counter);
+          break;
+        
+        case ECounterActions.removeCounter:
+          this.gameState.removeCounter(counterActionObject.counter);
+          break;
+
+        case ECounterActions.changeCounterValue:
+          this.gameState.changeCounterValue(counterActionObject.counter);
+          break;
+          
+        default:
+          break;
+      }
     });
   }
 
