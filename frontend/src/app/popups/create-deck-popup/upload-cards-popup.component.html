@@ -1,5 +1,12 @@
 <h1>Your Deck</h1>
 <div id = "deckDisplayContainer"></div>
+
+<h1 *ngIf="files.length>0">Cards to upload</h1>
+<ul>
+    <li *ngFor="let fileObject of files" >
+        {{fileObject.data.name}}&nbsp;&nbsp;
+    </li>
+</ul>  
 <div class="actions" mat-dialog-actions>
     <mat-card>
         <button mat-button (click)="cancel()">Cancel</button>

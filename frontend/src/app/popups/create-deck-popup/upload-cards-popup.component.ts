@@ -17,7 +17,7 @@ export class UploadCardsPopupComponent implements OnInit {
   @ViewChild("fileUpload", {static: false}) fileUpload: ElementRef;
   faCoffee = faCoffee; 
 
-  private files: any[] = [];
+  public files: any[] = [];
   deckNameData: string;
 
   //deckname emitter
@@ -55,9 +55,12 @@ export class UploadCardsPopupComponent implements OnInit {
     fileUpload.onchange = () => {  
       for (let index = 0; index < fileUpload.files.length; index++) {  
         const file = fileUpload.files[index];  
+        console.log(file);
         this.files.push({ data: file, inProgress: false, progress: 0});
       }  
     };  
     fileUpload.click();  
   }
+
+  
 }

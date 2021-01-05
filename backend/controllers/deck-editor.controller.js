@@ -11,6 +11,9 @@ const { resolve } = require('path');
 module.exports = (upload) => {
     const url = config.mongoURI;
     const connect = mongoose.createConnection(url, {useNewUrlParser: true, useUnifiedTopology: true });
+    connect.catch((err) => {
+        console.log(err);
+    });
 
     let gfs;
 
@@ -123,7 +126,7 @@ module.exports = (upload) => {
                                     function() { // done
                                         var fbuf = Buffer.concat(bufs);
                                         var base64 = (fbuf.toString('base64'));
-                                        fileArray.push(base64);
+                                        fileArray.push({base64: base64, id: file._id});
                                         fileProcessCounter ++; 
                                         if(fileProcessCounter === files.length) {
                                             console.log("file array sent")
@@ -143,34 +146,6 @@ module.exports = (upload) => {
                     // });
                 });
             });
-
-
-        //gridFS fid by ID(????)
-        // gfs.find({ files_id: { $in : cardIDs } }).toArray((err, files) => {
-        //     //console.log(files);
-        //     if (!files || files.length === 0) {
-        //         return res.status(200).json({
-        //             success: false,
-        //             message: 'No files available'
-        //         });
-        //     }
-
-        //     //image formats supported
-        //     files.map(file => {
-        //         if (file.contentType === 'image/jpeg'
-        //             || file.contentType === 'image/png'
-        //             || file.contentType === 'image/svg+xml') {
-        //                 file.isImage = true;
-        //             } else {
-        //                 file.isImage = false;
-        //             }
-        //     });
-
-        //     res.status(200).json({
-        //         success: true,
-        //         files,
-        //     });
-        // });
     });
 
     /* 
@@ -236,18 +211,20 @@ module.exports = (upload) => {
    /*
         DELETE: delete a file by filename
     */
-   router.route('/file/del').post((req, res, next) => {
-       console.log('test!!!!')
-       console.log(req.body.id);
-       gfs.delete(new mongoose.Types.ObjectId(req.body.id),
+   router.route('/file/del').delete((req, res, next) => {
+       console.log('deleting file: ' + req.query.id);
+    
+       gfs.delete(new mongoose.Types.ObjectId(req.query.id),
        (err, data) => {
            if (err) {
-               return res.status(404).json({err: err});
+               return res.status(404).json({
+                   success: false,
+                   err: err});
            }
 
            res.status(200).json({
                success: true,
-               message: 'File with ID '+req.body.id+' is deleted',
+               message: 'File with ID '+req.query.id+' is deleted',
            });
        });
    });
@@ -268,16 +245,16 @@ module.exports = (upload) => {
         const deckName = req.query.deckName;
         var fileProcessCounter = 0;
         console.log("request received to delete " +  deckName + "by user: " + userID);
-
+        //find the deck
         Deck.findOne({ deckName: deckName, userID: userID })
             .then((currentDeck) => {
-
+                //Check that the deck exists
                 if(currentDeck){
                     console.log(currentDeck + " has been found")
 
                     var cardIDs = currentDeck.imageID;
                     let cardMongoIDs = [];
-
+                    //delete all cards in the deck from GFS storage
                     for(let i = 0; i < cardIDs.length; i++){
                         cardMongoIDs.push(new mongoose.Types.ObjectId(cardIDs[i])); 
                     }
@@ -330,15 +307,15 @@ module.exports = (upload) => {
 
 
     });
-
-   //TODO: integrate deck functionality into the routes
-
-
-
+   /*
+        NEW-DECK: Create a new deck
+    */
    router.route('/new-deck').post((req, res, next) => {
         const deckName = req.body.deckName;
         const username = req.body.userID;
         let deckList = [];
+
+        console.log("Creating deck: " + deckName);
 
         Deck.find({ deckName: deckName, userID: username })
         .then((Deck) => deckList = Deck)
@@ -367,13 +344,19 @@ module.exports = (upload) => {
             })
         }
     })
-
+   /*
+        GET: find all decks associated with a specific username
+    */
     router.route('/get').post((req, res, next) => {
             const username = req.body.userID;
             Deck.find({ userID: username })
             .then((deckList) => res.send(deckList))
             .catch((error) => console.log(error));
     });
+
+       /*
+        DEV TOOLS ---
+    */
 
     //deletes all decks from Mongo storage
     router.route('/deleteAllDecks').delete((req, res) => {
