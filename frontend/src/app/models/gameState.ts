@@ -192,7 +192,7 @@ export default class GameState {
     private amHost: boolean = false;
 
     /**
-     * An array of all hands local to the player
+     * An array of all hands local to the player only
      */
     public myHands: Hand[];
 
@@ -223,11 +223,6 @@ export default class GameState {
      * If an undo is in progress (i.e. the host is waiting for confirmation from all parties that it succeeded)
      */
     public undoInProgress: boolean = false;
-
-    /**
-     * Holds information about this player's hand only
-     */
-    public myHand: Hand;
 
     /**
      * A public accessor to get all cards
@@ -324,8 +319,6 @@ export default class GameState {
         return objectListToFilter;
     }
 
-<<<<<<< HEAD
-=======
     /**
      * Used to filter peers out of a peer connection list
      * @param connectionListToFilter - The connection list to remove connections from
@@ -351,7 +344,6 @@ export default class GameState {
             }
         });
     }
->>>>>>> develop
 
     /**
      * A method used to check the status of undo confirmations, and resend replicate state requests if necessary
@@ -1308,12 +1300,5 @@ export default class GameState {
                 break;
             }
         }
-<<<<<<< HEAD
-    }
-=======
-}
->>>>>>> develop
-
-
 
 }
