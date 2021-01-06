@@ -7,7 +7,7 @@ import DeckMin from './deckMin';
 import HandMin from './handMin';
 
 export default class SentGameState {
-    playerID: number
+    playerID: number;
     cardMins: CardMin[] = [];
     deckMins: DeckMin[] = [];
     handMin: HandMin;

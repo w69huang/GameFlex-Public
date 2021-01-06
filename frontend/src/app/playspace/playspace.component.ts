@@ -101,12 +101,16 @@ export class PlayspaceComponent implements OnInit {
       // Catches the case of a browser being closed
       conn.peerConnection.oniceconnectionstatechange = () => {
         if(conn.peerConnection.iceConnectionState == 'disconnected') {
-          console.log("Peer-to-Peer Error: Other party disconnected.");
+          console.log("Peer-to-Peer Error 1: Other party disconnected.");
           this.hostHandleConnectionClose(conn);
         }
       }
       conn.on('close', () => {
-        console.log("Peer-to-Peer Error: Other party disconnected.");
+        console.log("Peer-to-Peer Error 2: Other party disconnected.");
+        this.hostHandleConnectionClose(conn);
+      });
+      conn.on('disconnected', () => {
+        console.log('Peer-to-Peer Error 3: Peer disconnected from signalling server.');
         this.hostHandleConnectionClose(conn);
       });
       conn.on('error', (err) => {
@@ -118,6 +122,7 @@ export class PlayspaceComponent implements OnInit {
   }
 
   hostHandleConnectionClose(conn: DataConnection) {
+    conn.close();
     this.gameState.connections = this.filterOutPeer(this.gameState.connections, conn);
     
     let playerData: PlayerData = null;
@@ -175,20 +180,15 @@ export class PlayspaceComponent implements OnInit {
     this.getAllSavedGameStatesEmitter.subscribe((savedGameState: SavedGameState) => {
       if (savedGameState) { // If they actually chose a saved game state
         this.gameState.buildGameStateFromSavedState(savedGameState, this);      
-  
-        this.gameState.playerDataObjects.forEach((playerDataObject: PlayerData) => {
-          if (playerDataObject.id != this.gameState.playerID) {      
-            console.log("Sending updated state.");
-            this.gameState.sendGameStateToPeers(playerDataObject.peerID);
-          }
-        });
       }
     });
   }
 
   undoGameState(): void {
     this.undoGameStateEmitter.subscribe((count: integer) => {
-      this.gameState.buildGameFromCache(this, false, count);
+      if (!this.gameState.undoInProgress) {
+        this.gameState.buildGameFromCache(this, false, count);
+      }
     });
   }
 
@@ -338,13 +338,17 @@ export class PlayspaceComponent implements OnInit {
       // Catches the case where the browser is closed
       conn.peerConnection.oniceconnectionstatechange = () => {
         if(conn.peerConnection.iceConnectionState == 'disconnected') {
-          console.log("Peer-to-Peer Error: Other party disconnected.");
+          console.log("Peer-to-Peer Error 4: Other party disconnected.");
           this.clientHandleConnectionClose(conn);
         }
       }
       conn.on('close', () => {
-        console.log("Peer-to-Peer Error: Other party disconnected.");
+        console.log("Peer-to-Peer Error 5: Other party disconnected.");
         this.clientHandleConnectionClose(conn);
+      });
+      conn.on('disconnected', () => {
+        console.log('Peer-to-Peer Error 6: Peer disconnected from signalling server.');
+        this.hostHandleConnectionClose(conn);
       });
       conn.on('error', (err) => {
         console.log("Unspecified Peer-to-Peer Error: ");

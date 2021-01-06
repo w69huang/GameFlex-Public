@@ -22,9 +22,6 @@ export class GameInstanceComponent implements OnInit {
   public onlineGame: OnlineGame;
   public playerData: PlayerData[];
   public amHost: boolean = false;
-  public undoCounter = 0;
-  private timer = false;
-  private timerFunc: NodeJS.Timer;
 
   public saveGameStateEmitter: EventEmitter<string> = new EventEmitter<string>();
   public getAllSavedGameStatesEmitter: EventEmitter<SavedGameState> = new EventEmitter<SavedGameState>();
@@ -83,26 +80,13 @@ export class GameInstanceComponent implements OnInit {
     });
   }
 
-  clearCache(){
-    localStorage.removeItem('gameStateHistory');
-    console.log("Cleared")
-  }
-
-  undo(){
-    clearTimeout(this.timerFunc);
-    this.undoCounter +=1;
-    this.timerFunc = setTimeout((count) => {
-      this.undoGameStateEmitter.emit(count);
-      this.timer = false;
-      this.undoCounter = 0;
-    }, 2000, this.undoCounter);
+  undo(undoCount: any){
+    if (!isNaN(undoCount)) {
+      this.undoGameStateEmitter.emit(parseInt(undoCount));
+    }
   }
 
   deleteAllSaves() {
     this.savedGameStateService.deleteAll().subscribe();
-  }
-
-  clearCachedSave() {
-    localStorage.removeItem('cachedGameState');
   }
 }

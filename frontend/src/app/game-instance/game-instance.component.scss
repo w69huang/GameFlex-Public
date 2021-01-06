@@ -12,21 +12,22 @@
             min-width: 230px;
             margin: 10px;
 
-            .playerList {
+            .playerList, .saveContainer, .undoContainer {
                 background-color: $themeDarkGray;
                 color: white;
                 margin-bottom: 10px;
-            }
-    
-            .saveButtonsContainer {
-                display: flex;
-                flex-direction: column;
-                background-color: $themeDarkGray;
-    
-                div {
-                    width: 70%;
-                    margin-left: 15%;
-                    margin-bottom: 10px;
+                text-align: center;
+
+                .buttonsContainer {
+                    display: flex;
+                    flex-direction: column;
+                    background-color: $themeDarkGray;
+
+                    input {
+                        width: 60%;
+                        margin-left: 20%;
+                        margin-bottom: 10px;
+                    }
                 }
             }
         }        
