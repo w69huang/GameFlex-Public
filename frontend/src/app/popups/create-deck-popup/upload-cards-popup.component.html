@@ -5,6 +5,7 @@
 <ul>
     <li *ngFor="let fileObject of files" >
         {{fileObject.data.name}}&nbsp;&nbsp;
+        <span (click)="removeStagedCard(fileObject.data)">Remove</span>
     </li>
 </ul>  
 <div class="actions" mat-dialog-actions>

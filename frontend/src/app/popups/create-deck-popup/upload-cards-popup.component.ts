@@ -55,12 +55,17 @@ export class UploadCardsPopupComponent implements OnInit {
     fileUpload.onchange = () => {  
       for (let index = 0; index < fileUpload.files.length; index++) {  
         const file = fileUpload.files[index];  
-        console.log(file);
+        //console.log(file);
         this.files.push({ data: file, inProgress: false, progress: 0});
       }  
     };  
     fileUpload.click();  
   }
 
-  
+  removeStagedCard(cardData: any){
+    console.log(cardData);
+    this.files = this.files.filter((fileObject: any) => {
+      return fileObject.data.name !== cardData.name;
+    });
+  }
 }
