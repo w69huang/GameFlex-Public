@@ -230,7 +230,7 @@ export class PlayspaceComponent implements OnInit {
   }
 
   buildFromCacheDialog(): void {
-    if (JSON.parse(localStorage.getItem('cachedGameState')).numMoves > 0) {
+    if (JSON.parse(localStorage.getItem('cachedGameState'))?.numMoves > 0) {
       let dialogRef = this.dialog.open(LoadGameStatePopupComponent, {
         height: '290px',
         width: '350px',
@@ -364,17 +364,16 @@ export class PlayspaceComponent implements OnInit {
     }
   }
 
-
-  addHand() {
-    this.gameState.createMyHand();
-    console.log('addHand');
-  }
-  nextHand() {
-    this.gameState.nextHand();
-    console.log('nextHand');
-  }
-  prevHand() {
-    this.gameState.previousHand();
-    console.log('prevHand');
-  }
+  // addHand() {
+  //   this.gameState.
+  //   console.log('addHand');
+  // }
+  // nextHand() {
+  //   this.gameState.nextHand();
+  //   console.log('nextHand');
+  // }
+  // prevHand() {
+  //   this.gameState.previousHand();
+  //   console.log('prevHand');
+  // }
 }

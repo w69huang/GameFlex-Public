@@ -25,3 +25,5 @@ export default class CachedGameState {
         this.numMoves = gameState.numCachedMoves;
     }
 }
+
+// dict playerIds to hands[]

@@ -5,6 +5,7 @@ import Deck from '../deck';
 import * as HelperFunctions from '../../helper-functions';
 import * as DeckActions from '../../actions/deckActions';
 import * as SharedActions from '../../actions/sharedActions';
+import * as HA from '../../actions/handActions';
 
 export default class PlayspaceScene extends Phaser.Scene {
     playspaceComponent: PlayspaceComponent;
@@ -17,7 +18,7 @@ export default class PlayspaceScene extends Phaser.Scene {
     delHandButton: Phaser.GameObjects.Image;
     nextHandButton: Phaser.GameObjects.Image;
     prevHandButton: Phaser.GameObjects.Image;
-
+    handTrackerText: Phaser.GameObjects.Text;
   
     constructor(playspaceComponent: PlayspaceComponent, width: number, height: number, handBeginY: number) {
       super({ key: 'main' });
@@ -46,11 +47,11 @@ export default class PlayspaceScene extends Phaser.Scene {
       this.events.once('update', () => {
         this.playspaceComponent.startConnectionProcess();
       });
-
-      this.addHandButton = HelperFunctions.createPhaserImageButton(this, 960, 630, 30, 30, 'add-hand', () => { this.playspaceComponent.gameState.createMyHand() });
-      this.delHandButton = HelperFunctions.createPhaserImageButton(this, 30, 630, 30, 30, 'del-hand', () => { this.playspaceComponent.gameState.deleteMyHand() } );
-      this.nextHandButton = HelperFunctions.createPhaserImageButton(this, 960, 820, 30, 30, 'next-hand', () => { this.playspaceComponent.gameState.nextHand() });
-      this.prevHandButton = HelperFunctions.createPhaserImageButton(this, 30, 820, 30, 30, 'prev-hand', () => { this.playspaceComponent.gameState.previousHand() } );
+      this.handTrackerText = this.add.text(850, 625, '', {color: 'black', fontStyle: 'bold'});
+      this.addHandButton = HelperFunctions.createPhaserImageButton(this, 960, 630, 30, 30, 'add-hand', () => { HA.createMyHand(this.playspaceComponent) });
+      this.delHandButton = HelperFunctions.createPhaserImageButton(this, 30, 630, 30, 30, 'del-hand', () => { HA.deleteMyHand(this.playspaceComponent) } );
+      this.nextHandButton = HelperFunctions.createPhaserImageButton(this, 960, 820, 30, 30, 'next-hand', () => { HA.nextHand(this.playspaceComponent) });
+      this.prevHandButton = HelperFunctions.createPhaserImageButton(this, 30, 820, 30, 30, 'prev-hand', () => { HA.previousHand(this.playspaceComponent) } );
 
     }
   

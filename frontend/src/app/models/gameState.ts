@@ -9,6 +9,7 @@ import DeckMin from './deckMin';
 import * as HF from '../helper-functions';
 import * as SA from '../actions/sharedActions';
 import * as DA from '../actions/deckActions';
+import * as HA from '../actions/handActions';
 import { PlayspaceComponent } from '../playspace/playspace.component';
 import { DataConnection } from 'peerjs';
 import SentGameState from './sentGameState';
@@ -294,20 +295,6 @@ export default class GameState {
         return objectListToFilter;
     }
 
-    /**
-     * Used to remove a card from the general hands array that the host keeps track of
-     * @param card - The card to remove
-     */
-    private removeFromHandsArray(card: Card): void {
-        this._hands.forEach((hand: Hand) => {
-            for (let i: number = 0; i < hand.cards.length; i++) {
-                if (hand.cards[i].id === card.id) {
-                    hand.cards = this.filterOutID(hand.cards, card);
-                    return;
-                }
-            }
-        });
-    }
 
     /**
      * A method used to set yourself as the host, taking care of anything required to make this happen
@@ -1231,99 +1218,6 @@ export default class GameState {
         }
     }
 
-    /*
-     * Sets the next hand 
-     */
-    public nextHand() {
-        let myLastHand = this.myCurrHand;
-        if(this.myHands.length-1 > this.myCurrHand) {
-            this.myCurrHand = this.myCurrHand + 1;
-        } else {
-            this.myCurrHand = this.myHands.length -1;
-        }
-        this.renderHand(myLastHand, this.myCurrHand);
-    }
 
-    /**
-     * Sets the previous hand
-     */
-    public previousHand() {
-        let myLastHand = this.myCurrHand;
-        if( this.myCurrHand > 0) {
-            this.myCurrHand = this.myCurrHand - 1;
-        } else {
-            this.myCurrHand = 0;
-        }
-        this.renderHand(myLastHand, this.myCurrHand);
-    }
-
-    /**
-     * Checks if card is in one of the current players hands
-     */
-    public inMyHands(theCardToCheck) {
-        this.myHands.forEach(hand => {
-            hand.cards.forEach(card => {
-                if(card === theCardToCheck) {
-                    return true;
-                }
-            })
-        })
-
-        return false;
-    }
-
-    /**
-     * Creates a hand
-     */
-    public createMyHand() {
-        let hand = new Hand(this.playerID, []);
-        this.myHands.push(hand);
-    }
-
-    /**
-     * Deletes the current hand hand. Sends alert if there are cards in the hand.
-     */
-    public deleteMyHand() {
-
-        let myHandToDel = this.myCurrHand;
-
-        if( this.myHands.length <= 1 ) {
-            // Do not delete the last hand
-            return
-        }
-
-        if ( this.myHand.cards.length > 0 ) {
-            alert('Error: You can only delete a hand that is empty.');
-            return 
-        }
-
-        // Move to the previous hand on delete or stay on first hand
-        if( this.myCurrHand > 0) {
-            this.myCurrHand = this.myCurrHand - 1;
-            // Change render order before hand is deleted 
-            this.renderHand(myHandToDel, this.myCurrHand);
-        } else {
-            this.myCurrHand = 0;
-            // Change render order before hand is deleted to +1 since we are deleting the current 0
-            this.renderHand(myHandToDel, this.myCurrHand + 1);
-        }
-
-        this.myHands.splice(myHandToDel, 1);
-    }
-
-
-    /**
-     * Hides cards for the last hand shown, and displays the new hands cards
-     */
-    public renderHand(myLastHand: integer, myNewHand: integer) {
-        if(!(myLastHand == myNewHand)) {
-            this.myHands[myLastHand].cards.forEach(card => {
-                card.gameObject.setVisible(false);
-            })
-            this.myHands[myNewHand].cards.forEach(card => {
-                card.gameObject.setVisible(true);
-            })
-        }
-    }
 
 }
