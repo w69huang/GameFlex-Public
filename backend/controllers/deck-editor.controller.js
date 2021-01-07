@@ -23,7 +23,7 @@ module.exports = (upload) => {
     connect.once('open', () => {
         //initialize Gridfs datastream
         gfs = new mongoose.mongo.GridFSBucket(connect.db, {
-            bucketName: "uploads"
+            bucketName: "userCards"
         });
     });
 
@@ -36,7 +36,8 @@ module.exports = (upload) => {
         .post(upload.array('file', 60), (req, res, next) => {
             try{                
                 console.log("There was not an error");
-                // console.log(req.body);
+                console.log(req.body);
+                console.log("FILES:");
                 console.log(req.files[0]);
                 const cardID = req.files[0].id;
                 const userID = req.body.username;
@@ -46,9 +47,6 @@ module.exports = (upload) => {
                 console.log(userID);
                 console.log(deckName);
                 
-                // Deck.find({ deckName: deckName, userID: userID })
-                //         .then((foundDeck) => {console.log(foundDeck)})
-                //             .save();
                 Deck.findOneAndUpdate({ deckName: deckName, userID: userID }, 
                     {$push: {imageID: cardID} },
                     function (err, success) {
@@ -130,13 +128,14 @@ module.exports = (upload) => {
                                         var fbuf = Buffer.concat(bufs);
                                         var base64 = (fbuf.toString('base64'));
                                         fileArray.push({base64: base64, id: file._id});
-                                        fileProcessCounter ++; 
+                                        fileProcessCounter++; 
                                         if(fileProcessCounter === files.length) {
                                             console.log("file array sent")
                                             res.send(fileArray);
                                         }
                                     });
                         } else {
+                            fileProcessCounter++;
                         //     res.status(404).json({
                         //     err: 'Not an image',
                         //    });

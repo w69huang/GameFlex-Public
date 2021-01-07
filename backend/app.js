@@ -7,6 +7,7 @@ const multer = require('multer');
 const GridFsStorage = require('multer-gridfs-storage');
 const crypto = require('crypto');
 const cors = require('cors');
+const path = require('path');
 const bodyParser = require('body-parser') // The body parser will simplify the request data for mysql
 const mongoose = require('./database/mongoose')
 const mysql_connection = require('./database/mysql')
@@ -63,46 +64,29 @@ const storage = new GridFsStorage({
     url: config.mongoURI,
     file: (req, file) => {
         console.log(file);
-        // if (file.contentType !== 'image/jpeg' 
-        //         || file.contentType !== 'image/png' 
-        //         || file.contentType !== 'image/svg+xml') {
-        //             console.log(req.body);
-
-        //             res.status(500).json({
-        //                 success: fail,
-        //                 message:"invalid filetype", 
-        //             })
-        //             return null;
-        //         }
-        // console.log(req);
-        console.log("In the storage engine");
-        return new Promise((resolve, reject) => {
-            crypto.randomBytes(16, (err, buf) => {
-                if (err) {
-                    return reject(err);
-                }
-                const filename = file.originalname;
-                let fileInfo = {};
-                // if(req.body.deckName) {
-                //     fileInfo = {
-                //         filename: filename,
-                //         bucketName: 'uploads',
-                //         deckName: req.body.deckName
-                //     };
-                // } else { 
-                    fileInfo = {
-                        filename: filename,
-                        bucketName: 'uploads'
-                    };
-                // }
-               
-                resolve(fileInfo);
-            });
-        });
+        const filename = file.originalname;
+        let fileInfo = {};
+        fileInfo = {
+            filename: filename,
+            bucketName: 'userCards'
+        };
+        return fileInfo;
     }
 });
 
-const upload = multer({ storage });
+const upload = multer({ 
+    storage: storage,
+    fileFilter: function (req, file, callback) {
+        var ext = path.extname(file.originalname);
+        if(ext !== '.png' && ext !== '.jpg' && ext !== '.jpeg') {
+            return callback(new Error('Only images are allowed'))
+        }
+        callback(null, true)
+    },
+    limits: {
+        fileSize: 1024 * 1024
+    }
+});
 app.use('/', deckEditorRoutes(upload));
 
 // catch 404 and forward to error handler
