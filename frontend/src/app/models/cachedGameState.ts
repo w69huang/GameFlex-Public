@@ -50,7 +50,9 @@ export default class CachedGameState {
         gameState.hands.forEach((hand: Hand) => {
             this.handMins.push(new HandMin(hand));
         });
-        this.counters = gameState.counters;
+        gameState.counters.forEach((counter: Counter) => {
+            this.counters.push(new Counter(counter.id, counter.name, counter.value));
+        });
         this.numMoves = gameState.numCachedMoves;
     }
 }

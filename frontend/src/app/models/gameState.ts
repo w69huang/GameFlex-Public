@@ -531,7 +531,11 @@ export default class GameState {
                         this.undoInProgress = true;
                         this.undoRequests = this.connections;
                         clearInterval(this.undoCheckInInterval);
-                        this.undoCheckInInterval = setInterval(this.checkUndoConfirmations.bind(this), 200);
+                        if (this.undoRequests.length > 0) {
+                            this.undoCheckInInterval = setInterval(this.checkUndoConfirmations.bind(this), 200);
+                        } else {
+                            this.undoInProgress = false;
+                        }
                     }
                 }
 
@@ -931,7 +935,7 @@ export default class GameState {
     public replaceCounters(counters: Counter[], eventEmitter: EventEmitter<CounterActionObject>): void {
         this._counters = counters;
         this.delay(this.saveToCache());
-        eventEmitter.emit({ counterAction: ECounterActions.replaceCounters, counters: this._counters });
+        eventEmitter.emit({ counterAction: ECounterActions.replaceCounters, counters: [...this._counters] });
     }
 
     /**
@@ -943,6 +947,7 @@ export default class GameState {
         retrievedCounter.value = counter.value;
         retrievedCounter.minValue = counter.minValue;
         retrievedCounter.maxValue = counter.maxValue;
+        this.delay(this.saveToCache());
     }
 
     /**

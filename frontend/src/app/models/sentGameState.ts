@@ -64,6 +64,8 @@ export default class SentGameState {
             this.handMin = new HandMin(new Hand(this.playerID, []));
         }
 
-        this.counters = gameState.counters;
+        gameState.counters.forEach((counter: Counter) => {
+            this.counters.push(new Counter(counter.id, counter.name, counter.value));
+        });
     }
 }

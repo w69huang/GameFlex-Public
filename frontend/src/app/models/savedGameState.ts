@@ -72,7 +72,9 @@ export default class SavedGameState {
         gameState.hands.forEach((hand: Hand) => {
             this.handMins.push(new HandMin(hand));
         });
-        this.counters = gameState.counters;
+        gameState.counters.forEach((counter: Counter) => {
+            this.counters.push(new Counter(counter.id, counter.name, counter.value));
+        });
         gameState.playerDataObjects.forEach((data: PlayerData) => {
             this.savedPlayerData.push(new SavedPlayerData(data));
         });

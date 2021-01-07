@@ -93,6 +93,8 @@ export class CounterComponent implements OnInit {
    * @param counter - The counter whose input field was modified
    */
   onChangeCounterText(counter: Counter): void {
-    // TODO
+    const counterElement: HTMLInputElement = <HTMLInputElement>document.getElementById(`counter${counter.id}`);
+    counter.value = parseFloat(counterElement.value);
+    this.counterActionOutputEmitter.emit({  counterAction: ECounterActions.changeCounterValue, counter: counter });
   }
 }

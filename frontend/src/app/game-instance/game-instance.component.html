@@ -9,7 +9,7 @@
                 </p>
             </mat-card>
             <app-counter
-                (counterActionOutputEmitters)="rcvCtrActionFromCounterCmp($event)"
+                (counterActionOutputEmitter)="rcvCtrActionFromCounterCmp($event)"
                 [counterActionInputEmitter]="ctrActionOutputToCounterCmpEmitter"
             >
             </app-counter>
