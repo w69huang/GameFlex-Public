@@ -20,6 +20,7 @@ const onlineGamesRoutes = require('./controllers/online-games.controller');
 const userRoutes = require('./controllers/mysql.user.controllers');
 const savedGameStateRoutes = require('./controllers/saved-game-state.controller');
 const deckEditorRoutes = require('./controllers/deck-editor.controller');
+const { fail } = require('assert');
 
 // allows our app to use json data
 app.use(express.json())
@@ -61,6 +62,18 @@ app.use('/deck-editor', deckEditorRoutes);
 const storage = new GridFsStorage({
     url: config.mongoURI,
     file: (req, file) => {
+        console.log(file);
+        // if (file.contentType !== 'image/jpeg' 
+        //         || file.contentType !== 'image/png' 
+        //         || file.contentType !== 'image/svg+xml') {
+        //             console.log(req.body);
+
+        //             res.status(500).json({
+        //                 success: fail,
+        //                 message:"invalid filetype", 
+        //             })
+        //             return null;
+        //         }
         // console.log(req);
         console.log("In the storage engine");
         return new Promise((resolve, reject) => {

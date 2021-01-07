@@ -34,15 +34,18 @@ module.exports = (upload) => {
     */
     router.route('/upload')
         .post(upload.array('file', 60), (req, res, next) => {
-            try{
+            try{                
                 console.log("There was not an error");
-                console.log(req.body);
+                // console.log(req.body);
+                console.log(req.files[0]);
                 const cardID = req.files[0].id;
                 const userID = req.body.username;
                 const deckName = req.body.deckName;
 
+                
                 console.log(userID);
                 console.log(deckName);
+                
                 // Deck.find({ deckName: deckName, userID: userID })
                 //         .then((foundDeck) => {console.log(foundDeck)})
                 //             .save();
@@ -50,7 +53,7 @@ module.exports = (upload) => {
                     {$push: {imageID: cardID} },
                     function (err, success) {
                         if(err) {
-                            console.log(err + " was the erro");
+                            console.log(err + " was the error");
                         } else {
                             console.log(success);
                         };
@@ -213,6 +216,8 @@ module.exports = (upload) => {
     */
    router.route('/file/del').delete((req, res, next) => {
        console.log('deleting file: ' + req.query.id);
+
+       //TODO: remove fileID from mongo deck storage!!! 
     
        gfs.delete(new mongoose.Types.ObjectId(req.query.id),
        (err, data) => {
