@@ -127,7 +127,7 @@ module.exports = (upload) => {
                                     function() { // done
                                         var fbuf = Buffer.concat(bufs);
                                         var base64 = (fbuf.toString('base64'));
-                                        fileArray.push({base64: base64, id: file._id});
+                                        fileArray.push({base64: base64, id: file._id, fileName: file.filename});
                                         fileProcessCounter++; 
                                         if(fileProcessCounter === files.length) {
                                             console.log("file array sent")
@@ -170,7 +170,7 @@ module.exports = (upload) => {
     });
 
     /* 
-        GET: Fetches a particular image and render on browser
+        GET: Fetches a particular image and render on browser - !!!!!   NOT USED   !!!!!
     */
    router.route('/image/:filename').get((req, res, next) => {
        gfs.find({ filename: req.params.filename }).toArray((err, files) => {
@@ -325,7 +325,7 @@ module.exports = (upload) => {
         .then((Deck) => deckList = Deck)
 
         if (deckList.length != 0) {
-            //TODO: send error to user
+            //Duplicate deckname check also perfomred in front end
             res.status(500).json({
                 message: 'Deck already exists'
             });
@@ -358,7 +358,12 @@ module.exports = (upload) => {
             .catch((error) => console.log(error));
     });
 
-       /*
+    /*
+        Sort cards by filename
+    */
+
+
+    /*
         DEV TOOLS ---
     */
 

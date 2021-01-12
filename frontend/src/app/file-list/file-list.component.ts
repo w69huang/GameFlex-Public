@@ -1,4 +1,4 @@
-import { Component, OnInit, EventEmitter, Input, ComponentFactoryResolver } from '@angular/core';
+import { Component, OnInit, EventEmitter, Input, ComponentFactoryResolver, ViewEncapsulation } from '@angular/core';
 import { FileService } from '../services/file.service';
 import { Observable } from 'rxjs';
 import { MiddleWare } from '../services/middleware';  
@@ -13,7 +13,8 @@ class fileObject {
 @Component({
   selector: 'app-file-list',
   templateUrl: './file-list.component.html',
-  styleUrls: ['./file-list.component.scss']
+  styleUrls: ['./file-list.component.scss'],
+  encapsulation: ViewEncapsulation.None
 })
 export class FileListComponent implements OnInit {
 
@@ -21,6 +22,7 @@ public fileList$: fileObject[] = [];
 
 //deckName emitter receiver
 @Input() private deckNameEmitter: EventEmitter<string> = new EventEmitter<string>(); 
+
 
 
  constructor(private fileService: FileService, private middleWare: MiddleWare, private cfr: ComponentFactoryResolver) { }
@@ -49,20 +51,35 @@ public fileList$: fileObject[] = [];
    });
  }
 
- public renderImages(imageArray: {base64: string, id: string}[]): void {
+ public renderImages(imageArray: {base64: string, id: string, fileName: string}[]): void {
+   //TODO : Toggle sort by filename (and others (?))
+  imageArray.sort((a, b) => (a.fileName > b.fileName) ? 1: (b.fileName > a.fileName) ? -1 :0);
   imageArray.forEach((image: {base64: string, id: string}) => {
-    var outputImage: HTMLImageElement = document.createElement('img');
-     outputImage.height = 200;
-     outputImage.width = 200; 
-     outputImage.src = 'data:image/jpg;base64,'+ image.base64;
 
-     var imageDisplayContainer: HTMLDivElement = document.createElement('div'); 
+    var outputImage: HTMLImageElement = document.createElement('img');
+     outputImage.src = 'data:image/jpg;base64,'+ image.base64;
+     outputImage.classList.add('stdThumbnail');
+     outputImage.onclick = () => {
+       if(outputImage.width === 100){
+         //image is currently small
+         outputImage.classList.remove('stdThumbnail');
+         outputImage.classList.add('lrgThumbnail');
+       }
+       else {
+         //image is currently large
+        outputImage.classList.add('stdThumbnail');
+        outputImage.classList.remove('lrgThumbnail');
+       }
+     }
+
+    var imageDisplayContainer: HTMLDivElement = document.createElement('div'); 
      imageDisplayContainer.setAttribute('id', `imageDisplayContainer-${image.id}`);
      imageDisplayContainer.appendChild(outputImage);
      imageDisplayContainer.style.setProperty('position', 'relative');
+     imageDisplayContainer.style.setProperty('margin', '5px');
      
 
-     var deleteImage: HTMLImageElement = document.createElement('img');
+    var deleteImage: HTMLImageElement = document.createElement('img');
      deleteImage.setAttribute('id', 'deleteIconDisplay');
      deleteImage.height = 20;
      deleteImage.width = 20;
@@ -70,13 +87,14 @@ public fileList$: fileObject[] = [];
      deleteImage.style.setProperty('position', 'absolute');
      deleteImage.style.setProperty('top', '10px');
      deleteImage.style.setProperty('left', '10px');
-    deleteImage.onclick = () => {
+     deleteImage.onclick = () => {
       this.remove(image.id);
     };
      
      imageDisplayContainer.appendChild(deleteImage);
      document.getElementById("deckDisplayContainer").appendChild(imageDisplayContainer);
   });
+  document.getElementById('loadingText').style.display = "none";
  } 
 
  public htmlToElement(html) {
@@ -87,6 +105,7 @@ public fileList$: fileObject[] = [];
  }
 
  ngOnInit(): void {
+
   const userID: string = this.middleWare.getUsername(); 
   this.deckNameEmitter.subscribe(deckName => {
     this.fileService.list(deckName, userID).subscribe((data) => {

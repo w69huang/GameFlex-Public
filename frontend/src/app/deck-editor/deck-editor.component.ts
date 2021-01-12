@@ -21,6 +21,7 @@ class deckObject {
 })
 export class DeckEditorComponent implements OnInit {
   @ViewChild("fileUpload", {static: false}) fileUpload: ElementRef; files = []
+  @ViewChild('errorsDiv') errorsDiv: ElementRef;
 
   public deckList$: deckObject[] = [];
 
@@ -40,6 +41,16 @@ export class DeckEditorComponent implements OnInit {
 
   //TEST THIS! DEC 15th
   createDeck(deckName: string) {
+    if(deckName === ""){
+      this.errorsDiv.nativeElement.innerHTML = "Please enter a deck name.";
+      return 0;
+    };
+
+    //check for duplicate deck name
+    if(this.deckList$.some(el => el.deckName === deckName)){
+      this.errorsDiv.nativeElement.innerHTML = "A deck of this name already exists.";
+      return 0; 
+    };
     const username: string = this.middleWare.getUsername();
     this.deckService.createDeck(username, deckName).subscribe((data: {message: string, deck: deckObject}) => {
       if(data.deck){ 
@@ -53,7 +64,7 @@ export class DeckEditorComponent implements OnInit {
 
     let dialogRef = this.dialog.open(UploadCardsPopupComponent, {
       height: '70%',
-      width: '70%',
+      width: '75%',
       data: { 
         deckNameData: deckName,
         userID: username
@@ -69,8 +80,6 @@ export class DeckEditorComponent implements OnInit {
       });
     });
    }
-
-  findExistingDeck(name: string) { }
 
   public deleteDeck(deckName: string) {
     const username: string = this.middleWare.getUsername();

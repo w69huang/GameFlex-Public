@@ -7,7 +7,12 @@
         {{fileObject.data.name}}&nbsp;&nbsp;
         <span (click)="removeStagedCard(fileObject.data)">Remove</span>
     </li>
-</ul>  
+</ul> 
+
+<app-file-list
+[deckNameEmitter] = "deckNameEmitter"
+></app-file-list>
+
 <div class="actions" mat-dialog-actions>
     <mat-card>
         <button mat-button (click)="cancel()">Cancel</button>
@@ -22,6 +27,3 @@
 <input type="file" #fileUpload id="fileUpload" name="fileUpload" multiple="multiple" accept="image/*" style="display:none;" />
 
 
-<app-file-list
-[deckNameEmitter] = "deckNameEmitter"
-></app-file-list>

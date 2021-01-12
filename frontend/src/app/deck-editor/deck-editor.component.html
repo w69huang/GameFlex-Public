@@ -6,20 +6,12 @@
     <div>
         <button mat-button (click)="createDeck(newDeckName.value)">Go!</button>
     </div>
+    <div #errorsDiv id="errorsDiv"></div>
 
 
     <!--<button class="btn btn-primary center" mat-button (click)="createDeck()">Create Deck</button>
     -->
 
-
-    <h1 class="center">Find Exisiting Deck:</h1>
-    <div>
-        <input matInput #existingDeckName placeholder="deck name" required />
-    </div>
-    <div>
-        <button mat-button (click)="findExistingDeck(existingDeckName.value)">Go!</button>
-    </div>
-    <div #errorsDiv id="errorsDiv"></div>
 </mat-card>
 
 <!-- <app-deck-list></app-deck-list> -->
