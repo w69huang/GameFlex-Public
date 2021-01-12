@@ -346,7 +346,7 @@ export default class GameState {
             return object.id !== refObject.id;
         });
 
-        this.delay(this.saveToCache());
+        this.delay(() => { this.saveToCache(); });
         return objectListToFilter;
     }
 
@@ -399,9 +399,9 @@ export default class GameState {
       * Used to delay function execution by a certain amount of time
       * @param func - The function to delay execution of
       */
-    public delay(func: void) {
+    public delay(functionCallback: () => void) {
         if (this.cachingEnabled) {
-            setTimeout(() => { func }, 200);
+            setTimeout(() => { functionCallback(); }, 200);
         }
     }
 
@@ -522,7 +522,7 @@ export default class GameState {
         this.setCachingEnabled(true);
 
         if (!undo) {
-            this.delay(this.saveToCache());
+            this.delay(() => { this.saveToCache(); });
         }
     }
 
@@ -591,7 +591,7 @@ export default class GameState {
      */
     public addCardToTable(card: Card): void {
         this._cards.push(card);
-        this.delay(this.saveToCache());
+        this.delay(() => { this.saveToCache(); });
     }
 
     /**
@@ -610,7 +610,7 @@ export default class GameState {
             }
         }
 
-        this.delay(this.saveToCache());
+        this.delay(() => { this.saveToCache(); });
     }
 
     /**
@@ -619,7 +619,7 @@ export default class GameState {
      */
     public addDeckToTable(deck: Deck): void {
         this._decks.push(deck);
-        this.delay(this.saveToCache());
+        this.delay(() => { this.saveToCache(); });
     }
 
     /**
@@ -659,7 +659,7 @@ export default class GameState {
 
             card.inHand = true;
     
-            this.delay(this.saveToCache());
+            this.delay(() => { this.saveToCache(); });
         }
     }
 
@@ -686,7 +686,7 @@ export default class GameState {
                 card.gameObject = null;
             }
 
-            this.delay(this.saveToCache());
+            this.delay(() => { this.saveToCache(); });
         }
     }
 
@@ -733,7 +733,7 @@ export default class GameState {
     
                 card.inHand = false;
         
-                this.delay(this.saveToCache());
+                this.delay(() => { this.saveToCache(); });
             }
         }
     }
@@ -759,7 +759,7 @@ export default class GameState {
                 deck.cards = this.filterOutID(deck.cards, card);
                 card.inDeck = false;
 
-                this.delay(this.saveToCache());
+                this.delay(() => { this.saveToCache(); });
             }
             card.x = deck.x;
             card.y = deck.y;
@@ -859,7 +859,7 @@ export default class GameState {
                     this.addCardToOwnHand(card);
                     return { overlapType: EOverlapType.HAND };
                 }
-                this.delay(this.saveToCache());
+                this.delay(() => { this.saveToCache(); });
                 return { overlapType: EOverlapType.ALREADYINHAND };
             } else {
                 for (let i: number = 0; i < this._decks.length; i++) {
@@ -882,12 +882,12 @@ export default class GameState {
                 this.removeCardFromOwnHand(card.id);
                 return { overlapType: EOverlapType.TABLE, wasInHand: true };
             } else {
-                this.delay(this.saveToCache());
+                this.delay(() => { this.saveToCache(); });
                 return { overlapType: EOverlapType.TABLE, wasInHand: false };
             }
         } else {
             const deck: Deck = this.getDeckByID(id);
-            this.delay(this.saveToCache());
+            this.delay(() => { this.saveToCache(); });
 
             return { overlapType: EOverlapType.TABLE };
         }
@@ -909,7 +909,7 @@ export default class GameState {
         
         if (deck) {
             deck.cards = cardList;
-            this.delay(this.saveToCache());
+            this.delay(() => { this.saveToCache(); });
         }
     }
 
@@ -931,7 +931,7 @@ export default class GameState {
             card.gameObject.input.hitArea.setTo(0, 0, card.gameObject.width, card.gameObject.height);
             card.flippedOver = !card.flippedOver;
 
-            this.delay(this.saveToCache());
+            this.delay(() => { this.saveToCache(); });
 
             if (!(this.amHost && card.inHand)) {
                 this.sendPeerData(
@@ -1054,7 +1054,7 @@ export default class GameState {
                     let card: Card = new Card(cardMin.id, cardMin.imagePath, cardMin.x, cardMin.y, cardMin.flippedOver, true);
                     HF.createCard(card, playspaceComponent, HF.EDestination.HAND, cardMin.depth);
                 });
-                CoA.replaceCounters(receivedGameState.counters, playspaceComponent.counterActionOutputEmitter, this, null, true);
+                CoA.replaceCounters(receivedGameState.counters, playspaceComponent.counterActionOutputEmitter, this, null);
         
                 document.getElementById('loading').style.display = "none";
                 document.getElementById('loadingText').style.display = "none";
@@ -1106,7 +1106,7 @@ export default class GameState {
                 }
         
                 if (data.extras.finishedMoving) { // If they have finished moving a card/deck, save to cache
-                    this.delay(this.saveToCache());
+                    this.delay(() => { this.saveToCache(); });
                 }
                 break;
         
@@ -1309,7 +1309,7 @@ export default class GameState {
                     }
                     card.flippedOver = data.extras.flippedOver;
         
-                    this.delay(this.saveToCache());
+                    this.delay(() => { this.saveToCache(); });
         
                     if (this.amHost) {
                         this.sendPeerData(

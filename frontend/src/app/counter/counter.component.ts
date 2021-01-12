@@ -77,11 +77,6 @@ export class CounterComponent implements OnInit {
           break;
         case ECounterActions.replaceCounters:
           this.counters = counterActionObject.counters;
-          this.counters.forEach((counter: Counter) => {
-            if (counter.id > this.highestCounterID) {
-              this.highestCounterID = counter.id;
-            }
-          });
           break;
         default:
           break;
@@ -100,6 +95,11 @@ export class CounterComponent implements OnInit {
 
     dialogRef.afterClosed().subscribe((counterInitData: CounterInitData) => {
       if (counterInitData) {
+        this.counters.forEach((counter: Counter) => {
+          if (counter.id > this.highestCounterID) {
+            this.highestCounterID = counter.id;
+          }
+        });
         this.highestCounterID++;
         const newCounter: Counter = new Counter(this.highestCounterID, counterInitData.name, parseFloat(counterInitData.defaultValue));
         this.counters.push(newCounter);

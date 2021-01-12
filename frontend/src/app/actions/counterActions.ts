@@ -30,11 +30,9 @@ export function getCounterByID(currentCounterList: Counter[], counterID: number)
  */
 export function addCounter(counterToAdd: Counter, eventEmitter: EventEmitter<CounterActionObject> = null, gameState?: GameState, configEditorComponent?: ConfigEditorComponent, sendToPeers: boolean = false, doNotSendTo: string = ""): void {
     if (gameState) {
-        let counters: Counter[] = [...gameState.counters];
-        counters.push(counterToAdd);
-        gameState.counters = counters;
+        gameState.counters.push(counterToAdd);
         eventEmitter?.emit({ counterAction: ECounterActions.addCounter, counter: counterToAdd });
-        gameState.delay(gameState.saveToCache());
+        gameState.delay(() => { gameState.saveToCache(); });
         if (sendToPeers) {
             gameState.sendPeerData(
                 EActionTypes.sendCounterAction,
@@ -45,7 +43,7 @@ export function addCounter(counterToAdd: Counter, eventEmitter: EventEmitter<Cou
             );
         }
     } else if (configEditorComponent) {
-
+        configEditorComponent.configuration.counters.push(counterToAdd);
     }
 }
 
@@ -60,11 +58,9 @@ export function addCounter(counterToAdd: Counter, eventEmitter: EventEmitter<Cou
  */
 export function removeCounter(counterToRemove: Counter, eventEmitter: EventEmitter<CounterActionObject> = null, gameState?: GameState, configEditorComponent?: ConfigEditorComponent, sendToPeers: boolean = false, doNotSendTo: string = ""): void {
     if (gameState) {
-        let counters: Counter[] = [...gameState.counters];
-        counters = HF.filterOutID(counters, counterToRemove);
-        gameState.counters = counters;
+        gameState.counters = HF.filterOutID(gameState.counters, counterToRemove);
         eventEmitter?.emit({ counterAction: ECounterActions.removeCounter, counter: counterToRemove });    
-        gameState.delay(gameState.saveToCache());
+        gameState.delay(() => { gameState.saveToCache(); });
         if (sendToPeers) {
             gameState.sendPeerData(
                 EActionTypes.sendCounterAction,
@@ -75,7 +71,7 @@ export function removeCounter(counterToRemove: Counter, eventEmitter: EventEmitt
             );
         }
     } else if (configEditorComponent) {
-
+        configEditorComponent.configuration.counters = HF.filterOutID(configEditorComponent.configuration.counters, counterToRemove);
     }
 }
 
@@ -96,7 +92,7 @@ export function changeCounterValue(counterToChange: Counter, eventEmitter: Event
     eventEmitter?.emit({ counterAction: ECounterActions.changeCounterValue, counter: retrievedCounter });
 
     if (gameState) {
-        gameState.delay(gameState.saveToCache());
+        gameState.delay(() => { gameState.saveToCache(); });
         if (sendToPeers) {
             gameState.sendPeerData(
                 EActionTypes.sendCounterAction,
@@ -106,8 +102,6 @@ export function changeCounterValue(counterToChange: Counter, eventEmitter: Event
                 [doNotSendTo]
             );
         }
-    } else if (configEditorComponent) {
-
     }
 }
     
@@ -124,7 +118,7 @@ export function replaceCounters(countersToReplaceWith: Counter[], eventEmitter: 
     if (gameState) {
         gameState.counters = [...countersToReplaceWith];
         eventEmitter.emit({ counterAction: ECounterActions.replaceCounters, counters: [...gameState.counters] });
-        gameState.delay(gameState.saveToCache());
+        gameState.delay(() => { gameState.saveToCache(); });
         if (sendToPeers) {
             gameState.sendPeerData(
                 EActionTypes.sendCounterAction,
@@ -135,6 +129,6 @@ export function replaceCounters(countersToReplaceWith: Counter[], eventEmitter: 
             );
         }
     } else if (configEditorComponent) {
-
+        configEditorComponent.configuration.counters = [...countersToReplaceWith];
     }
 }
