@@ -3,6 +3,8 @@ import { MatDialog } from '@angular/material/dialog';
 import Counter from '../models/counter';
 import { CreateCounterPopupComponent } from '../popups/create-counter-popup/create-counter-popup.component';
 
+import * as HF from '../helper-functions';
+
 export class CounterInitData {
   name: string;
   id: number;
@@ -60,8 +62,26 @@ export class CounterComponent implements OnInit {
   ngOnInit(): void {
     this.counterActionInputEmitter.subscribe((counterActionObject: CounterActionObject) => {
       switch(counterActionObject.counterAction) {
+        case ECounterActions.addCounter:
+          this.counters.push(counterActionObject.counter);
+          break;
+        case ECounterActions.removeCounter:
+          this.counters = HF.filterOutID(this.counters, counterActionObject.counter);
+          break;
+        case ECounterActions.changeCounterValue:
+          for (let i: number = 0; i < this.counters.length; i++) {
+            if (this.counters[i].id === counterActionObject.counter.id) {
+              this.counters[i] = counterActionObject.counter;
+            }
+          }
+          break;
         case ECounterActions.replaceCounters:
           this.counters = counterActionObject.counters;
+          this.counters.forEach((counter: Counter) => {
+            if (counter.id > this.highestCounterID) {
+              this.highestCounterID = counter.id;
+            }
+          });
           break;
         default:
           break;

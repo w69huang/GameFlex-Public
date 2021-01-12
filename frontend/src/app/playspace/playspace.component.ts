@@ -1,6 +1,7 @@
 import { Component, EventEmitter, Input, OnInit, Output } from '@angular/core';
-import { DataConnection } from 'peerjs';
 import { Router } from '@angular/router';
+import { MatDialog } from '@angular/material/dialog';
+import { DataConnection } from 'peerjs';
 import Peer from 'peerjs';
 import Phaser from 'phaser';
 
@@ -9,15 +10,15 @@ import { OnlineGamesService } from '../services/online-games.service';
 import { SavedGameStateService } from '../services/saved-game-state.service';
 import { MiddleWare } from '../services/middleware';
 import { LoadGameStatePopupComponent } from '../popups/load-game-state-popup/load-game-state-popup.component';
+import { ECounterActions, CounterActionObject } from '../counter/counter.component';
 
 import GameState, { EActionTypes } from '../models/gameState';
 import PlayerData from '../models/playerData';
 import SavedGameState from '../models/savedGameState';
 import OnlineGame from '../models/onlineGame';
 import PlayspaceScene from '../models/phaser-scenes/playspaceScene';
-import { MatDialog } from '@angular/material/dialog';
-import { ECounterActions, CounterActionObject } from '../counter/counter.component';
-import Counter from '../models/counter';
+
+import * as CoA from '../actions/counterActions';
 
 @Component({
   selector: 'app-playspace',
@@ -198,15 +199,15 @@ export class PlayspaceComponent implements OnInit {
     this.counterActionInputEmitter.subscribe((counterActionObject: CounterActionObject) => {
       switch (counterActionObject.counterAction) {
         case ECounterActions.addCounter:
-          this.gameState.addCounter(counterActionObject.counter);
+          CoA.addCounter(this.gameState, counterActionObject.counter, null, true);
           break;
         
         case ECounterActions.removeCounter:
-          this.gameState.removeCounter(counterActionObject.counter);
+          CoA.removeCounter(this.gameState, counterActionObject.counter, null, true);
           break;
 
         case ECounterActions.changeCounterValue:
-          this.gameState.changeCounterValue(counterActionObject.counter);
+          CoA.changeCounterValue(this.gameState, counterActionObject.counter, null, true);
           break;
           
         default:

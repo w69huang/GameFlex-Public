@@ -9,6 +9,7 @@ import DeckMin from './deckMin';
 import * as HF from '../helper-functions';
 import * as SA from '../actions/sharedActions';
 import * as DA from '../actions/deckActions';
+import * as CoA from '../actions/counterActions';
 import { PlayspaceComponent } from '../playspace/playspace.component';
 import { DataConnection } from 'peerjs';
 import SentGameState from './sentGameState';
@@ -33,7 +34,8 @@ export enum EActionTypes {
     updateRenderOrder = "updateRenderOrder",
     flipCard = "flipCard",
     shuffleDeck = "shuffleDeck",
-    confirmUndo = "confirmUndo"
+    confirmUndo = "confirmUndo",
+    sendCounterAction = "sendCounterAction"
 }
 
 /**
@@ -84,6 +86,7 @@ export class GameObjectExtraProperties {
     highestDepth?: number;
     flippedOver?: boolean;
     undo?: boolean;
+    counterActionObject?: CounterActionObject;
 }
 
 /**
@@ -248,6 +251,15 @@ export default class GameState {
     }
 
     /**
+     * A public accessor to set all counters
+     * @param counters - The counters that the contents of the private _counters variable are being replaced with
+     * Note: Setting this directly will NOT cache data, so ensure that caching happens where it is being set!
+     */
+    public set counters(counters: Counter[]) {
+        this._counters = counters;
+    } 
+
+    /**
      * My player ID
      */
     public playerID: number = null;
@@ -343,7 +355,7 @@ export default class GameState {
      * @param connectionListToFilter - The connection list to remove connections from
      * @param connection - The connection to be removed
      */
-    filterOutPeer(connectionListToFilter: DataConnection[], connection: DataConnection): DataConnection[] {
+    private filterOutPeer(connectionListToFilter: DataConnection[], connection: DataConnection): DataConnection[] {
         return connectionListToFilter.filter( (refConnection: DataConnection) => {
           return connection.peer !== refConnection.peer;
         });
@@ -499,7 +511,7 @@ export default class GameState {
                 }
             });
         }
-        this.replaceCounters(gameStateMin.counters, playspaceComponent.counterActionOutputEmitter);
+        CoA.replaceCounters(this, gameStateMin.counters, playspaceComponent.counterActionOutputEmitter, true);
     
         this.highestDepth = highestDepth;
         this.sendGameStateToPeers(undo > 0 ? true : false);
@@ -649,14 +661,6 @@ export default class GameState {
         }
     }
 
-    /**
-     * Used to add a counter to the overall counters array
-     * @param counter - The counter to add
-     */
-    public addCounter(counter: Counter): void {
-        this._counters.push(counter);
-        this.delay(this.saveToCache());
-    }
 
     /**
      * ======================================
@@ -730,14 +734,6 @@ export default class GameState {
                 this.delay(this.saveToCache());
             }
         }
-    }
-
-    /**
-     * Used to remove a counter
-     * @param counter - The counter to remove
-     */
-    public removeCounter(counter: Counter) {
-        this._counters = this.filterOutID(this._counters, counter);
     }
 
     /**
@@ -896,18 +892,6 @@ export default class GameState {
     }
 
     /**
-     * Used to get a counter by its ID
-     * @param counterID - The ID to get the counter by
-     */
-    public getCounterByID(counterID: number) {
-        for (let i: number = 0; i < this._counters.length; i++) {
-            if (counterID === this._counters[i].id) {
-                return this._counters[i];
-            }
-        }
-    }
-
-    /**
      * ======================================
      * Game Objects - Modification
      * ======================================
@@ -925,29 +909,6 @@ export default class GameState {
             deck.cards = cardList;
             this.delay(this.saveToCache());
         }
-    }
-
-    /**
-     * Used to replace existing counters with the current counters
-     * @param counters - The counters to replace the current ones with
-     * @param eventEmitter - The 
-     */
-    public replaceCounters(counters: Counter[], eventEmitter: EventEmitter<CounterActionObject>): void {
-        this._counters = counters;
-        this.delay(this.saveToCache());
-        eventEmitter.emit({ counterAction: ECounterActions.replaceCounters, counters: [...this._counters] });
-    }
-
-    /**
-     * Used to change a counter's value
-     * @param counter - The ID of the counter to change
-     */
-    public changeCounterValue(counter: Counter): void {
-        const retrievedCounter: Counter = this.getCounterByID(counter.id);
-        retrievedCounter.value = counter.value;
-        retrievedCounter.minValue = counter.minValue;
-        retrievedCounter.maxValue = counter.maxValue;
-        this.delay(this.saveToCache());
     }
 
     /**
@@ -1091,6 +1052,7 @@ export default class GameState {
                     let card: Card = new Card(cardMin.id, cardMin.imagePath, cardMin.x, cardMin.y, cardMin.flippedOver, true);
                     HF.createCard(card, playspaceComponent, HF.EDestination.HAND, cardMin.depth);
                 });
+                CoA.replaceCounters(this, receivedGameState.counters, playspaceComponent.counterActionOutputEmitter, true);
         
                 document.getElementById('loading').style.display = "none";
                 document.getElementById('loadingText').style.display = "none";
@@ -1381,9 +1343,28 @@ export default class GameState {
                     }
                 }
                 break;
+
+            case EActionTypes.sendCounterAction:
+                switch (data.extras.counterActionObject.counterAction) {
+                    case ECounterActions.addCounter:
+                        CoA.addCounter(this, data.extras.counterActionObject.counter, playspaceComponent.counterActionOutputEmitter, this.amHost, data.peerID);
+                        break;
+                    case ECounterActions.removeCounter:
+                        CoA.removeCounter(this, data.extras.counterActionObject.counter, playspaceComponent.counterActionOutputEmitter, this.amHost, data.peerID);
+                        break;
+                    case ECounterActions.changeCounterValue:
+                        CoA.changeCounterValue(this, data.extras.counterActionObject.counter, playspaceComponent.counterActionOutputEmitter, this.amHost, data.peerID);
+                        break;
+                    case ECounterActions.replaceCounters:
+                        CoA.replaceCounters(this, data.extras.counterActionObject.counters, playspaceComponent.counterActionOutputEmitter, this.amHost, data.peerID);
+                        break;
+                    default:
+                        console.log('Error: Receivedd counter action did not match any existing action.');
+                        break;
+                }
         
             default:
-                console.log('Received action did not match any existing action.');
+                console.log('Error: Received action did not match any existing action.');
                 break;
             }
         }
