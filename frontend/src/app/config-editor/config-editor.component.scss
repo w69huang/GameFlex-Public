@@ -1,10 +1,82 @@
-ul,
-li {
-    margin: 0;
-    padding: 0;
-    list-style: none;
+@import '../../main.scss';
+
+.columnContainer {
+    display: flex;
+    column-count: 3;
+
+    .leftSidebar {
+        width: 22%;
+        min-width: 250px;
+
+        .leftSidebarContent {
+            min-width: 230px;
+            margin: 10px;
+
+            .playerList {
+                margin-bottom: 10px;
+            }
+
+            .createObjectContainer, .configContainer {
+                background-color: $themeDarkGray;
+                color: white;
+                margin-top: 10px;
+                text-align: center;
+
+                .buttonsContainer {
+                    display: flex;
+                    flex-direction: column;
+                    background-color: $themeDarkGray;
+
+                    input {
+                        width: 60%;
+                        margin-left: 20%;
+                        margin-bottom: 10px;
+                    }
+                }
+            }
+        }        
+    }
+
+    app-playspace {
+        margin-top: 10px;
+    }
+
+    .rightSidebar {
+        width: 22%;
+        min-width: 250px;
+
+        .rightSidebarContent {
+            min-width: 230px;
+            margin: 10px;
+            height: 100%;
+
+            .chatContainer {
+                background-color: $themeDarkGray;
+                color: white;
+                height: 80%;
+            }
+        }
+    }
 }
 
-.contentContainer {
-    display: flex;
+button {
+    width: 60%;
+    margin-left: 20%;
+    color: white;
+    background-color: $themePurple;
+    border: none;
+    margin-bottom: 10px;
+}
+
+button:focus {
+    color: white;
+    background-color: $themePurple;
+    border: none;
+    box-shadow: none;
+}
+
+button:hover {
+    color: white;
+    background-color: $themeDarkestGray;
+    border: none;
 }

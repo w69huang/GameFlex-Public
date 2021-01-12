@@ -199,15 +199,15 @@ export class PlayspaceComponent implements OnInit {
     this.counterActionInputEmitter.subscribe((counterActionObject: CounterActionObject) => {
       switch (counterActionObject.counterAction) {
         case ECounterActions.addCounter:
-          CoA.addCounter(this.gameState, counterActionObject.counter, null, true);
+          CoA.addCounter(counterActionObject.counter, null, this.gameState, null, true);
           break;
         
         case ECounterActions.removeCounter:
-          CoA.removeCounter(this.gameState, counterActionObject.counter, null, true);
+          CoA.removeCounter(counterActionObject.counter, null, this.gameState, null, true);
           break;
 
         case ECounterActions.changeCounterValue:
-          CoA.changeCounterValue(this.gameState, counterActionObject.counter, null, true);
+          CoA.changeCounterValue(counterActionObject.counter, null, this.gameState, null, true);
           break;
           
         default:

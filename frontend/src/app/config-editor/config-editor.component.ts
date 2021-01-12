@@ -1,7 +1,7 @@
 import { ConfigurationService } from 'src/app/services/configuration.service';
 import { Router, ActivatedRoute } from '@angular/router';
 import { MatDialog } from '@angular/material/dialog';
-import { Component, OnInit } from '@angular/core';
+import { Component, EventEmitter, OnInit } from '@angular/core';
 
 import Phaser from 'phaser';
 import Deck from '../models/deck';
@@ -13,8 +13,10 @@ import ConfigScene from '../models/phaser-scenes/configScene';
 import { CreateCounterPopupComponent } from '../popups/create-counter-popup/create-counter-popup.component';
 import { SaveConfigurationPopupComponent } from '../popups/save-configuration-popup/save-configuration-popup.component';
 import { MiddleWare } from '../services/middleware';
+import { CounterActionObject, ECounterActions } from '../counter/counter.component';
 
-import * as HelperFunctions from '../helper-functions';
+import * as HF from '../helper-functions';
+import * as CoA from '../actions/counterActions';
 
 @Component({
   selector: 'app-config-editor',
@@ -36,6 +38,11 @@ export class ConfigEditorComponent implements OnInit {
   public playerID: number = 1;
 
   configuration: Configuration;
+
+  /**
+   * An emitter used to output counter actions to the counter component
+   */
+  public sendCounterActionEmitter: EventEmitter<CounterActionObject> = new EventEmitter<CounterActionObject>();
 
   constructor(
     private configurationService: ConfigurationService,
@@ -68,6 +75,25 @@ export class ConfigEditorComponent implements OnInit {
 
   ngOnDestroy() {
     this.phaserGame.destroy(true);
+  }
+
+  receiveCounterAction(counterActionObject: CounterActionObject) {
+    switch (counterActionObject.counterAction) {
+      case ECounterActions.addCounter:
+        // CoA.addCounter(this.gameState, counterActionObject.counter, null, true);
+        break;
+      
+      case ECounterActions.removeCounter:
+        // CoA.removeCounter(this.gameState, counterActionObject.counter, null, true);
+        break;
+
+      case ECounterActions.changeCounterValue:
+        // CoA.changeCounterValue(this.gameState, counterActionObject.counter, null, true);
+        break;
+        
+      default:
+        break;
+    }
   }
 
   // API CALLS
@@ -149,7 +175,7 @@ export class ConfigEditorComponent implements OnInit {
    */
   initDeck() {
     let deck: Deck = new Deck(this.highestID++, "assets/images/playing-cards-extras/deck.png", [], 400, 250);
-    HelperFunctions.createDeck(deck, this);
+    HF.createDeck(deck, this);
   }
 
   /**
@@ -228,7 +254,7 @@ export class ConfigEditorComponent implements OnInit {
    this.clearConfig();
 
     configuration.decks.forEach(deck => {
-      HelperFunctions.createDeck(deck, this);
+      HF.createDeck(deck, this);
     });
 
     // Counters are rendered by the html

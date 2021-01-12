@@ -400,7 +400,9 @@ export default class GameState {
       * @param func - The function to delay execution of
       */
     public delay(func: void) {
-        setTimeout(() => { func }, 200);
+        if (this.cachingEnabled) {
+            setTimeout(() => { func }, 200);
+        }
     }
 
     /**
@@ -414,7 +416,7 @@ export default class GameState {
      * Used to save the current game state to the user's local storage
      */
     public saveToCache(): void {
-        if (this.cachingEnabled && this.amHost) {
+        if (this.amHost) {
             this.numCachedMoves++;
             const cachedGameState = new CachedGameState(this);
             localStorage.setItem('cachedGameState', JSON.stringify(cachedGameState)); 
@@ -511,7 +513,7 @@ export default class GameState {
                 }
             });
         }
-        CoA.replaceCounters(this, gameStateMin.counters, playspaceComponent.counterActionOutputEmitter, true);
+        CoA.replaceCounters(gameStateMin.counters, playspaceComponent.counterActionOutputEmitter, this, null, true);
     
         this.highestDepth = highestDepth;
         this.sendGameStateToPeers(undo > 0 ? true : false);
@@ -1052,7 +1054,7 @@ export default class GameState {
                     let card: Card = new Card(cardMin.id, cardMin.imagePath, cardMin.x, cardMin.y, cardMin.flippedOver, true);
                     HF.createCard(card, playspaceComponent, HF.EDestination.HAND, cardMin.depth);
                 });
-                CoA.replaceCounters(this, receivedGameState.counters, playspaceComponent.counterActionOutputEmitter, true);
+                CoA.replaceCounters(receivedGameState.counters, playspaceComponent.counterActionOutputEmitter, this, null, true);
         
                 document.getElementById('loading').style.display = "none";
                 document.getElementById('loadingText').style.display = "none";
@@ -1347,16 +1349,16 @@ export default class GameState {
             case EActionTypes.sendCounterAction:
                 switch (data.extras.counterActionObject.counterAction) {
                     case ECounterActions.addCounter:
-                        CoA.addCounter(this, data.extras.counterActionObject.counter, playspaceComponent.counterActionOutputEmitter, this.amHost, data.peerID);
+                        CoA.addCounter(data.extras.counterActionObject.counter, playspaceComponent.counterActionOutputEmitter, this, null, this.amHost, data.peerID);
                         break;
                     case ECounterActions.removeCounter:
-                        CoA.removeCounter(this, data.extras.counterActionObject.counter, playspaceComponent.counterActionOutputEmitter, this.amHost, data.peerID);
+                        CoA.removeCounter(data.extras.counterActionObject.counter, playspaceComponent.counterActionOutputEmitter, this, null, this.amHost, data.peerID);
                         break;
                     case ECounterActions.changeCounterValue:
-                        CoA.changeCounterValue(this, data.extras.counterActionObject.counter, playspaceComponent.counterActionOutputEmitter, this.amHost, data.peerID);
+                        CoA.changeCounterValue(data.extras.counterActionObject.counter, playspaceComponent.counterActionOutputEmitter, this, null, this.amHost, data.peerID);
                         break;
                     case ECounterActions.replaceCounters:
-                        CoA.replaceCounters(this, data.extras.counterActionObject.counters, playspaceComponent.counterActionOutputEmitter, this.amHost, data.peerID);
+                        CoA.replaceCounters(data.extras.counterActionObject.counters, playspaceComponent.counterActionOutputEmitter, this, null, this.amHost, data.peerID);
                         break;
                     default:
                         console.log('Error: Receivedd counter action did not match any existing action.');
