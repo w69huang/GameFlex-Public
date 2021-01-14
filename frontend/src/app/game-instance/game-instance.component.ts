@@ -25,6 +25,7 @@ export class GameInstanceComponent implements OnInit {
 
   public saveGameStateEmitter: EventEmitter<string> = new EventEmitter<string>();
   public getAllSavedGameStatesEmitter: EventEmitter<SavedGameState> = new EventEmitter<SavedGameState>();
+  public undoGameStateEmitter: EventEmitter<integer> = new EventEmitter<integer>();
 
   constructor(
     private route: ActivatedRoute,
@@ -79,11 +80,13 @@ export class GameInstanceComponent implements OnInit {
     });
   }
 
-  deleteAllSaves() {
-    this.savedGameStateService.deleteAll().subscribe();
+  undo(undoCount: any){
+    if (!isNaN(undoCount)) {
+      this.undoGameStateEmitter.emit(parseInt(undoCount));
+    }
   }
 
-  clearCachedSave() {
-    localStorage.removeItem('cachedGameState');
+  deleteAllSaves() {
+    this.savedGameStateService.deleteAll().subscribe();
   }
 }

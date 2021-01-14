@@ -8,6 +8,8 @@ const config = require('../config');
 const fs = require('fs');
 const { resolve } = require('path');
 
+
+
 module.exports = (upload) => {
     const url = config.mongoURI;
     const connect = mongoose.createConnection(url, {useNewUrlParser: true, useUnifiedTopology: true });
@@ -18,7 +20,9 @@ module.exports = (upload) => {
     let gfs;
 
     //Deck Model
-    let Deck = require('../database/models/userDeck');
+    const UserDeck = require('../database/models/userDeck');
+
+
 
     connect.once('open', () => {
         //initialize Gridfs datastream
@@ -47,7 +51,7 @@ module.exports = (upload) => {
                 console.log(userID);
                 console.log(deckName);
                 
-                Deck.findOneAndUpdate({ deckName: deckName, userID: userID }, 
+                UserDeck.findOneAndUpdate({ deckName: deckName, userID: userID }, 
                     {$push: {imageID: cardID} },
                     function (err, success) {
                         if(err) {
@@ -87,7 +91,7 @@ module.exports = (upload) => {
         let fileArray = [];
         var fileProcessCounter = 0;
         
-        Deck.findOne({ deckName: deckName, userID: userID })
+        UserDeck.findOne({ deckName: deckName, userID: userID })
             .then((currentDeck) => {
 
                 var cardIDs = currentDeck.imageID;
@@ -250,7 +254,7 @@ module.exports = (upload) => {
         var fileProcessCounter = 0;
         console.log("request received to delete " +  deckName + "by user: " + userID);
         //find the deck
-        Deck.findOne({ deckName: deckName, userID: userID })
+        UserDeck.findOne({ deckName: deckName, userID: userID })
             .then((currentDeck) => {
                 //Check that the deck exists
                 if(currentDeck){
@@ -273,7 +277,7 @@ module.exports = (upload) => {
                                 }
                                 fileProcessCounter++; 
                                 if(fileProcessCounter === cardMongoIDs.length) {
-                                    Deck.deleteOne({deckName: deckName, userID: userID}).catch((error) => {
+                                    UserDeck.deleteOne({deckName: deckName, userID: userID}).catch((error) => {
                                         console.log(error);
                                     });
                                     res.status(200).json({
@@ -284,7 +288,7 @@ module.exports = (upload) => {
                             });
                         });
                     } else {
-                        Deck.deleteOne({deckName: deckName, userID: userID}).catch((error) => {
+                        UserDeck.deleteOne({deckName: deckName, userID: userID}).catch((error) => {
                             console.log(error);
                         });
                         res.status(200).json({
@@ -321,8 +325,8 @@ module.exports = (upload) => {
 
         console.log("Creating deck: " + deckName);
 
-        Deck.find({ deckName: deckName, userID: username })
-        .then((Deck) => deckList = Deck)
+        UserDeck.find({ deckName: deckName, userID: username })
+        .then((deck) => deckList = deck)
 
         if (deckList.length != 0) {
             //Duplicate deckname check also perfomred in front end
@@ -330,7 +334,7 @@ module.exports = (upload) => {
                 message: 'Deck already exists'
             });
         } else {
-            const deck = new Deck({
+            const deck = new UserDeck({
                 userID: username,
                 deckName: deckName
             });
@@ -353,7 +357,7 @@ module.exports = (upload) => {
     */
     router.route('/get').post((req, res, next) => {
             const username = req.body.userID;
-            Deck.find({ userID: username })
+            UserDeck.find({ userID: username })
             .then((deckList) => res.send(deckList))
             .catch((error) => console.log(error));
     });
@@ -369,7 +373,7 @@ module.exports = (upload) => {
 
     //deletes all decks from Mongo storage
     router.route('/deleteAllDecks').delete((req, res) => {
-        Deck.deleteMany().then(() => console.log("All decks have been deleted")).catch((err) => {console.log(err)});
+        UserDeck.deleteMany().then(() => console.log("All decks have been deleted")).catch((err) => {console.log(err)});
     });
 
     //deletes all images from GFS storage

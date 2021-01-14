@@ -1,6 +1,6 @@
 <!-- Any component that we are routing to will be displayed within the router-outlet tags -->
 <!-- So essentially what we have is in `index.html` an `app-root` selector, which pulls in `app.component.html`, which contains the `router-outlet`, which will display routed-to content -->
-<mat-toolbar color = "primary">
+<mat-toolbar>
     <mat-toolbar-row>
         <h1>
             GameFlex
@@ -8,6 +8,7 @@
         <a mat-button routerLink="/playspace">Play Space</a>
         <a mat-button routerLink="/gameInstance">Game Instance</a>
         <a mat-button routerLink="/deckEditor">Deck Editor</a>
+        <a mat-button routerLink="/configeditor">Config Editor</a>
         <a mat-button routerLink="/gameBrowser">Game Browser</a>
         <a mat-button routerLink="/joinByCode">Join By Code</a>
         <span class="spacer"></span>

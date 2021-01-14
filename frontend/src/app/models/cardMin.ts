@@ -5,11 +5,15 @@ export default class CardMin {
     imagePath: string;
     x: number;
     y: number;
+    flippedOver: boolean;
+    depth: number;
 
     constructor(card: Card) {
         this.id = card.id;
         this.imagePath = card.imagePath;
         this.x = card.x;
         this.y = card.y;
+        this.flippedOver = card.flippedOver;
+        this.depth = card.gameObject ? card.gameObject.depth : 0;
     }
 }

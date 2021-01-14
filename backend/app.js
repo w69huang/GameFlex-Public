@@ -21,15 +21,22 @@ const onlineGamesRoutes = require('./controllers/online-games.controller');
 const userRoutes = require('./controllers/mysql.user.controllers');
 const savedGameStateRoutes = require('./controllers/saved-game-state.controller');
 const deckEditorRoutes = require('./controllers/deck-editor.controller');
+const configurationRoutes = require('./controllers/configuration.controller');
 const { fail } = require('assert');
+
 
 // allows our app to use json data
 app.use(express.json())
+app.use(bodyParser.urlencoded({ extended: false })); // Parses urlencoded bodies
+app.use(bodyParser.json()); // Send JSON responses
 
 // Allows use to parse application/json type post data
 mysqlapp.use(bodyParser.json());
 mysqlapp.use(bodyParser.urlencoded({extended:true}));
 mysqlapp.use(cors());
+
+
+
 
 /*
     CORS: Cross-origin resource sharing
@@ -58,6 +65,7 @@ mysqlapp.use('/user', userRoutes);
 mysqlapp.use('/online-games', onlineGamesRoutes);
 app.use('/saved-game-state', savedGameStateRoutes);
 app.use('/deck-editor', deckEditorRoutes);
+app.use('/configuration', configurationRoutes);
 
 //GridFS config -- create storage engine
 const storage = new GridFsStorage({

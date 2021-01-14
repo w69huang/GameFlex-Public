@@ -10,6 +10,8 @@
                 <input required (ngModel)="username" name="username" #username="ngModel" id="username" class="form-control" type="text">
                 <div class="alert alert-danger" *ngIf="!username.valid && username.touched">Username Required!</div>
                 <div class="alert alert-danger" *ngIf="userExists" >Username Exists!</div>
+                <div class="alert alert-danger" *ngIf="invalidUser"> Invalid Username! Please make sure usernames are at least 3 character.</div>
+
             </div>
             <br>
             <div>
@@ -17,6 +19,7 @@
                 <input required (ngModel)="password" name="password" #password="ngModel" id="password" class="form-control" type="password">
                 <div class="alert alert-danger" *ngIf="!password.valid && password.touched">Password Required!</div>
                 <div class="alert alert-danger" *ngIf="!passwordMatch" >Passwords Don't Match!</div>
+                <div class="alert alert-danger" *ngIf="invalidPwd"> Invalid Password! Please make sure passwords are at least 8 characters.</div>
             </div>
             <br>
             <div>
@@ -24,6 +27,7 @@
                 <input required (ngModel)="confirmPassword" name="confirmPassword" #confirmedPassword="ngModel" id="confirmPassword" class="form-control" type="password">
                 <div class="alert alert-danger" *ngIf="!confirmedPassword.valid && confirmedPassword.touched">Confirm Password!</div>
                 <div class="alert alert-danger" *ngIf="!passwordMatch" >Passwords Don't Match!!</div>
+                <div class="alert alert-danger" *ngIf="invalidPwd"> Invalid Password! Please make sure passwords are at least 8 characters.</div>
             </div>
             <br>
             <div>
@@ -35,6 +39,6 @@
         </form>         
     </mat-card-content>
     <mat-card-actions>
-        <button (click)="onSubmit(signupForm)" type="button submit" class="btn btn-primary" >Register</button>
+        <button (click)="onSubmit(signupForm)" type="button submit" class="btn" >Register</button>
     </mat-card-actions>
  </mat-card>

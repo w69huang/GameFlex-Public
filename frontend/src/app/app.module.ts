@@ -34,12 +34,18 @@ import { UsersService } from './services/users.service';
 import { SaveGameStatePopupComponent } from './popups/save-game-state-popup/save-game-state-popup.component';
 import { RetrieveGameStatePopupComponent } from './popups/retrieve-game-state-popup/retrieve-game-state-popup.component';
 import { NgxMatSelectSearchModule } from 'ngx-mat-select-search';
+import { AuthGuard } from './services/auth-guard';
 import { JoinByCodeComponent } from './join-by-code/join-by-code.component';
 import { GameInstanceComponent } from './game-instance/game-instance.component';
 import { LoadGameStatePopupComponent } from './popups/load-game-state-popup/load-game-state-popup.component';
 import { UploadCardsPopupComponent } from './popups/create-deck-popup/upload-cards-popup.component';
 import { FontAwesomeModule } from '@fortawesome/angular-fontawesome';
 import { CardLargeThumbnailPopupComponent } from './popups/card-large-thumbnail-popup/card-large-thumbnail-popup.component';
+import { UndoGameStatePopupComponent } from './popups/undo-game-state-popup/undo-game-state-popup.component';
+import { CreateCounterPopupComponent } from './popups/create-counter-popup/create-counter-popup.component';
+import { ConfigEditorComponent } from './config-editor/config-editor.component';
+import { SaveConfigurationPopupComponent } from './popups/save-configuration-popup/save-configuration-popup.component';
+
 
 @NgModule({
   declarations: [
@@ -66,6 +72,11 @@ import { CardLargeThumbnailPopupComponent } from './popups/card-large-thumbnail-
     LoadGameStatePopupComponent,
     UploadCardsPopupComponent,
     CardLargeThumbnailPopupComponent,
+    CreateCounterPopupComponent,
+    LoadGameStatePopupComponent,
+    UndoGameStatePopupComponent,
+    ConfigEditorComponent,
+    SaveConfigurationPopupComponent,
   ],
   imports: [
     BrowserModule,
@@ -87,9 +98,11 @@ import { CardLargeThumbnailPopupComponent } from './popups/card-large-thumbnail-
     CommonModule
   ],
   entryComponents: [
+    SaveConfigurationPopupComponent,
     GameBrowserPopupComponent,
     GameSetupPopupComponent,
     SaveGameStatePopupComponent,
+    CreateCounterPopupComponent,
     RetrieveGameStatePopupComponent,
     LoadGameStatePopupComponent,
     UploadCardsPopupComponent,
@@ -98,7 +111,8 @@ import { CardLargeThumbnailPopupComponent } from './popups/card-large-thumbnail-
   ],
   providers: [
     MiddleWare, 
-    UsersService
+    UsersService,
+    AuthGuard
   ],
   bootstrap: [AppComponent]
 })

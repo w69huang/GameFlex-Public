@@ -31,11 +31,11 @@ export default class PlayspaceScene extends Phaser.Scene {
       }
   
       this.initialCardList.forEach(card => {
-        HelperFunctions.createCard(card, this.playspaceComponent, SharedActions.onDragMove, SharedActions.onDragEnd, HelperFunctions.DestinationEnum.TABLE, card.x, card.y);
+        HelperFunctions.createCard(card, this.playspaceComponent, HelperFunctions.EDestination.TABLE);
       });
   
       this.initialDeckList.forEach(deck => {
-        HelperFunctions.createDeck(deck, this.playspaceComponent, SharedActions.onDragMove, SharedActions.onDragEnd, DeckActions.deckRightClick, deck.x, deck.y);
+        HelperFunctions.createDeck(deck, this.playspaceComponent);
       });
       
       this.events.once('update', () => {
@@ -44,12 +44,9 @@ export default class PlayspaceScene extends Phaser.Scene {
     }
   
     preload() {
-      this.initialCardList = [new Card(this.playspaceComponent.highestID++, "assets/images/playing-cards/ace_of_spades.png", 250, 250),
-      new Card(this.playspaceComponent.highestID++, "assets/images/playing-cards/ace_of_clubs.png", 550, 250),
-      new Card(this.playspaceComponent.highestID++, "assets/images/playing-cards/ace_of_hearts.png", 250, 350),
-      new Card(this.playspaceComponent.highestID++, "assets/images/playing-cards/ace_of_diamonds.png", 550, 350)];
+      this.initialCardList = [];
 
-      this.initialDeckList = [new Deck(this.playspaceComponent.highestID++, "assets/images/playing-cards/deck.png", [], 400, 250)];
+      this.initialDeckList = [new Deck(this.playspaceComponent.highestID++, "assets/images/playing-cards-extras/deck.png", [], 400, 250)];
 
       this.initialCardList.forEach(card => {
         this.load.image(card.imagePath, card.imagePath);
@@ -58,6 +55,7 @@ export default class PlayspaceScene extends Phaser.Scene {
         this.load.image(deck.imagePath, deck.imagePath);
       });
       this.load.image('grey-background', 'assets/images/backgrounds/grey.png');
+      this.load.image('flipped-card', 'assets/images/playing-cards-extras/flipped-card.png');
     }
   }
   

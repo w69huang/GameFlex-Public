@@ -1,3 +1,5 @@
+@import '../../main.scss';
+
 .columnContainer {
     display: flex;
     column-count: 3;
@@ -10,21 +12,22 @@
             min-width: 230px;
             margin: 10px;
 
-            .playerList {
-                background-color: #363636;
+            .playerList, .saveContainer, .undoContainer {
+                background-color: $themeDarkGray;
                 color: white;
                 margin-bottom: 10px;
-            }
-    
-            .saveButtonsContainer {
-                display: flex;
-                flex-direction: column;
-                background-color: #363636;
-    
-                div {
-                    width: 70%;
-                    margin-left: 15%;
-                    margin-bottom: 10px;
+                text-align: center;
+
+                .buttonsContainer {
+                    display: flex;
+                    flex-direction: column;
+                    background-color: $themeDarkGray;
+
+                    input {
+                        width: 60%;
+                        margin-left: 20%;
+                        margin-bottom: 10px;
+                    }
                 }
             }
         }        
@@ -44,12 +47,31 @@
             height: 100%;
 
             .chatContainer {
-                background-color: #363636;
+                background-color: $themeDarkGray;
                 color: white;
                 height: 80%;
             }
         }
-
-
     }
+}
+
+button {
+    width: 60%;
+    margin-left: 20%;
+    color: white;
+    background-color: $themePurple;
+    border: none;
+    margin-bottom: 10px;
+}
+
+button:focus {
+    color: white;
+    border: none;
+    box-shadow: none;
+}
+
+button:hover {
+    color: white;
+    background-color: $themeDarkestGray;
+    border: none;
 }
