@@ -22,17 +22,4 @@
                 <span (click)="editDeck(deckData.deckName)">Edit Deck</span>&nbsp;
                 <span (click)="deleteDeck(deckData.deckName)">Delete Deck</span>
               </li>
-        </ul>  
-
-<div style="text-align:center; margin-top: 100px; "><mat-card style="margin-top:10px; width: 50%;">  
-    <mat-card-content>  
-        <ul>  
-            <li *ngFor="let file of files">  
-                <mat-progress-bar [value]="file.progress"></mat-progress-bar>  
-                <span id="file-label">  
-                      
-                </span>  
-            </li>  
         </ul>
-    </mat-card-content>  
-</mat-card>

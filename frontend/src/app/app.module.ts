@@ -39,6 +39,7 @@ import { GameInstanceComponent } from './game-instance/game-instance.component';
 import { LoadGameStatePopupComponent } from './popups/load-game-state-popup/load-game-state-popup.component';
 import { UploadCardsPopupComponent } from './popups/create-deck-popup/upload-cards-popup.component';
 import { FontAwesomeModule } from '@fortawesome/angular-fontawesome';
+import { CardLargeThumbnailPopupComponent } from './popups/card-large-thumbnail-popup/card-large-thumbnail-popup.component';
 
 @NgModule({
   declarations: [
@@ -64,6 +65,7 @@ import { FontAwesomeModule } from '@fortawesome/angular-fontawesome';
     GameInstanceComponent,
     LoadGameStatePopupComponent,
     UploadCardsPopupComponent,
+    CardLargeThumbnailPopupComponent,
   ],
   imports: [
     BrowserModule,
@@ -91,7 +93,8 @@ import { FontAwesomeModule } from '@fortawesome/angular-fontawesome';
     RetrieveGameStatePopupComponent,
     LoadGameStatePopupComponent,
     UploadCardsPopupComponent,
-    DialogForgotPassword
+    DialogForgotPassword,
+    CardLargeThumbnailPopupComponent
   ],
   providers: [
     MiddleWare, 

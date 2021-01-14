@@ -64,7 +64,7 @@ export class DeckEditorComponent implements OnInit {
 
     let dialogRef = this.dialog.open(UploadCardsPopupComponent, {
       height: '70%',
-      width: '75%',
+      width: '70%',
       data: { 
         deckNameData: deckName,
         userID: username

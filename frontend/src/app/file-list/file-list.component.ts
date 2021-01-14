@@ -3,6 +3,8 @@ import { FileService } from '../services/file.service';
 import { Observable } from 'rxjs';
 import { MiddleWare } from '../services/middleware';  
 import { FaIconComponent } from '@fortawesome/angular-fontawesome';
+import { MatDialog } from '@angular/material/dialog';
+import { CardLargeThumbnailPopupComponent } from '../popups/card-large-thumbnail-popup/card-large-thumbnail-popup.component';
 
 
 class fileObject {
@@ -19,13 +21,14 @@ class fileObject {
 export class FileListComponent implements OnInit {
 
 public fileList$: fileObject[] = [];
+public activelargeThumbnail: HTMLImageElement = null; 
 
 //deckName emitter receiver
 @Input() private deckNameEmitter: EventEmitter<string> = new EventEmitter<string>(); 
 
 
 
- constructor(private fileService: FileService, private middleWare: MiddleWare, private cfr: ComponentFactoryResolver) { }
+ constructor(private fileService: FileService, private middleWare: MiddleWare, private cfr: ComponentFactoryResolver, private dialog: MatDialog) { }
 
  public download(fileName: string):  void {
    //TODO: Dont have this hard coded! File names and ID's should be accesible
@@ -59,17 +62,32 @@ public fileList$: fileObject[] = [];
     var outputImage: HTMLImageElement = document.createElement('img');
      outputImage.src = 'data:image/jpg;base64,'+ image.base64;
      outputImage.classList.add('stdThumbnail');
-     outputImage.onclick = () => {
-       if(outputImage.width === 100){
-         //image is currently small
-         outputImage.classList.remove('stdThumbnail');
-         outputImage.classList.add('lrgThumbnail');
-       }
-       else {
-         //image is currently large
-        outputImage.classList.add('stdThumbnail');
-        outputImage.classList.remove('lrgThumbnail');
-       }
+     outputImage.onclick = () => { 
+      let dialogRef = this.dialog.open(CardLargeThumbnailPopupComponent, {
+        height: '420px',
+        width: '300px',
+        panelClass: 'largeCardThumbnailPopup', 
+        data: { 
+          base64: image.base64 
+        }
+      });
+
+      //  //image is currently small
+      //  if(outputImage.width === 100){
+      //   if(this.activelargeThumbnail) {
+      //     this.activelargeThumbnail.classList.add('stdThumbnail');
+      //     this.activelargeThumbnail.classList.remove('lrgThumbnail');
+      //    }
+      //    this.activelargeThumbnail = outputImage;
+      //    outputImage.classList.remove('stdThumbnail');
+      //    outputImage.classList.add('lrgThumbnail');
+      //  }
+      //  //image is currently large
+      //  else {
+      //   outputImage.classList.add('stdThumbnail');
+      //   outputImage.classList.remove('lrgThumbnail');
+      //   this.activelargeThumbnail = null; 
+      //  } 
      }
 
     var imageDisplayContainer: HTMLDivElement = document.createElement('div'); 
