@@ -134,7 +134,21 @@ export default class GameState {
     /**
      * Whether caching of the game state is enabled
      */
-    private cachingEnabled: boolean = false;
+    private _cachingEnabled: boolean = false;
+
+    /**
+     * A public accessor to get cachingEnabled
+     */
+    public get cachingEnabled(): boolean {
+        return this._cachingEnabled;
+    }
+
+    /**
+     * A method used by the game state and external methods to enable/disable caching
+     */
+    public set cachingEnabled(enable: boolean) {
+        this._cachingEnabled = enable;
+    }
 
     /**
      * A history of saved game states to allow for undoing
@@ -390,17 +404,10 @@ export default class GameState {
     }
 
     /**
-     * A method used by the game state and external methods to enable/disable caching
-     */
-    public setCachingEnabled(enable: boolean) {
-        this.cachingEnabled = enable;
-    }
-
-    /**
      * Used to save the current game state to the user's local storage
      */
     public saveToCache(): void {
-        if (this.cachingEnabled && this.amHost) {
+        if (this._cachingEnabled && this.amHost) {
             this.numCachedMoves++;
             const cachedGameState = new CachedGameState(this);
             localStorage.setItem('cachedGameState', JSON.stringify(cachedGameState)); 
@@ -481,7 +488,7 @@ export default class GameState {
      * @param undo - The number of undos, if applicable
      */
     public buildGame(gameStateMin: CachedGameState | SavedGameState, playspaceComponent: PlayspaceComponent, undo?: number): void {
-        this.setCachingEnabled(false);
+        this.cachingEnabled = false;
 
         this.cleanUp();
         let highestDepth: number = 0;
@@ -547,7 +554,7 @@ export default class GameState {
         this.sendGameStateToPeers(undo > 0 ? true : false);
         this.currentMove = new CachedGameState(this);     
 
-        this.setCachingEnabled(true);
+        this.cachingEnabled = true;
 
         if (!undo) {
             this.delay(() => { this.saveToCache(); });
@@ -888,7 +895,7 @@ export default class GameState {
      * @param func - The function to delay execution of
      */
     public delay(functionCallback: () => void) {
-        if (this.cachingEnabled) {
+        if (this._cachingEnabled) {
             setTimeout(() => { functionCallback(); }, 200);
         }
     }

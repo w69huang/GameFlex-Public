@@ -39,6 +39,12 @@ export function createMyHand(component: PlayspaceComponent) {
     let hand = new Hand(component.gameState.playerID, []);
     component.gameState.myHands.push(hand);
     component.gameState.hands[component.gameState.playerID] = component.gameState.myHands;
+    if(component.gameState.cachingEnabled){
+        let myLastHand = component.gameState.myCurrHand;
+        component.gameState.myCurrHand = component.gameState.myHands.length-1;
+        renderHand(component, myLastHand, component.gameState.myCurrHand);
+    }
+
     updateHandTracker(component);
 
     component.gameState.delay(() => { component.gameState.saveToCache(); });

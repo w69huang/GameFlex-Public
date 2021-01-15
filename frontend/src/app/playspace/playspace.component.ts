@@ -249,7 +249,7 @@ export class PlayspaceComponent implements OnInit {
     } else {
       this.gameState.clearCache();
     }
-    this.gameState.setCachingEnabled(true);
+    this.gameState.cachingEnabled = true;
   }
 
   finishConnectionProcess(): void {
