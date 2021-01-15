@@ -15,6 +15,7 @@ import { DataConnection } from 'peerjs';
 import SentGameState from './sentGameState';
 import PlayerData from './playerData';
 import { EventEmitter, OnInit } from '@angular/core';
+import HandMin from './handMin';
 
 /**
  * An enum representing all types of actions
@@ -92,6 +93,7 @@ export class GameObjectExtraProperties {
 export class CardLocationObject {
     card: Card;
     location: ECardLocation;
+    handIndex: integer
 }
 
 /**
@@ -179,7 +181,7 @@ export default class GameState {
     /**
      * Holds all hand information for all players (host only)
      */
-    private _hands: Hand[];
+    private _hands: Object;
 
     /**
      * Holds all counters in the game instance
@@ -248,7 +250,7 @@ export default class GameState {
     /**
      * A public accessor to get all hands
      */
-    public get hands(): Hand[] {
+    public get hands(): Object {
         return this._hands;
     }
 
@@ -315,7 +317,7 @@ export default class GameState {
             return object.id !== refObject.id;
         });
 
-        this.delay(this.saveToCache());
+        this.delay(() => { this.saveToCache(); });
         return objectListToFilter;
     }
 
@@ -330,20 +332,21 @@ export default class GameState {
         });
       }
 
-    /**
-     * Used to remove a card from the general hands array that the host keeps track of
-     * @param card - The card to remove
-     */
-    private removeFromHandsArray(card: Card): void {
-        this._hands.forEach((hand: Hand) => {
-            for (let i: number = 0; i < hand.cards.length; i++) {
-                if (hand.cards[i].id === card.id) {
-                    hand.cards = this.filterOutID(hand.cards, card);
-                    return;
-                }
-            }
-        });
-    }
+    // TODO: Unused?
+    // /**
+    //  * Used to remove a card from the general hands array that the host keeps track of
+    //  * @param card - The card to remove
+    //  */
+    // private removeFromHandsArray(card: Card): void {
+    //     this._hands.forEach((hand: Hand) => {
+    //         for (let i: number = 0; i < hand.cards.length; i++) {
+    //             if (hand.cards[i].id === card.id) {
+    //                 hand.cards = this.filterOutID(hand.cards, card);
+    //                 return;
+    //             }
+    //         }
+    //     });
+    // }
 
     /**
      * A method used to check the status of undo confirmations, and resend replicate state requests if necessary
@@ -373,10 +376,9 @@ export default class GameState {
         if (amHost) {
             this.amHost = true;
             this.playerID = 1;
+            this.hands[this.playerID] = this.myHands;
             this.playerDataObjects.push(new PlayerData(this.playerID, this.myPeerID, username));
             amHostEmitter.emit(true);
-        } else {
-
         }
     }
 
@@ -409,7 +411,7 @@ export default class GameState {
     }
 
     /**
-    * Used to cache the "entire" game state history (right now up to 10 moves)
+     * Used to cache the "entire" game state history (right now up to 10 moves)
      */
     private cacheGameHistory(): void  {
         this.currentMove = this.batchStateHistory.pop();
@@ -444,7 +446,7 @@ export default class GameState {
     /**
      * Used to very quickly and easily send the current game state to all peers
      * @param onlySendTo - An optional var specifying to only send data to a specific peer
-     * @param doNotSendTo - An optional var specfying not to send data to a specific peer
+     * @param doNotSendTo - An optional var specifying not to send data to a specific peer
      */
     public sendGameStateToPeers(undo: boolean = false, onlySendTo: string = "", doNotSendTo: string = ""): void {
         if (this.amHost) {
@@ -484,6 +486,8 @@ export default class GameState {
         this.cleanUp();
         let highestDepth: number = 0;
 
+        console.log('savedGameState', gameStateMin);
+
         gameStateMin.cardMins.forEach((cardMin: CardMin) => {
             const card: Card = new Card(cardMin.id, cardMin.imagePath, cardMin.x, cardMin.y, cardMin.flippedOver);
             HF.createCard(card, playspaceComponent, HF.EDestination.TABLE, cardMin.depth);
@@ -491,6 +495,8 @@ export default class GameState {
                 highestDepth = cardMin.depth;
             }
         });
+
+        
         gameStateMin.deckMins.forEach((deckMin: DeckMin) => {
             let cardList: Card[] = [];
             deckMin.cardMins.forEach((cardMin: CardMin) => {
@@ -502,19 +508,40 @@ export default class GameState {
                 highestDepth = deckMin.depth;
             }
         });
-        for (let i = 0; i < gameStateMin.handMins.length; i++) {
-            gameStateMin.handMins[i].cardMins.forEach((cardMin: CardMin) => {
-                if (gameStateMin.handMins[i].playerID === this.playerID) {
-                    const card: Card = new Card(cardMin.id, cardMin.imagePath, cardMin.x, cardMin.y, cardMin.flippedOver);
-                    HF.createCard(card, playspaceComponent, HF.EDestination.HAND, cardMin.depth);
-                } else {
-                    this.addCardToPlayerHand(new Card(cardMin.id, cardMin.imagePath, cardMin.x, cardMin.y, cardMin.flippedOver), gameStateMin.handMins[i].playerID);
-                }
-                if (cardMin.depth > highestDepth) {
-                    highestDepth = cardMin.depth;
-                }
-            });
+
+        // Convert to from {playerID: handMin[]} OR [{playerID: playerID, innerHandMins: handMin[]}] to [[ playerID, handMin[] ]]
+        let keyvalArray: any = [];
+        if(!(gameStateMin.handMins instanceof Array)) {
+            keyvalArray = Object.entries(gameStateMin.handMins)
+        } else {
+            gameStateMin.handMins.forEach( (obj) =>  {
+                keyvalArray.push([obj.playerID, obj.innerHandMins])
+            } )
         }
+
+        // Convert handMins to hands and cardMins to cards and add them to the appropriate location 
+        keyvalArray.forEach( (keyval) => {
+            let playerID: integer = parseInt(keyval[0]);
+            let playersHandMins: HandMin[] = keyval[1];
+
+            playersHandMins.forEach( (playersHandMin: HandMin, handIndex: integer) => {
+                HA.createMyHand(playspaceComponent);
+
+                // TODO Need to clear anything that was there before
+                playersHandMin.cardMins.forEach((cardMin: CardMin) => {
+                    // If the player ID is the current player, which would only ever be the host as the host only runs this
+                    if (playerID === this.playerID && this.amHost) {
+                        const card: Card = new Card(cardMin.id, cardMin.imagePath, cardMin.x, cardMin.y, cardMin.flippedOver);
+                        HF.createCard(card, playspaceComponent, HF.EDestination.HAND, cardMin.depth, handIndex);
+                    } else {
+                        this.addCardToPlayerHand(new Card(cardMin.id, cardMin.imagePath, cardMin.x, cardMin.y, cardMin.flippedOver), playerID, handIndex);
+                    }
+                    if (cardMin.depth > highestDepth) {
+                        highestDepth = cardMin.depth;
+                    }            
+                });                
+            });
+        });
     
         this.highestDepth = highestDepth;
         this.sendGameStateToPeers(undo > 0 ? true : false);
@@ -523,7 +550,7 @@ export default class GameState {
         this.setCachingEnabled(true);
 
         if (!undo) {
-            this.delay(this.saveToCache());
+            this.delay(() => { this.saveToCache(); });
         }
     }
 
@@ -546,7 +573,11 @@ export default class GameState {
                         this.undoInProgress = true;
                         this.undoRequests = this.connections;
                         clearInterval(this.undoCheckInInterval);
-                        this.undoCheckInInterval = setInterval(this.checkUndoConfirmations.bind(this), 200);
+                        if (this.undoRequests.length > 0) {
+                            this.undoCheckInInterval = setInterval(this.checkUndoConfirmations.bind(this), 200);
+                        } else {
+                            this.undoInProgress = false;
+                        }
                     }
                 }
 
@@ -582,7 +613,7 @@ export default class GameState {
      */
     public addCardToTable(card: Card): void {
         this._cards.push(card);
-        this.delay(this.saveToCache());
+        this.delay(() => { this.saveToCache(); });
     }
 
     /**
@@ -601,7 +632,7 @@ export default class GameState {
                 card.gameObject = null;
             }
 
-            this.delay(this.saveToCache());
+            this.delay(() => { this.saveToCache(); });
         }
     }
 
@@ -621,7 +652,7 @@ export default class GameState {
             }
         }
 
-        this.delay(this.saveToCache());
+        this.delay(() => { this.saveToCache(); });
     }
 
     /**
@@ -630,25 +661,30 @@ export default class GameState {
      */
     public addDeckToTable(deck: Deck): void {
         this._decks.push(deck);
-        this.delay(this.saveToCache());
+        this.delay(() => { this.saveToCache(); });
     }
 
     /**
      * Used to add a card to the player's own hand, which also adds the card to the overall hands array if the player is the host
      * @param card - The card to add
-     * @param playerID - The ID of the player adding it
+     * @param handIndex - which of the players hands to add the card to
      */
-    public addCardToOwnHand(card: Card): void {
+    public addCardToOwnHand(card: Card, handIndex: integer): void {
         card.inHand = true;
-        this.myHand.cards.push(card);
+        this.myHands[handIndex].cards.push(card);
 
-        if (this.amHost) {
-            this.addCardToPlayerHand(card, this.playerID);
-        }
+        // // TODO: Confirm, but this is now uneeded since myHands === this.hands[playerID] for the host
+        // if (this.amHost) {
+        //     this.addCardToPlayerHand(card, this.playerID, handIndex);
+        // }
+      
+        card.inHand = true;
+    
+        this.delay(() => { this.saveToCache(); });
     }
 
     /**
-     * Used to remove a card from the player's own hand, which also removes the card from the overall hands array if the player is the host
+     * Used to remove a card from the player's own hands, which also removes the card from the overall hands array if the player is the host
      * @param cardID - The ID of the card to remove
      * @param destroy - Whether or not to destroy the game object associated with that card
      */
@@ -657,8 +693,13 @@ export default class GameState {
 
         if (card) {
             card.inHand = false;
+    
+            // Remove from local hand tracking: `myHands`
             this.myHands.forEach(myHand => {
                 myHand.cards = this.filterOutID(myHand.cards, card);
+                card.inHand = false;
+        
+                this.delay(() => { this.saveToCache(); });
             })
 
             if (destroy && card.gameObject) {
@@ -666,9 +707,11 @@ export default class GameState {
                 card.gameObject = null;
             }
 
-            if (this.amHost) {
-                this.removeCardFromPlayerHand(cardID, this.playerID);
-            }
+            // Not needed because myHands === _hands[playerID] for the host
+            // // Remove from universal hand tracking `_hands`
+            // if (this.amHost) {
+            //     this.removeCardFromPlayerHand(cardID, this.playerID);
+            // }
         }
     }
 
@@ -676,27 +719,25 @@ export default class GameState {
      * Used to add a card to the overall hands array, used by hosts
      * @param card - The card to add
      * @param playerID - The ID of the player whose hand is being added to
+     * @param handIndex - The index of the hand for the player who the card is being added to 
      */
-    public addCardToPlayerHand(card: Card, playerID: number): void {
+    public addCardToPlayerHand(card: Card, playerID: number, handIndex: integer = 0): void {
         if (this.amHost) {
-            let inserted: boolean = false;
 
-            for (let i: number = 0; i < this._hands.length; i++) {
-                if (this._hands[i].playerID === playerID) {
-                    this._hands[i].cards.push(card);
-                    inserted = true;
-                    break;
-                }
+            try {
+                this.hands[playerID][handIndex].cards.push(card);
+            } catch (error) {
+                console.warn(`Creating hand for playerID=${playerID} as one does not already exist. Error: ${error}`)
+                // Create hand if one does not already exist
+
+                this._hands[playerID] = [];
+                this._hands[playerID].push(new Hand(playerID, [card]));
+            
             }
-
-            // Create hand if one does nto already exist
-            if (!inserted) {
-                this._hands.push(new Hand(playerID, [card]));
-            }
-
+            
             card.inHand = true;
     
-            this.delay(this.saveToCache());
+            this.delay(() => { this.saveToCache(); });
         }
     }
 
@@ -707,19 +748,17 @@ export default class GameState {
      */
     public removeCardFromPlayerHand(cardID: number, playerID: number): void {
         if (this.amHost) {
-            const card: Card = this.getCardByID(cardID, playerID).card;
+            const cardDetails: any = this.getCardByID(cardID, playerID).card;
+            
+            // If in a hand
+            if (cardDetails.location == ECardLocation.MYHAND || cardDetails.location == ECardLocation.OTHERHAND) {
+                let cards = this.hands[playerID][cardDetails.handIndex].cards;
 
-            if (card) {
-                for (let i: number = 0; i < this._hands.length; i++) {
-                    if (this._hands[i].playerID === playerID) {
-                        this._hands[i].cards = this.filterOutID(this._hands[i].cards, card);
-                        break;
-                    }
-                } 
-    
-                card.inHand = false;
+                cards = this.filterOutID(cards, cardDetails.card);
+
+                cardDetails.card.inHand = false;
         
-                this.delay(this.saveToCache());
+                this.delay(() => { this.saveToCache(); });
             }
         }
     }
@@ -739,7 +778,7 @@ export default class GameState {
                 deck.cards = this.filterOutID(deck.cards, card);
                 card.inDeck = false;
 
-                this.delay(this.saveToCache());
+                this.delay(() => { this.saveToCache(); });
             }
             card.x = deck.x;
             card.y = deck.y;
@@ -759,7 +798,7 @@ export default class GameState {
         
         if (deck) {
             deck.cards = cardList;
-            this.delay(this.saveToCache());
+            this.delay(() => { this.saveToCache(); });
         }
     }
 
@@ -777,7 +816,7 @@ export default class GameState {
             card.gameObject.input.hitArea.setTo(0, 0, card.gameObject.width, card.gameObject.height);
             card.flippedOver = !card.flippedOver;
 
-            this.delay(this.saveToCache());
+            this.delay(() => { this.saveToCache(); });
 
             if (!(this.amHost && card.inHand)) {
                 this.sendPeerData(
@@ -800,16 +839,16 @@ export default class GameState {
         const cardLocationObject: CardLocationObject = this.getCardByID(id, this.playerID);
         const card: Card = cardLocationObject?.card;
         const cardLocation: ECardLocation = cardLocationObject?.location;
-        let image: Phaser.GameObjects.Image = this.myHands[0].gameObject; // TODO: Refactor the GameObject out of the hand. Since we only need one
+        let image: Phaser.GameObjects.Image;
 
         if (card) {
-            if (card.gameObject.x > image.x && card.gameObject.x < image.x + image.displayWidth && card.gameObject.y > image.y && card.gameObject.y < image.y + image.displayHeight) {
+            if (card.gameObject.x > HF.handBeginX && card.gameObject.x < HF.handWidth && card.gameObject.y > HF.handBeginY && card.gameObject.y < HF.handBeginY + HF.handHeight) {
                 if (cardLocation !== ECardLocation.MYHAND) {
                     this._cards = this.filterOutID(this._cards, card);
-                    this.addCardToOwnHand(card);
+                    this.addCardToOwnHand(card, this.myCurrHand);
                     return { overlapType: EOverlapType.HAND };
                 }
-                this.delay(this.saveToCache());
+                this.delay(() => { this.saveToCache(); });
                 return { overlapType: EOverlapType.ALREADYINHAND };
             } else {
                 for (let i: number = 0; i < this._decks.length; i++) {
@@ -832,76 +871,86 @@ export default class GameState {
                 this.removeCardFromOwnHand(card.id);
                 return { overlapType: EOverlapType.TABLE, wasInHand: true };
             } else {
-                this.delay(this.saveToCache());
+                this.delay(() => { this.saveToCache(); });
                 return { overlapType: EOverlapType.TABLE, wasInHand: false };
             }
         } else {
             const deck: Deck = this.getDeckByID(id);
-            this.delay(this.saveToCache());
+            this.delay(() => { this.saveToCache(); });
 
             return { overlapType: EOverlapType.TABLE };
         }
 
     }
 
-    public delay(func: void) {
-        setTimeout(() => { func }, 200);
+    /**
+     * Used to delay function execution by a certain amount of time
+     * @param func - The function to delay execution of
+     */
+    public delay(functionCallback: () => void) {
+        if (this.cachingEnabled) {
+            setTimeout(() => { functionCallback(); }, 200);
+        }
     }
  
     /**
      * Used to get a card (and its location) by ID
      * @param id - The ID of the card to get
-     * @param playerIDOfWhoActedOnCard - The id of the player who acted on the card
+     * @param playerIDOfWhoActedOnCard - The ID of the player who acted on the card
      * @param removeAndDestroyFromTable - Whether or not the card should be removed and have its image destroyed when found on the table
      * @param removeAndDestroyFromHand - Whether or not the card should be removed and have its image destroyed when found in a hand
      */
     public getCardByID(id: number, playerIDOfWhoActedOnCard: number, removeAndDestroyFromTable: boolean = false, removeAndDestroyFromHand: boolean = false): CardLocationObject {
-        let found: boolean = false;
         let card: Card = null;
 
+        // Check the table
         for (let i = 0; i < this._cards.length; i++) {
             if (this._cards[i].id === id) {
                 card = this._cards[i];
-                found = true;
 
                 if (removeAndDestroyFromTable) {
                     this.removeCardFromTable(card.id, true);
                 }
-                return { card: card, location: ECardLocation.TABLE };
+                return { card: card, location: ECardLocation.TABLE, handIndex: null };
             }
         }
 
-        if (!found) {
-            for (let i = 0; i < this.myHand.cards.length; i++) {
-                if (this.myHand.cards[i].id === id) {
-                    card = this.myHand.cards[i];
-                    found = true;
+        // Check myHands
+        for (let h = 0; h < this.myHands.length; h++) {
+            let hand = this.myHands[h];
+            for (let i = 0; i < hand.cards.length; i++) {
+                if (hand.cards[i].id === id) {
+                    card = hand.cards[i];
 
                     if (removeAndDestroyFromHand) {
                         card.inHand = false;
                         this.removeCardFromOwnHand(card.id, true);
                     }
-                    return { card: card, location: ECardLocation.MYHAND };
+                    return { card: card, location: ECardLocation.MYHAND, handIndex: h };
                 }
             }
-        }
+        };
 
-       if (!found && this.amHost) {
-            for (let i = 0; i < this._hands.length; i++) {
-                if (playerIDOfWhoActedOnCard === this._hands[i].playerID) {
-                    for (let j = 0; j < this._hands[i].cards.length; j++) {
-                        if (this._hands[i].cards[j].id === id) {
-                            card = this._hands[i].cards[j];
-                            if (removeAndDestroyFromHand) {
-                                card.inHand = false;
-                                this.removeCardFromPlayerHand(card.id, playerIDOfWhoActedOnCard);
-                            }
-                            return { card: card, location: ECardLocation.OTHERHAND };
+        // Check everyone's hands
+        if (this.amHost) {
+            // for each of the users hands
+            for (let h = 0; h < this.hands[playerIDOfWhoActedOnCard].length; h++) {
+                let hand = this.hands[playerIDOfWhoActedOnCard][h];
+
+                // for each card in the hand
+                for (let j = 0; j < hand.cards.length; j++) {
+                    // if the id is that of the card
+                    if (hand.cards[j].id === id) {
+                        card = hand.cards[j];
+                        // TODO: this and related functions should be called after getCardById and not an option inside this function 
+                        if (removeAndDestroyFromHand) {
+                            card.inHand = false;
+                            this.removeCardFromPlayerHand(card.id, playerIDOfWhoActedOnCard);
                         }
+                        return { card: card, location: ECardLocation.OTHERHAND, handIndex: h };
                     }
-                    break;
                 }
-            }
+            };
         }
 
         return null;
@@ -939,7 +988,7 @@ export default class GameState {
             myHand.cards = [];
         })
         this._hands = [];
-        this.myHand.cards = [];
+        this.myHands = [];
         this._counters = [];
     }
 
@@ -1000,9 +1049,12 @@ export default class GameState {
                     let deck: Deck = new Deck(deckMin.id, deckMin.imagePath, [], deckMin.x, deckMin.y);
                     HF.createDeck(deck, playspaceComponent, deckMin.depth);
                 });
-                receivedGameState.handMin.cardMins.forEach((cardMin: CardMin) => {
+                //handMin is now handMins need to go through each of the hands in the array and populate
+                receivedGameState.handMins.forEach( (handMin: HandMin) => {
+                    handMin.cardMins.forEach((cardMin: CardMin) => {
                     let card: Card = new Card(cardMin.id, cardMin.imagePath, cardMin.x, cardMin.y, cardMin.flippedOver, true);
                     HF.createCard(card, playspaceComponent, HF.EDestination.HAND, cardMin.depth);
+                    });
                 });
         
                 document.getElementById('loading').style.display = "none";
@@ -1055,7 +1107,7 @@ export default class GameState {
                 }
         
                 if (data.extras.finishedMoving) { // If they have finished moving a card/deck, save to cache
-                    this.delay(this.saveToCache());
+                    this.delay(() => { this.saveToCache(); });
                 }
                 break;
         
@@ -1258,7 +1310,7 @@ export default class GameState {
                     }
                     card.flippedOver = data.extras.flippedOver;
         
-                    this.delay(this.saveToCache());
+                    this.delay(() => { this.saveToCache(); });
         
                     if (this.amHost) {
                         this.sendPeerData(

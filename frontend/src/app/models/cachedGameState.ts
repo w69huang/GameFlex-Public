@@ -9,7 +9,7 @@ import GameState from './gameState';
 export default class CachedGameState {
     cardMins: CardMin[] = [];
     deckMins: DeckMin[] = [];
-    handMins: HandMin[] = [];
+    handMins: Object = {};
     numMoves: number;
 
     constructor(gameState: GameState) { 
@@ -19,11 +19,13 @@ export default class CachedGameState {
         gameState.decks.forEach((deck: Deck) => {
             this.deckMins.push(new DeckMin(deck));
         });
-        gameState.hands.forEach((hand: Hand) => {
-            this.handMins.push(new HandMin(hand));
+        Object.entries(gameState.hands).forEach((val) => {
+            const [playerID, hands] = val;
+            this.handMins[playerID] = [];
+            hands.forEach(hand => {
+                this.handMins[playerID].push(new HandMin(hand));
+            });
         });
         this.numMoves = gameState.numCachedMoves;
     }
 }
-
-// dict playerIds to hands[]

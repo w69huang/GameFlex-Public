@@ -63,7 +63,7 @@ export class GameInstanceComponent implements OnInit {
     });
 
     dialogRef.afterClosed().subscribe((savedGameState: SavedGameState) => {
-     this.getAllSavedGameStatesEmitter.emit(savedGameState);
+      this.getAllSavedGameStatesEmitter.emit(savedGameState);
     });
   }
 

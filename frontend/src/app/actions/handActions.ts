@@ -2,6 +2,7 @@ import { PlayspaceComponent } from '../playspace/playspace.component';
 import { EActionTypes, EGameObjectType, EOverlapType, OverlapObject } from '../models/gameState';
 import Hand from '../models/hand';
 import Card from '../models/card';
+import { delay } from 'rxjs/operators';
 
 
 /**
@@ -37,7 +38,10 @@ export function previousHand(component: PlayspaceComponent) {
 export function createMyHand(component: PlayspaceComponent) {
     let hand = new Hand(component.gameState.playerID, []);
     component.gameState.myHands.push(hand);
+    component.gameState.hands[component.gameState.playerID] = component.gameState.myHands;
     updateHandTracker(component);
+
+    component.gameState.delay(() => { component.gameState.saveToCache(); });
 }
 
 /**
@@ -70,6 +74,8 @@ export function deleteMyHand(component: PlayspaceComponent) {
 
     component.gameState.myHands.splice(myHandToDel, 1);
     updateHandTracker(component);
+
+    component.gameState.delay(() => { component.gameState.saveToCache(); });
 }
 
 // The following functions are support functions and do not correlate directly to a users action 

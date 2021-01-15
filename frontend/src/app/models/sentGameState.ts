@@ -10,7 +10,7 @@ export default class SentGameState {
     playerID: number;
     cardMins: CardMin[] = [];
     deckMins: DeckMin[] = [];
-    handMin: HandMin;
+    handMins: HandMin[];
 
     constructor(gameState: GameState, playerID: number) {
         this.playerID = playerID;
@@ -22,17 +22,14 @@ export default class SentGameState {
             this.deckMins.push(new DeckMin(deck));
         });
 
-        let handFound: boolean = false;
-        for (let i = 0; i < gameState?.hands.length; i++) {
-            if (gameState?.hands[i].playerID === this.playerID) {
-                this.handMin = new HandMin(gameState?.hands[i]);
-                handFound = true;
-                break;
-            }
+        try {
+            gameState?.hands[this.playerID].forEach( (hand: Hand) => {
+                    this.handMins.push(new HandMin(hand));
+            });            
+        } catch (error) {
+            console.warn(`Creating handMin for playerID=${playerID} as a Hand does not already exist. Error: ${error}`)
+            this.handMins = [new HandMin(new Hand(this.playerID, []))];
         }
 
-        if (!handFound) {
-            this.handMin = new HandMin(new Hand(this.playerID, []));
-        }
     }
 }

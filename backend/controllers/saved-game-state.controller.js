@@ -31,11 +31,11 @@ function create(request, result) {
         } else {
             if (user[0] != undefined) {
                 if (request.query.password == user[0].password) {
-                    var savedGameState = request.body;    
-    
-                    (new SavedGameState({ 'username': savedGameState.username, 'name': savedGameState.name, 'date': savedGameState.date, 'cardMins': savedGameState.cardMins, 'deckMins': savedGameState.deckMins, 'handMins': savedGameState.handMins, 'savedPlayerData': savedGameState.savedPlayerData}))
+                    (new SavedGameState(request.body))
                         .save()
-                        .then((savedGameState) => result.send(savedGameState))
+                        .then((savedGameState) => {
+                            result.send(savedGameState);
+                        })
                         .catch((error) => console.log(error));
                 }
             } 
