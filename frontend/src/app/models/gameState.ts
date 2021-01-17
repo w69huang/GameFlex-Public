@@ -850,11 +850,30 @@ export default class GameState {
 
         if (card) {
             if (card.gameObject.x > HF.handBeginX && card.gameObject.x < HF.handWidth && card.gameObject.y > HF.handBeginY && card.gameObject.y < HF.handBeginY + HF.handHeight) {
+                
+
+
+                // If hovering over change nextHand
+                // TODO Needs to be onHover see frontend resources, so we'll need a different checkOverlapHover function
+                if (card.gameObject.x > HF.nextHandOverlap['x'] && 
+                    card.gameObject.x < HF.nextHandOverlap['w'] + HF.nextHandOverlap['x'] && 
+                    card.gameObject.y > HF.nextHandOverlap['y'] && 
+                    card.gameObject.y < HF.nextHandOverlap['y'] + HF.nextHandOverlap['h'] ) {
+                        console.log('hovering over nextHand!');
+                }
+                // // If hovering over change prevHand
+                // if() {
+
+                // }
+
+                // If not already in hand
                 if (cardLocation !== ECardLocation.MYHAND) {
                     this._cards = this.filterOutID(this._cards, card);
                     this.addCardToOwnHand(card, this.myCurrHand);
                     return { overlapType: EOverlapType.HAND };
                 }
+
+                // else it's in the hand so leave it
                 this.delay(() => { this.saveToCache(); });
                 return { overlapType: EOverlapType.ALREADYINHAND };
             } else {

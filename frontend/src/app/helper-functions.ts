@@ -6,13 +6,15 @@ import * as CA from './actions/cardActions';
 import { PlayspaceComponent } from './playspace/playspace.component';
 import { ConfigEditorComponent } from './config-editor/config-editor.component';
 
-
+// TODO Should probably move the hand constants to the HA
 export const sceneWidth: number = 1000;
 export const sceneHeight: number = 1000;
 export const handBeginY: number = 600;
 export const handBeginX: number = 0;
 export const handWidth: number = sceneWidth;
 export const handHeight: number = sceneHeight - handBeginY;
+export const nextHandOverlap: Object = {x: 960, y: 820, w: 30, h: 30};  // button size 30, 820, 30, 30
+export const prevHandOverlap: Object = {x: 30, y: 820, w: 30, h: 30};
 
 /**
  * An enum representing the possible destinations for a card after being moved/retrieved from a deck/etc
