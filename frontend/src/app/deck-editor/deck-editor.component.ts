@@ -106,11 +106,6 @@ export class DeckEditorComponent implements OnInit {
     });
   }
  
-  public remove(fileName: string):  void {
-    this.fileService.remove(fileName);
-  }
- 
-
   // TODO: Take the deckName and pass it into the service call to the backend when we upload a file
   // That way, we can associate the file with a name on the backend
   // --> Also, we'll probably want to pass in the player's username

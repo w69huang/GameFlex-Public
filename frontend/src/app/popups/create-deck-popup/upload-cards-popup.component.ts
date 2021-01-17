@@ -43,12 +43,16 @@ export class UploadCardsPopupComponent implements OnInit {
   // }
 
   cancel(): void {
-    this.dialogRef.close();
+    this.dialogRef.close({ name: this.deckNameData });
   }
 
   submit(): void {
     this.dialogRef.close({ name: this.deckNameData, files: this.files });
   }
+
+  // ngOnDestroy(): void {
+  //   this.dialogRef.close({ name: this.deckNameData });
+  // }
 
   upload() {  
     const fileUpload = this.fileUpload.nativeElement;

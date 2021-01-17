@@ -7,6 +7,7 @@ const mongoose = require('mongoose');
 const config = require('../config');
 const fs = require('fs');
 const { resolve } = require('path');
+const userDeck = require('../database/models/userDeck');
 
 
 
@@ -31,15 +32,12 @@ module.exports = (upload) => {
         });
     });
 
-    //TODO: Single file upload functionality(?)
-
     /*
         Post: Upload multiple files
     */
     router.route('/upload')
         .post(upload.array('file', 60), (req, res, next) => {
             try{                
-                console.log("There was not an error");
                 console.log(req.body);
                 console.log("FILES:");
                 console.log(req.files[0]);
@@ -140,16 +138,9 @@ module.exports = (upload) => {
                                     });
                         } else {
                             fileProcessCounter++;
-                        //     res.status(404).json({
-                        //     err: 'Not an image',
-                        //    });
                         }
 
                     });
-                    // res.status(200).json({
-                    //     success: true,
-                    //     fileArray,
-                    // });
                 });
             });
     });
@@ -174,7 +165,7 @@ module.exports = (upload) => {
     });
 
     /* 
-        GET: Fetches a particular image and render on browser - !!!!!   NOT USED   !!!!!
+        GET: Fetches an individual image and render on browser - !!!!!   NOT USED   !!!!!
     */
    router.route('/image/:filename').get((req, res, next) => {
        gfs.find({ filename: req.params.filename }).toArray((err, files) => {
@@ -218,10 +209,26 @@ module.exports = (upload) => {
         DELETE: delete a file by filename
     */
    router.route('/file/del').delete((req, res, next) => {
-       console.log('deleting file: ' + req.query.id);
 
-       //TODO: remove fileID from mongo deck storage!!! 
-    
+        const userID = req.query.userID;
+        const deckName = req.query.deckName;
+        console.log('deleting file: ' + req.query.id);
+
+        
+
+       //TODO: remove fileID from mongo deck storage!!!
+       
+       userDeck.findOneAndUpdate({ deckName: deckName, userID: userID },
+        {$pull: { imageID: req.query.id }},
+            function (err, success) {
+                console.log(req.query.id); 
+                if(err) {
+                    console.log(err + " was the error");
+                } else {
+                    console.log(success);
+                };
+            });
+
        gfs.delete(new mongoose.Types.ObjectId(req.query.id),
        (err, data) => {
            if (err) {

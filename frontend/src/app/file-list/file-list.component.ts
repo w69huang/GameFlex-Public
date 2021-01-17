@@ -21,7 +21,8 @@ class fileObject {
 export class FileListComponent implements OnInit {
 
 public fileList$: fileObject[] = [];
-public activelargeThumbnail: HTMLImageElement = null; 
+public activelargeThumbnail: HTMLImageElement = null;
+public deckName;  
 
 //deckName emitter receiver
 @Input() private deckNameEmitter: EventEmitter<string> = new EventEmitter<string>(); 
@@ -47,7 +48,7 @@ public activelargeThumbnail: HTMLImageElement = null;
 
  public remove(id: string):  void {
    console.log("Delete image requested");
-   this.fileService.remove(id).subscribe((data) => {
+   this.fileService.remove(id, this.deckName, this.middleWare.getUsername()).subscribe((data) => {
      if(data.success) {
       document.getElementById(`imageDisplayContainer-${id}`).remove();
      }
@@ -71,23 +72,6 @@ public activelargeThumbnail: HTMLImageElement = null;
           base64: image.base64 
         }
       });
-
-      //  //image is currently small
-      //  if(outputImage.width === 100){
-      //   if(this.activelargeThumbnail) {
-      //     this.activelargeThumbnail.classList.add('stdThumbnail');
-      //     this.activelargeThumbnail.classList.remove('lrgThumbnail');
-      //    }
-      //    this.activelargeThumbnail = outputImage;
-      //    outputImage.classList.remove('stdThumbnail');
-      //    outputImage.classList.add('lrgThumbnail');
-      //  }
-      //  //image is currently large
-      //  else {
-      //   outputImage.classList.add('stdThumbnail');
-      //   outputImage.classList.remove('lrgThumbnail');
-      //   this.activelargeThumbnail = null; 
-      //  } 
      }
 
     var imageDisplayContainer: HTMLDivElement = document.createElement('div'); 
@@ -123,12 +107,16 @@ public activelargeThumbnail: HTMLImageElement = null;
  }
 
  ngOnInit(): void {
-
   const userID: string = this.middleWare.getUsername(); 
   this.deckNameEmitter.subscribe(deckName => {
+    this.deckName = deckName;
     this.fileService.list(deckName, userID).subscribe((data) => {
-      console.log(data);
-      this.renderImages(data);
+      if(data.success === false) {
+        document.getElementById('loadingText').style.display = "none";
+      }
+      else {
+        this.renderImages(data);
+      }
     });
   });
  }

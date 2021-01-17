@@ -1,7 +1,7 @@
 <mat-card>
-    <h1 class="center">Create New Deck:</h1>
+    <h1 class="center">Create New Deck</h1>
     <div>
-        <input matInput #newDeckName placeholder="deck name" required />
+        <input matInput #newDeckName placeholder="Deck Name" required />
     </div>
     <div>
         <button mat-button (click)="createDeck(newDeckName.value)">Go!</button>
@@ -15,11 +15,13 @@
 </mat-card>
 
 <!-- <app-deck-list></app-deck-list> -->
+<mat-card>
     <h1>Your Decks</h1>
         <ul>
             <li *ngFor="let deckData of deckList$" >
-                {{deckData.deckName}}&nbsp;&nbsp;
-                <span (click)="editDeck(deckData.deckName)">Edit Deck</span>&nbsp;
-                <span (click)="deleteDeck(deckData.deckName)">Delete Deck</span>
+                <div>{{deckData.deckName}}</div>
+                <button mat-button (click)="editDeck(deckData.deckName)">Edit Deck</button>&nbsp;
+                <button mat-button (click)="deleteDeck(deckData.deckName)">Delete Deck</button>
               </li>
         </ul>
+</mat-card>
