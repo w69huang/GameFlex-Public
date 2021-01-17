@@ -2,16 +2,21 @@ import { Injectable } from '@angular/core';
 import { WebService } from './web.service';
 import Configuration from '../models/configuration';
 import { use } from 'matter';
+import { MiddleWare } from './middleware';
 
 @Injectable({
   providedIn: 'root'
 })
 export class ConfigurationService {
 
-  constructor(private webService: WebService) { }
+  constructor(private webService: WebService, private middleWare: MiddleWare) { }
 
   getConfiguration(configurationId) {
     return this.webService.get(`configuration/${configurationId}`, true);
+  }
+
+  getAllConfigurations() {
+    return this.webService.get(`configuration/getAll?username=${this.middleWare.getUsername()}`, true);
   }
 
   createConfiguration(configuration: Configuration) {

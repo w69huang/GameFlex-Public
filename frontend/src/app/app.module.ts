@@ -40,6 +40,7 @@ import { CreateCounterPopupComponent } from './popups/create-counter-popup/creat
 import { ConfigEditorComponent } from './config-editor/config-editor.component';
 import { SaveConfigurationPopupComponent } from './popups/save-configuration-popup/save-configuration-popup.component';
 import { CounterComponent } from './counter/counter.component';
+import { RetrieveConfigPopupComponent } from './popups/retrieve-config-popup/retrieve-config-popup.component';
 
 
 @NgModule({
@@ -68,6 +69,7 @@ import { CounterComponent } from './counter/counter.component';
     ConfigEditorComponent,
     SaveConfigurationPopupComponent,
     CounterComponent,
+    RetrieveConfigPopupComponent,
   ],
   imports: [
     BrowserModule,
@@ -94,7 +96,8 @@ import { CounterComponent } from './counter/counter.component';
     CreateCounterPopupComponent,
     RetrieveGameStatePopupComponent,
     LoadGameStatePopupComponent,
-    DialogForgotPassword
+    DialogForgotPassword,
+    RetrieveConfigPopupComponent
   ],
   providers: [
     MiddleWare, 

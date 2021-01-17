@@ -1,0 +1,18 @@
+<div mat-dialog-content>
+    <mat-select [formControl]="configCtrl" placeholder="Config Name" #configNameSelect>
+        <mat-option>
+            <ngx-mat-select-search [formControl]="configFilterCtrl" placeholderLabel="Search" noEntriesFoundLabel="No Matching Config Found"></ngx-mat-select-search>
+        </mat-option>
+        <mat-option *ngFor="let config of filteredConfigs | async" [value]="config">
+            {{config.name}} | {{ config.date }}
+        </mat-option>
+    </mat-select>
+</div>
+<div class="actions" mat-dialog-actions>
+    <mat-card>
+        <button mat-button (click)="cancel()">Cancel</button>
+    </mat-card>
+    <mat-card>
+        <button mat-button (click)="submit(configNameSelect.value)" value="Submit">Submit</button>
+    </mat-card>
+</div>

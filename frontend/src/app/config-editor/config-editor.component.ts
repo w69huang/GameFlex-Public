@@ -17,6 +17,7 @@ import { CounterActionObject, ECounterActions } from '../counter/counter.compone
 
 import * as HF from '../helper-functions';
 import * as CoA from '../actions/counterActions';
+import { RetrieveConfigPopupComponent } from '../popups/retrieve-config-popup/retrieve-config-popup.component';
 
 @Component({
   selector: 'app-config-editor',
@@ -134,21 +135,23 @@ export class ConfigEditorComponent implements OnInit {
       });
   }
 
-  getConfig(configurationId: string) {
-    // TODO: auto save before get (maybe)
-    // saveConfig()
-
+  getConfig() {
     // Reset the highestID since we are getting a new config
     this.highestID = 1;
 
-    this.configurationService.getConfiguration(configurationId)
-      .subscribe((configuration: Configuration) => {
+    let dialogRef = this.dialog.open(RetrieveConfigPopupComponent, {
+      height: '225',
+      width: '300px',
+    });
+
+    dialogRef.afterClosed().subscribe((configuration: Configuration) => {
+      if (configuration) {
         let newConfiguration = this.processConfigurationFromBackend(configuration);
         this.renderConfiguration(newConfiguration);
         this.configuration = newConfiguration;
-        this.sendCounterActionEmitter.emit({ counterAction: ECounterActions.replaceCounters, counters: configuration.counters });
-      });
-
+        this.sendCounterActionEmitter.emit({ counterAction: ECounterActions.replaceCounters, counters: [...configuration.counters] });
+      }
+    });
   }
 
   // HELPER FUNCTIONS
