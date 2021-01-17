@@ -2,4 +2,35 @@
 #gameContainer {
     height: 1000px;
     width: 1000px;
+    z-index: 1;
+}
+
+#loading {
+    width: 1000px;
+    height: 1000px;
+    position: absolute;
+    z-index: 2;
+    background-color: black;
+    opacity: 0.5;
+}
+
+#loadingText {
+    color: white;
+    display: inline-block;
+    position: absolute;
+    z-index: 3;
+    opacity: 1;
+    margin-top: 25%;
+    margin-left: 25%;
+    font-size: 64px;
+}
+
+.onlineGameCode-container {
+    float: right;
+    text-align: center;
+
+    .onlineGameCode {
+        font-size: 30px;
+        color: white;
+    }
 }

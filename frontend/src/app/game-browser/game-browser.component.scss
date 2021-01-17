@@ -1,0 +1,81 @@
+@import '../../main.scss';
+
+mat-card {
+    margin: 10px;
+    background-color: $themeDarkGray;
+}
+
+.contentContainer {
+    margin: 20px;
+    color: $themeLightGray;
+
+    .actionButtons {
+        margin-top: 20px;
+    }
+
+    h1 {
+        border-bottom: 1px solid $themeLightGray;
+    }
+
+    .gameList {
+        background-color: $themeGray;
+        color: white;
+        margin-left: 0;
+        margin-right: 0;
+
+        table {
+            button {
+                background-color: $themeDarkGray;
+            }
+    
+            button:hover {
+                background-color: $themePurple;
+            }
+        
+            th, td, button {
+                width: 200px;
+                margin-right: 20px;
+                vertical-align: middle;
+                height: 35px;
+                padding: 0px;
+            } 
+    
+            th {
+                font-weight: unset;
+                font-size: 18px;
+            }
+    
+            tr {
+                margin-top: 23px;
+            }
+
+            tr:nth-child(even) {
+                background-color: $themeKindOfDarkGray;
+            }
+    
+            .headerRow {
+                border-bottom: 1px solid $themeLightGray; 
+            }
+
+            .notHeaderRow {
+                border: 1px solid $themeLightGray; 
+                td {
+                    padding-top: 10px;
+                    padding-bottom: 10px;
+                    padding-left: 5px;
+                }
+            }
+        }
+    }
+
+    button {
+        background-color: $themeGray;
+        color: white;
+        margin-right: 20px;
+    } 
+
+    button:hover {
+        background-color: $themePurple;
+        color: white;
+    }
+}

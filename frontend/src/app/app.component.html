@@ -1,10 +1,20 @@
 <!-- Any component that we are routing to will be displayed within the router-outlet tags -->
 <!-- So essentially what we have is in `index.html` an `app-root` selector, which pulls in `app.component.html`, which contains the `router-outlet`, which will display routed-to content -->
-<mat-toolbar color = "primary">
-    <h1>
-        GameFlex
-    </h1>
-    <button mat-button routerLink="/playspace">PlaySpace</button>
-    <button mat-button routerLink="/deckeditor">Deck Editor</button>
+<mat-toolbar>
+    <mat-toolbar-row>
+        <h1>
+            GameFlex
+        </h1>
+        <a mat-button routerLink="/gameInstance">Game Instance</a>
+        <a mat-button routerLink="/deckEditor">Deck Editor</a>
+        <a mat-button routerLink="/configeditor">Config Editor</a>
+        <a mat-button routerLink="/gameBrowser">Game Browser</a>
+        <a mat-button routerLink="/joinByCode">Join By Code</a>
+        <span class="spacer"></span>
+        <a *ngIf="!isLoggedIn" mat-button routerLink="/signup">Sign up</a>
+        <a *ngIf="!isLoggedIn" mat-button routerLink="/login">Login</a>
+        <a *ngIf="isLoggedIn" mat-button routerLink="/changepassword">Change Password</a>
+        <a *ngIf="isLoggedIn" mat-button (click)="signOut()">Logout</a>
+    </mat-toolbar-row>
 </mat-toolbar>
 <router-outlet></router-outlet>

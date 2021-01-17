@@ -11,6 +11,8 @@ export default class PlayspaceScene extends Phaser.Scene {
     width: number;
     height: number;
     handBeginY: number;
+    initialCardList: Card[];
+    initialDeckList: Deck[];
   
     constructor(playspaceComponent: PlayspaceComponent, width: number, height: number, handBeginY: number) {
       super({ key: 'main' });
@@ -21,13 +23,6 @@ export default class PlayspaceScene extends Phaser.Scene {
     }
   
     create() {  
-      let cardList: Card[] = [new Card(this.playspaceComponent.highestID++, "assets/images/playing-cards/ace_of_spades.png", 250, 250),
-                              new Card(this.playspaceComponent.highestID++, "assets/images/playing-cards/ace_of_clubs.png", 550, 250),
-                              new Card(this.playspaceComponent.highestID++, "assets/images/playing-cards/ace_of_hearts.png", 250, 350),
-                              new Card(this.playspaceComponent.highestID++, "assets/images/playing-cards/ace_of_diamonds.png", 550, 350)];
-      let deckList: Deck[] = [new Deck(this.playspaceComponent.highestID++, "assets/images/playing-cards/deck.png", [], 400, 250)];
-  
-  
       if (this.playspaceComponent.gameState.myHand.gameObject == null) {
         this.playspaceComponent.gameState.myHand.gameObject = this.add.image(0, this.handBeginY, 'grey-background').setOrigin(0); // SET ORIGIN IS THE KEY TO HAVING IT PLACED IN THE CORRECT POSITION! Why??
         this.playspaceComponent.gameState.myHand.gameObject.setInteractive();
@@ -35,24 +30,32 @@ export default class PlayspaceScene extends Phaser.Scene {
         this.playspaceComponent.gameState.myHand.gameObject.displayHeight = this.height - this.handBeginY;
       }
   
-      cardList.forEach(card => {
-        HelperFunctions.createCard(card, this.playspaceComponent, SharedActions.onDragMove, SharedActions.onDragEnd, HelperFunctions.DestinationEnum.TABLE, card.x, card.y);
+      this.initialCardList.forEach(card => {
+        HelperFunctions.createCard(card, this.playspaceComponent, HelperFunctions.EDestination.TABLE);
       });
   
-      deckList.forEach(deck => {
-        HelperFunctions.createDeck(deck, this.playspaceComponent, SharedActions.onDragMove, DeckActions.deckRightClick, deck.x, deck.y);
+      this.initialDeckList.forEach(deck => {
+        HelperFunctions.createDeck(deck, this.playspaceComponent);
       });
-  
+      
+      this.events.once('update', () => {
+        this.playspaceComponent.startConnectionProcess();
+      });
     }
   
     preload() {
-      this.playspaceComponent.gameState.cards.forEach(card => {
+      this.initialCardList = [];
+
+      this.initialDeckList = [new Deck(this.playspaceComponent.highestID++, "assets/images/playing-cards-extras/deck.png", [], 400, 250)];
+
+      this.initialCardList.forEach(card => {
         this.load.image(card.imagePath, card.imagePath);
       });
-      this.playspaceComponent.gameState.decks.forEach(deck => {
+      this.initialDeckList.forEach(deck => {
         this.load.image(deck.imagePath, deck.imagePath);
       });
       this.load.image('grey-background', 'assets/images/backgrounds/grey.png');
+      this.load.image('flipped-card', 'assets/images/playing-cards-extras/flipped-card.png');
     }
   }
   

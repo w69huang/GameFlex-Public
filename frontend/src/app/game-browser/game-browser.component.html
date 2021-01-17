@@ -1,0 +1,29 @@
+
+<mat-card class="contentContainer">
+    <h1>Game Browser</h1>
+    <mat-card class="gameList">
+        <table>
+            <tr class="headerRow">
+                <th>Host Name</th>
+                <th>Game Name</th>
+                <th>Max Players</th>
+                <th>Configuration ID</th>
+                <th>Password Protected</th>
+                <th>Join Game</th>
+            </tr>
+            <tr class="notHeaderRow" *ngFor="let onlineGame of onlineGames">
+               <td>{{ onlineGame.username }}</td> 
+               <td>{{ onlineGame.name }}</td>
+               <td>{{ onlineGame.maxPlayers }}</td>
+               <td>{{ onlineGame.configurationID }}</td>
+               <td>{{ onlineGame.passwordProtected ? "Yes" : "No" }}</td>
+               <td><button mat-raised-button (click)="joinGame(onlineGame)">Join</button></td>
+            </tr>
+        </table>
+    </mat-card>
+    <div class="actionButtons">
+        <button mat-raised-button (click)="getAllGames()">Get All Games</button>
+        <button mat-raised-button (click)="createGame()">Create Game</button>
+        <button mat-raised-button (click)="deleteAllGames()">Delete All Games</button>
+    </div>
+</mat-card>

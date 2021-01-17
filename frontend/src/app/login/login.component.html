@@ -1,0 +1,25 @@
+
+<mat-toolbar>
+    <span> Login </span>
+</mat-toolbar>
+<mat-card class="my-card">
+    <mat-card-content>
+        <div class="alert alert-danger" *ngIf="failedLogin"> Login Failed! Incorrect Username or Password</div>
+        <form #loginForm="ngForm">
+            <div>
+                <label for="username">Username</label> 
+                <input required (ngModel)="username" name="username" #username="ngModel" id="username" class="form-control" type=text>
+
+            </div>
+            <div>
+                <label for="password">Password</label>
+                <input required (ngModel)="password" name="password" #password="ngModel" id="password" class="form-control" type="password">
+            </div>
+        </form>
+    </mat-card-content>
+    <mat-card-actions>
+        <button (click)="onSubmit(loginForm)" type="button submit" class="btn"> Login</button>
+        <div class="divider"></div>
+        <button (click)="openForgotPassword()" type="button" class="btn">Forgot Password</button>
+    </mat-card-actions>
+</mat-card>

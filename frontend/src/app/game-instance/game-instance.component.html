@@ -1,0 +1,46 @@
+<h1 id="onlineGameCode">{{ onlineGame && onlineGame.privateGame ? 'Online Game Code: ' + onlineGame.onlineGameCode : '' }}</h1>
+<div class="columnContainer">
+    <div class="leftSidebar">
+        <div class="leftSidebarContent">
+            <mat-card class="playerList">
+                <h3>Player List</h3>
+                <p *ngFor="let player of playerData">
+                    {{ player.id }}
+                </p>
+            </mat-card>
+            <mat-card class="saveContainer">
+                <h3>Save Options</h3>
+                <div class="buttonsContainer">
+                    <button class="btn" (click)="getAllSavedGameStates()">Load Saved Game</button>
+                    <button class="btn" (click)="saveGameState()">Save Game</button>
+                    <button class="btn" (click)="deleteAllSaves()">Delete All Saves</button>
+                </div>
+            </mat-card>
+            <mat-card class="undoContainer">
+                <h3>Undo Options</h3>
+                <div class="buttonsContainer">
+                    <label for="undoCountInput">Number of moves to undo:</label>
+                    <input matInput #undoCountInput name="undoCountInput" value="1"/>
+                    <button class="btn" (click)="undo(undoCountInput.value)">Undo Move</button>
+                </div>
+            </mat-card>
+        </div>
+    </div>
+    <app-playspace
+        (amHostEmitter)="receiveAmHost($event)"
+        (playerDataEmitter)="receivePlayerData($event)"
+        (onlineGameEmitter)="receiveOnlineGameData($event)"
+        [undoGameStateEmitter]="undoGameStateEmitter"
+        [saveGameStateEmitter]="saveGameStateEmitter"
+        [getAllSavedGameStatesEmitter]="getAllSavedGameStatesEmitter"
+        [mainHostID]="mainHostID"
+        [onlineGameID]="onlineGameID"
+    ></app-playspace>
+    <div class="rightSidebar">
+        <div class="rightSidebarContent">
+            <mat-card class="chatContainer">
+                <p>Chat</p>
+            </mat-card>
+        </div>
+    </div>
+</div>
