@@ -1,8 +1,9 @@
 import Deck from './deck';
 import CardMin from './cardMin';
 import Card from './card';
+import base64CardMin from './base64CardMin';
 
-export default class DeckMin {
+export default class base64DeckMin {
     id: number;
     imagePath: string;
     x: number;
@@ -13,7 +14,8 @@ export default class DeckMin {
     rotation: number = 180;
     onInsertVisible: boolean = true;
     numberOfVisibleCards: number = 10;
-    cardMins: CardMin[];
+    base64CardMin: base64CardMin[];
+    deckName: string;
 
     constructor(deck: Deck) {
        this.id = deck.id;
@@ -21,18 +23,11 @@ export default class DeckMin {
        this.x = deck.x;
        this.y = deck.y;
        this.depth = deck.gameObject ? deck.gameObject.depth : 0;
-       this.cardMins = [];
+       this.base64CardMin = [];
 
        deck.cards?.forEach((card: Card) => {
            if(card.base64 == false ){
-                this.cardMins.push(new CardMin(card));
-           } else {
-               var cardMin = new CardMin(card);
-               cardMin.id = card.base64Id;
-               cardMin.base64 = true;
-               cardMin.deckName = card.base64Deck;
-               cardMin.imagePath = null;
-               this.cardMins.push(cardMin);
+                this.base64CardMin.push(new base64CardMin(card));
            }
        });
     }

@@ -16,13 +16,22 @@ export default class SavedGameState {
     deckMins: DeckMin[] = [];
     handMins: HandMin[] = [];
     savedPlayerData: SavedPlayerData[] = [];
+    base64Decks: String[] = [];
 
     constructor(username: string, name: string, gameState: GameState, playerData: PlayerData[]) { 
         this.username = username;
         this.name = name;
         this.date = new Date(); // Now
         gameState.cards.forEach((card: Card) => {
-            this.cardMins.push(new CardMin(card));
+            if( card.base64 == false ){
+                this.cardMins.push(new CardMin(card));
+            } else {
+               var cardMin = new CardMin(card);
+               cardMin.id = card.base64Id;
+               cardMin.base64 = true;
+               cardMin.deckName = card.base64Deck;
+               this.cardMins.push(cardMin);
+            }
         });
         gameState.decks.forEach((deck: Deck) => {
             this.deckMins.push(new DeckMin(deck));
@@ -33,5 +42,6 @@ export default class SavedGameState {
         playerData.forEach((data: PlayerData) => {
             this.savedPlayerData.push(new SavedPlayerData(data));
         });
+        this.base64Decks = gameState.base64Decks;
     }
 }

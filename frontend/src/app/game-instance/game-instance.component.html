@@ -16,7 +16,7 @@
                 <div class="btn btn-primary" (click)="deleteAllSaves()">Delete All Saves</div>
                 <div class="btn btn-primary" (click)="undo()">Undo Move</div>
                 <div class="btn btn-primary" (click)="clearCachedSave()">Clear Cached Save</div>
-                <div class="btn btn-primary" (click)="uploadCard()">Upload A Card</div>
+                <div class="btn btn-primary" (click)="uploadCard()" *ngIf="amHost">Upload A Card</div>
             </mat-card>
         </div>
     </div>

@@ -17,6 +17,7 @@ import OnlineGame from '../models/onlineGame';
 import PlayspaceScene from '../models/phaser-scenes/playspaceScene';
 import { MatDialog } from '@angular/material/dialog';
 import SentGameState from '../models/sentGameState';
+import { FileService } from '../services/file.service';
 
 @Component({
   selector: 'app-playspace',
@@ -39,7 +40,7 @@ export class PlayspaceComponent implements OnInit {
   @Input() private onlineGameID: string;
   @Input() private saveGameStateEmitter: EventEmitter<string> = new EventEmitter<string>();
   @Input() private getAllSavedGameStatesEmitter: EventEmitter<SavedGameState> = new EventEmitter<SavedGameState>();
-  @Input() private uploadCardToGameStateEmitter: EventEmitter<Array<string>> = new EventEmitter<Array<string>>();
+  @Input() private uploadCardToGameStateEmitter: EventEmitter<Object> = new EventEmitter<Object>();
 
   @Input() private undoGameStateEmitter: EventEmitter<integer> = new EventEmitter<integer>();
   // To Game Instance
@@ -70,7 +71,8 @@ export class PlayspaceComponent implements OnInit {
     private savedGameStateService: SavedGameStateService,
     private router: Router,
     private middleware: MiddleWare,
-    private dialog: MatDialog
+    private dialog: MatDialog,
+    private fileService: FileService
    ) {
     this.gameState = new GameState([], [], [], []);
     this.gameState.myPeerID = hostService.getHostID();
@@ -190,16 +192,34 @@ export class PlayspaceComponent implements OnInit {
   }
 
   uploadCards() {
-    console.log("Uploaded?")
     this.uploadCardToGameStateEmitter.subscribe(data => {
       var i; 
+      console.log("Playspace")
+      console.log(data);
+      this.gameState.generateBase64Dictionary(data.deckName, false, data);
+      this.gameState.sendTexturesToPeers(data.cards, data.deckName, data.ids);
       for (i=0; i < data.cards.length; i ++) {
-        console.log("Card data?")
-        // this.gameState.addCardToGame(cards[i], this);
-        this.gameState.addDeckToGame(data.deckName, data.cards, this);
+        this.gameState.addDeckToGame(data.deckName, data.cards[i], data.ids[i], this)
       }
     })
   }
+
+  getDecks(deckName: string, username: string) {
+    return this.fileService.list(deckName, username);
+  }
+  // getDecks(deckName: string, username: string, gameState: GameState) {
+  //   this.fileService.list(deckName, username).subscribe(function(data) {
+  //     let arrayOfBase64=[];
+  //     for(let i = 0; i < data.ids.length; i ++) {
+  //         if (!(data.ids[i] in arrayOfBase64) ) {
+  //             arrayOfBase64[data.ids[i]] = data.dataFiles[i];
+  //         } else {
+  //             console.log("Duplicate ID within this deck!  ", deckName);
+  //         }
+  //     }
+  //     gameState.base64Dictionary[deckName] = arrayOfBase64;
+  //   }.bind(this));
+  // }
 
   undoGameState(): void {
     this.undoGameStateEmitter.subscribe((count: integer) => {
@@ -252,7 +272,42 @@ export class PlayspaceComponent implements OnInit {
 
     dialogRef.afterClosed().subscribe(object => {
       if (object.loadFromCache === true) {
-        this.gameState.buildGameFromCache(this, true);
+        if(Object.keys(this.gameState.base64Dictionary).length == 0) {
+          const promise = new Promise((resolve, pending) => {
+            var username = this.middleware.getUsername();
+            var cache = JSON.parse(localStorage.getItem('cachedGameState'));
+            cache.base64Decks.forEach(deck => {
+            
+              this.getDecks(deck, username).subscribe(function(data) {
+                let arrayOfBase64=[];
+                for(let i = 0; i < data.ids.length; i ++) {
+                    if (!(data.ids[i] in arrayOfBase64) ) {
+                        arrayOfBase64[data.ids[i]] = data.dataFiles[i];
+                    } else {
+                        console.log("Duplicate ID within this deck!  ", deck);
+                    }
+                }
+                this.gameState.base64Dictionary[deck] = arrayOfBase64;
+
+                if (Object.keys(this.gameState.base64Dictionary).length > 0){
+                  resolve(true); 
+                } else {
+                  pending("Loading");
+                }
+              }.bind(this));;
+              // this.gameState.generateBase64Dictionary(deck, true, null, this);
+            });
+          });
+
+          promise.then(res => {
+            console.log("Promise Result: ",  res)
+            this.gameState.buildGameFromCache(this, true);
+          }).catch( err => {
+            console.log("Promise error: ", err)
+          })
+        } else {
+          this.gameState.buildGameFromCache(this, true);
+        }
       } else if (object.loadFromCache === false) {
         this.gameState.clearCache();
       } else {

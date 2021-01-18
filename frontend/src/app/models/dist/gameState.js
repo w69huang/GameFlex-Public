@@ -24,6 +24,7 @@ var EActionTypes;
     EActionTypes["removeFromHand"] = "removeFromHand";
     EActionTypes["importDeck"] = "importDeck";
     EActionTypes["updateRenderOrder"] = "updateRenderOrder";
+    EActionTypes["createTextures"] = "createTextures";
 })(EActionTypes = exports.EActionTypes || (exports.EActionTypes = {}));
 /**
  * An enum representing the types of all game objects
@@ -150,11 +151,14 @@ var GameState = /** @class */ (function () {
          * The highest z-index of any element
          */
         this.highestDepth = 0;
+        this.base64Decks = [];
         this._cards = cards;
         this._decks = decks;
         this._hands = hands;
         this.myHand = new hand_1["default"](null, []);
         this._counters = counters;
+        this.base64Dictionary = {};
+        this.texturepack = {};
     }
     Object.defineProperty(GameState.prototype, "cards", {
         /**
@@ -244,15 +248,90 @@ var GameState = /** @class */ (function () {
     GameState.prototype.getAmHost = function () {
         return this.amHost;
     };
-    GameState.prototype.addCardToGame = function (cardData, playspaceComponent) {
-        var card = new card_1["default"](Math.floor(Math.random() * 100000000), cardData, 50, 50);
+    GameState.prototype.addDeckToGame = function (deckName, cardsdata, id, playspaceComponent) {
+        console.log("Add deck to game");
+        var card = new card_1["default"](id, cardsdata, 50, 50);
         card.base64 = true;
-        console.log(card);
+        card.base64Id = id;
+        card.base64Deck = deckName;
+        // console.log(card);
         HelperFunctions.createCard(card, playspaceComponent, HelperFunctions.EDestination.TABLE, 0, true);
         console.log("Built?");
     };
-    GameState.prototype.addDeckToGame = function (deckName, cards, playspaceComponent) {
+    GameState.prototype.generateBase64Dictionary = function (deckName, api, payload, playspaceComponent) {
+        if (api === void 0) { api = true; }
+        if (payload === void 0) { payload = null; }
+        if (playspaceComponent === void 0) { playspaceComponent = null; }
+        if (this.amHost) {
+            if (this.base64Dictionary == undefined || !(deckName in this.base64Dictionary)) {
+                if (api == true) {
+                    var username = localStorage.getItem("username");
+                    // playspaceComponent.getDecks(deckName, username).subscribe(function(data) {
+                    //     let arrayOfBase64=[];
+                    //     for(let i = 0; i < data.ids.length; i ++) {
+                    //         if (!(data.ids[i] in arrayOfBase64) ) {
+                    //             arrayOfBase64[data.ids[i]] = data.dataFiles[i];
+                    //         } else {
+                    //             console.log("Duplicate ID within this deck!  ", deckName);
+                    //         }
+                    //     }
+                    //     this.base64Dictionary[deckName] = arrayOfBase64;
+                    //     console.log(this.base64Dictionary)
+                    // }.bind(this));
+                    // playspaceComponent.getDecks(deckName, username, this)
+                    console.log(this.base64Dictionary);
+                    // this.fileService.list(deckName, username).subscribe( function(data) {
+                    //     for(let i = 0; i < data.ids.length; i ++) {
+                    //         if (!(data.ids[i] in arrayOfBase64) ) {
+                    //             arrayOfBase64[data.ids[i]] = data.dataFiles[i];
+                    //         } else {
+                    //             console.log("Duplicate ID within this deck!  ", deckName);
+                    //         }
+                    //     }
+                    //     this.base64Dictionary[deckName] = arrayOfBase64;
+                    // })
+                }
+                else {
+                    var arrayOfBase64 = {};
+                    for (var i = 0; i < payload.ids.length; i++) {
+                        if (arrayOfBase64 == undefined || !(payload.ids[i] in arrayOfBase64)) {
+                            arrayOfBase64[payload.ids[i]] = payload.cards[i];
+                        }
+                        else {
+                            console.log("Duplicate ID within this deck!  ", deckName);
+                        }
+                    }
+                    this.base64Dictionary[deckName] = arrayOfBase64;
+                }
+            }
+            if (this.base64Decks.indexOf(deckName) == -1) {
+                this.base64Decks.push(deckName);
+            }
+        }
     };
+    GameState.prototype.sendTexturesToPeers = function (cards, base64DeckName, ids) {
+        if (this.amHost) {
+            console.log("Send textures to peers;");
+            this.texturepack["cards"] = cards;
+            this.texturepack["base64DeckName"] = base64DeckName;
+            this.texturepack["ids"] = ids;
+            this.sendPeerData(EActionTypes.createTextures, { imagePaths: cards, deckName: base64DeckName, base64Ids: ids, base64Dictionary: this.base64Dictionary });
+        }
+    };
+    // public createTextures(cards, base64DeckName, ids, playspaceComponent) {
+    //     var i;
+    //     for(i=0; i < cards.length; i ++) {
+    //         this.makeTextures(playspaceComponent, cards[i], ids[i]);
+    //         console.log("peer Creation?")
+    //     }
+    // }
+    // public deleteTextures(cards, playspaceComponent){
+    //     var i;
+    //     for(i=0; i < cards.length; i ++) {
+    //         this.removeTextures(playspaceComponent, cards[i], null);
+    //         console.log("peer deletion?")
+    //     }
+    // }
     GameState.prototype.setCachingEnabled = function (enable) {
         this.cachingEnabled = enable;
     };
@@ -331,7 +410,7 @@ var GameState = /** @class */ (function () {
                     if (playerData.peerID === _this.connections[i].peer) {
                         if (((onlySendTo !== "" && onlySendTo === playerData.peerID) || onlySendTo === "") && (doNotSendTo === "" || (doNotSendTo !== playerData.peerID))) {
                             var sentGameState = new sentGameState_1["default"](_this, playerData.id);
-                            _this.connections[i].send(new GameObjectProperties(_this.amHost, 'replicateState', _this.myPeerID, _this.playerID, { 'state': sentGameState }));
+                            _this.connections[i].send(new GameObjectProperties(_this.amHost, 'replicateState', _this.myPeerID, _this.playerID, { 'state': sentGameState, 'base64Dictionary': _this.base64Dictionary, 'texturepack': _this.texturepack }));
                             break;
                         }
                     }
@@ -348,7 +427,7 @@ var GameState = /** @class */ (function () {
         if (this.amHost) {
             for (var i = 0; i < this.connections.length; i++) {
                 if (this.connections[i].peer === peerID) {
-                    this.connections[i].send(new GameObjectProperties(this.amHost, 'replicateState', this.myPeerID, this.playerID, { 'state': sentGameState }));
+                    this.connections[i].send(new GameObjectProperties(this.amHost, 'replicateState', this.myPeerID, this.playerID, { 'state': sentGameState, 'base64Dictionary': this.base64Dictionary, 'texturepack': this.texturepack }));
                 }
             }
         }
@@ -387,14 +466,42 @@ var GameState = /** @class */ (function () {
             if (cache_1.gamestate != null) {
                 this.setCachingEnabled(false);
                 this.cleanUp();
+                console.log(cache_1.gamestate);
+                console.log(Object.keys(this.base64Dictionary));
+                // console.log(this.middleware.getUsername());
+                if (Object.keys(this.base64Dictionary).length == 0) {
+                    cache_1.gamestate.base64Decks.forEach(function (deckName) {
+                        _this.generateBase64Dictionary(deckName, true, null, playspaceComponent);
+                        console.log(_this.base64Dictionary);
+                    });
+                }
                 cache_1.gamestate.cardMins.forEach(function (cardMin) {
-                    var card = new card_1["default"](cardMin.id, cardMin.imagePath, cardMin.x, cardMin.y);
-                    HelperFunctions.createCard(card, playspaceComponent, HelperFunctions.EDestination.TABLE, cardMin.depth);
+                    if (cardMin.base64 == false) {
+                        var card = new card_1["default"](cardMin.id, cardMin.imagePath, cardMin.x, cardMin.y);
+                        HelperFunctions.createCard(card, playspaceComponent, HelperFunctions.EDestination.TABLE, cardMin.depth);
+                    }
+                    else {
+                        var card = new card_1["default"](cardMin.id, null, cardMin.x, cardMin.y);
+                        card.base64Deck = cardMin.deckName;
+                        card.base64 = true;
+                        card.base64Id = cardMin.id;
+                        HelperFunctions.createCard(card, playspaceComponent, HelperFunctions.EDestination.TABLE, cardMin.depth, true);
+                    }
                 });
                 cache_1.gamestate.deckMins.forEach(function (deckMin) {
                     var cardList = [];
                     deckMin.cardMins.forEach(function (cardMin) {
-                        cardList.push(new card_1["default"](cardMin.id, cardMin.imagePath, cardMin.x, cardMin.y));
+                        if (cardMin.base64 == false) {
+                            cardList.push(new card_1["default"](cardMin.id, cardMin.imagePath, cardMin.x, cardMin.y));
+                        }
+                        else {
+                            var card = new card_1["default"](cardMin.id, null, cardMin.x, cardMin.y);
+                            card.base64Deck = cardMin.deckName;
+                            ;
+                            card.base64 = true;
+                            card.base64Id = cardMin.id;
+                            cardList.push(card);
+                        }
                     });
                     var deck = new deck_1["default"](deckMin.id, deckMin.imagePath, cardList, deckMin.x, deckMin.y);
                     HelperFunctions.createDeck(deck, playspaceComponent, deckMin.depth);
@@ -402,18 +509,41 @@ var GameState = /** @class */ (function () {
                 var _loop_1 = function (i) {
                     cache_1.gamestate.handMins[i].cardMins.forEach(function (cardMin) {
                         if (cache_1.gamestate.handMins[i].playerID === _this.playerID) {
-                            var card = new card_1["default"](cardMin.id, cardMin.imagePath, cardMin.x, cardMin.y);
-                            _this.addCardToOwnHand(card);
-                            HelperFunctions.createCard(card, playspaceComponent, HelperFunctions.EDestination.HAND, cardMin.depth);
+                            if (cardMin.base64 == false) {
+                                var card = new card_1["default"](cardMin.id, cardMin.imagePath, cardMin.x, cardMin.y);
+                                _this.addCardToOwnHand(card);
+                                HelperFunctions.createCard(card, playspaceComponent, HelperFunctions.EDestination.HAND, cardMin.depth);
+                            }
+                            else {
+                                var card = new card_1["default"](cardMin.id, null, cardMin.x, cardMin.y);
+                                card.base64Deck = cardMin.deckName;
+                                card.base64 = true;
+                                card.base64Id = cardMin.id;
+                                _this.addCardToOwnHand(card);
+                                HelperFunctions.createCard(card, playspaceComponent, HelperFunctions.EDestination.HAND, cardMin.depth, true);
+                            }
                         }
                         else {
-                            _this.addCardToPlayerHand(new card_1["default"](cardMin.id, cardMin.imagePath, cardMin.x, cardMin.y), cache_1.gamestate.handMins[i].playerID);
+                            if (cardMin.base64) {
+                                _this.addCardToPlayerHand(new card_1["default"](cardMin.id, cardMin.imagePath, cardMin.x, cardMin.y), cache_1.gamestate.handMins[i].playerID);
+                            }
+                            else {
+                                var card = new card_1["default"](cardMin.id, null, cardMin.x, cardMin.y);
+                                card.base64Deck = cardMin.deckName;
+                                card.base64 = true;
+                                card.base64Id = cardMin.id;
+                                _this.addCardToPlayerHand(card, cache_1.gamestate.handMins[i].playerID);
+                            }
                         }
                     });
                 };
                 for (var i = 0; i < cache_1.gamestate.handMins.length; i++) {
                     _loop_1(i);
                 }
+                // TO DO: Pull all the decks and such associated with this game with gridfs. Create a middleware function
+                // That pulls the image ID based on the card ID and then passes it into the below functions.
+                // NOTE: remember to set base64 = true to all the Card, Hand and Deck classes.
+                // NOTE: the nulls all need to be changed to the image path which is the base64 string for the cards. 
                 // Just a temporary thing for now. Ask Zach where the host sends the game state on load.
                 if (undo > 0) {
                     this.sendGameStateToPeers();
@@ -442,13 +572,32 @@ var GameState = /** @class */ (function () {
             this.cachingEnabled = false;
             this.cleanUp();
             savedGameState.cardMins.forEach(function (cardMin) {
-                var card = new card_1["default"](cardMin.id, cardMin.imagePath, cardMin.x, cardMin.y);
-                HelperFunctions.createCard(card, playspaceComponent, HelperFunctions.EDestination.TABLE, cardMin.depth);
+                if (cardMin.base64 == false) {
+                    var card = new card_1["default"](cardMin.id, cardMin.imagePath, cardMin.x, cardMin.y);
+                    HelperFunctions.createCard(card, playspaceComponent, HelperFunctions.EDestination.TABLE, cardMin.depth);
+                }
+                else {
+                    var card = new card_1["default"](cardMin.id, null, cardMin.x, cardMin.y);
+                    card.base64Deck = cardMin.deckName;
+                    card.base64 = true;
+                    card.base64Id = cardMin.id;
+                    HelperFunctions.createCard(card, playspaceComponent, HelperFunctions.EDestination.TABLE, cardMin.depth, true);
+                }
             });
             savedGameState.deckMins.forEach(function (deckMin) {
                 var cardList = [];
                 deckMin.cardMins.forEach(function (cardMin) {
-                    cardList.push(new card_1["default"](cardMin.id, cardMin.imagePath, cardMin.x, cardMin.y));
+                    if (cardMin.base64 == false) {
+                        cardList.push(new card_1["default"](cardMin.id, cardMin.imagePath, cardMin.x, cardMin.y));
+                    }
+                    else {
+                        var card = new card_1["default"](cardMin.id, null, cardMin.x, cardMin.y);
+                        card.base64Deck = cardMin.deckName;
+                        ;
+                        card.base64 = true;
+                        card.base64Id = cardMin.id;
+                        cardList.push(card);
+                    }
                 });
                 var deck = new deck_1["default"](deckMin.id, deckMin.imagePath, cardList, deckMin.x, deckMin.y);
                 HelperFunctions.createDeck(deck, playspaceComponent, deckMin.depth);
@@ -456,12 +605,31 @@ var GameState = /** @class */ (function () {
             var _loop_2 = function (i) {
                 savedGameState.handMins[i].cardMins.forEach(function (cardMin) {
                     if (savedGameState.handMins[i].playerID === _this.playerID) {
-                        var card = new card_1["default"](cardMin.id, cardMin.imagePath, cardMin.x, cardMin.y);
-                        _this.addCardToOwnHand(card);
-                        HelperFunctions.createCard(card, playspaceComponent, HelperFunctions.EDestination.HAND, cardMin.depth);
+                        if (cardMin.base64 == false) {
+                            var card = new card_1["default"](cardMin.id, cardMin.imagePath, cardMin.x, cardMin.y);
+                            _this.addCardToOwnHand(card);
+                            HelperFunctions.createCard(card, playspaceComponent, HelperFunctions.EDestination.HAND, cardMin.depth);
+                        }
+                        else {
+                            var card = new card_1["default"](cardMin.id, null, cardMin.x, cardMin.y);
+                            card.base64Deck = cardMin.deckName;
+                            card.base64 = true;
+                            card.base64Id = cardMin.id;
+                            _this.addCardToOwnHand(card);
+                            HelperFunctions.createCard(card, playspaceComponent, HelperFunctions.EDestination.HAND, cardMin.depth, true);
+                        }
                     }
                     else {
-                        _this.addCardToPlayerHand(new card_1["default"](cardMin.id, cardMin.imagePath, cardMin.x, cardMin.y), savedGameState.handMins[i].playerID);
+                        if (cardMin.base64 == false) {
+                            _this.addCardToPlayerHand(new card_1["default"](cardMin.id, cardMin.imagePath, cardMin.x, cardMin.y), savedGameState.handMins[i].playerID);
+                        }
+                        else {
+                            var card = new card_1["default"](cardMin.id, null, cardMin.x, cardMin.y);
+                            card.base64Deck = cardMin.deckName;
+                            card.base64 = true;
+                            card.base64Id = cardMin.id;
+                            _this.addCardToPlayerHand(card, savedGameState.handMins[i].playerID);
+                        }
                     }
                 });
             };
@@ -506,6 +674,9 @@ var GameState = /** @class */ (function () {
         var deck = this.getDeckByID(deckID);
         if (deck) {
             card.inDeck = true;
+            if (card.base64 == true) {
+                card.imagePath = null;
+            }
             if (this.amHost) {
                 deck.cards.push(card);
             }
@@ -610,6 +781,8 @@ var GameState = /** @class */ (function () {
                 card.inDeck = false;
                 this.delay(this.saveToCache());
             }
+            console.log("card from deck");
+            console.log(card);
             card.x = deck.x;
             card.y = deck.y;
             return card;
@@ -792,11 +965,11 @@ var GameState = /** @class */ (function () {
                     this.playerDataObjects.forEach(function (playerData) {
                         playerIDArray_1.push(playerData.id);
                     });
-                    var i = 1;
-                    while (playerIDArray_1.includes(i)) {
-                        i++;
+                    var i_1 = 1;
+                    while (playerIDArray_1.includes(i_1)) {
+                        i_1++;
                     }
-                    playerID = i; // Assign the player the first playerID that is not taken already
+                    playerID = i_1; // Assign the player the first playerID that is not taken already
                 }
                 this.playerDataObjects.push(new playerData_1["default"](playerID, data.peerID));
                 playspaceComponent.playerDataEmitter.emit(this.playerDataObjects);
@@ -807,18 +980,40 @@ var GameState = /** @class */ (function () {
                 console.log("Received state.");
                 var receivedGameState = data.extras.state;
                 this.playerID = receivedGameState.playerID;
+                this.base64Dictionary = data.extras.base64Dictionary;
+                this.texturepack = data.extras.texturepack;
                 this.cleanUp();
                 receivedGameState.cardMins.forEach(function (cardMin) {
-                    var card = new card_1["default"](cardMin.id, cardMin.imagePath, cardMin.x, cardMin.y);
-                    HelperFunctions.createCard(card, playspaceComponent, HelperFunctions.EDestination.TABLE, cardMin.depth);
+                    if (cardMin.base64 == false) {
+                        var card = new card_1["default"](cardMin.id, cardMin.imagePath, cardMin.x, cardMin.y);
+                        HelperFunctions.createCard(card, playspaceComponent, HelperFunctions.EDestination.TABLE, cardMin.depth);
+                    }
+                    else {
+                        console.log("Base64 card min");
+                        console.log(cardMin);
+                        var card = new card_1["default"](cardMin.id, null, cardMin.x, cardMin.y);
+                        card.base64 = true;
+                        card.base64Deck = cardMin.deckName;
+                        card.base64Id = cardMin.id;
+                        HelperFunctions.createCard(card, playspaceComponent, HelperFunctions.EDestination.TABLE, cardMin.depth, true);
+                    }
                 });
                 receivedGameState.deckMins.forEach(function (deckMin) {
                     var deck = new deck_1["default"](deckMin.id, deckMin.imagePath, [], deckMin.x, deckMin.y);
                     HelperFunctions.createDeck(deck, playspaceComponent, deckMin.depth);
                 });
                 receivedGameState.handMin.cardMins.forEach(function (cardMin) {
-                    var card = new card_1["default"](cardMin.id, cardMin.imagePath, cardMin.x, cardMin.y, true);
-                    HelperFunctions.createCard(card, playspaceComponent, HelperFunctions.EDestination.HAND, cardMin.depth);
+                    if (cardMin.base64 == false) {
+                        var card = new card_1["default"](cardMin.id, cardMin.imagePath, cardMin.x, cardMin.y, true);
+                        HelperFunctions.createCard(card, playspaceComponent, HelperFunctions.EDestination.HAND, cardMin.depth);
+                    }
+                    else {
+                        var card = new card_1["default"](cardMin.id, null, cardMin.x, cardMin.y, true);
+                        card.base64 = true;
+                        card.base64Deck = cardMin.deckName;
+                        card.base64Id = cardMin.id;
+                        HelperFunctions.createCard(card, playspaceComponent, HelperFunctions.EDestination.HAND, cardMin.depth, true);
+                    }
                 });
                 document.getElementById('loading').style.display = "none";
                 document.getElementById('loadingText').style.display = "none";
@@ -869,20 +1064,43 @@ var GameState = /** @class */ (function () {
                         card.x = data.extras.destination === HelperFunctions.EDestination.TABLE ? deck.x : playspaceComponent.gameState.myHand.gameObject.x + 150;
                         card.y = data.extras.destination === HelperFunctions.EDestination.TABLE ? deck.y : playspaceComponent.gameState.myHand.gameObject.y + 200;
                         if (data.extras.destination === HelperFunctions.EDestination.TABLE) {
-                            HelperFunctions.createCard(card, playspaceComponent, HelperFunctions.EDestination.TABLE);
+                            if (card.base64 == false) {
+                                HelperFunctions.createCard(card, playspaceComponent, HelperFunctions.EDestination.TABLE);
+                            }
+                            else {
+                                HelperFunctions.createCard(card, playspaceComponent, HelperFunctions.EDestination.TABLE, undefined, true);
+                            }
                         }
                         else if (data.extras.destination === HelperFunctions.EDestination.HAND) {
                             this.addCardToPlayerHand(card, data.playerID);
                         }
-                        this.sendPeerData(EActionTypes.sendTopCard, {
-                            cardID: card.id,
-                            deckID: deck.id,
-                            type: EGameObjectType.CARD,
-                            x: card.x,
-                            y: card.y,
-                            imagePath: card.imagePath,
-                            destination: data.extras.destination
-                        }, [], data.extras.destination === HelperFunctions.EDestination.HAND ? [data.peerID] : []);
+                        console.log("retrieve top card:");
+                        console.log(card);
+                        if (card.base64 == false) {
+                            this.sendPeerData(EActionTypes.sendTopCard, {
+                                cardID: card.id,
+                                deckID: deck.id,
+                                type: EGameObjectType.CARD,
+                                x: card.x,
+                                y: card.y,
+                                imagePath: card.imagePath,
+                                destination: data.extras.destination
+                            }, [], data.extras.destination === HelperFunctions.EDestination.HAND ? [data.peerID] : []);
+                        }
+                        else {
+                            this.sendPeerData(EActionTypes.sendTopCard, {
+                                cardID: card.id,
+                                deckID: deck.id,
+                                type: EGameObjectType.CARD,
+                                x: card.x,
+                                y: card.y,
+                                imagePath: null,
+                                destination: data.extras.destination,
+                                base64: card.base64,
+                                base64Id: card.base64Id,
+                                base64Deck: card.base64Deck
+                            }, [], data.extras.destination === HelperFunctions.EDestination.HAND ? [data.peerID] : []);
+                        }
                     }
                 }
                 break;
@@ -892,8 +1110,21 @@ var GameState = /** @class */ (function () {
                     var deck = this.getDeckByID(data.extras.deckID);
                     if (deck) {
                         var card = new card_1["default"](data.extras.cardID, data.extras.imagePath, data.extras.x, data.extras.y);
+                        if (data.extras.base64 == true) {
+                            card.base64 = true;
+                            card.base64Id = data.extras.base64Id;
+                            card.base64Deck = data.extras.base64Deck;
+                            // this.base64Dictionary = data.extras.base64Dictionary;
+                        }
+                        console.log("SendTop Card:");
+                        console.log(card);
                         card.inDeck = false;
-                        HelperFunctions.createCard(card, playspaceComponent, data.extras.destination);
+                        if (card.base64 == false) {
+                            HelperFunctions.createCard(card, playspaceComponent, data.extras.destination);
+                        }
+                        else {
+                            HelperFunctions.createCard(card, playspaceComponent, data.extras.destination, 0, true);
+                        }
                     }
                 }
                 break;
@@ -906,14 +1137,31 @@ var GameState = /** @class */ (function () {
                         if (this.amHost) {
                             // If I am the host, tell everyone else that this card was inserted
                             // Assuming they can actually see the card all ready -- if it was in the person's hand, no point in telling them
-                            this.sendPeerData(EActionTypes.insertIntoDeck, {
-                                cardID: card.id,
-                                deckID: deck.id,
-                                type: EGameObjectType.CARD,
-                                x: card.x,
-                                y: card.y,
-                                imagePath: card.imagePath
-                            }, [data.peerID]);
+                            console.log("Insert Into Deck:");
+                            console.log(card);
+                            if (card.base64 == true) {
+                                this.sendPeerData(EActionTypes.insertIntoDeck, {
+                                    cardID: card.id,
+                                    deckID: deck.id,
+                                    type: EGameObjectType.CARD,
+                                    x: card.x,
+                                    y: card.y,
+                                    imagePath: null,
+                                    base64: card.base64,
+                                    base64Id: card.base64Id,
+                                    base64Deck: card.base64Deck
+                                }, [data.peerID]);
+                            }
+                            else {
+                                this.sendPeerData(EActionTypes.insertIntoDeck, {
+                                    cardID: card.id,
+                                    deckID: deck.id,
+                                    type: EGameObjectType.CARD,
+                                    x: card.x,
+                                    y: card.y,
+                                    imagePath: card.imagePath
+                                }, [data.peerID]);
+                            }
                         }
                         this.addCardToDeck(card, deck.id);
                     }
@@ -997,6 +1245,18 @@ var GameState = /** @class */ (function () {
                         highestDepth: playspaceComponent.gameState.highestDepth
                     }, [data.peerID]);
                 }
+                break;
+            case EActionTypes.createTextures:
+                console.log("CreateTextures Case");
+                console.log(data);
+                var i;
+                this.base64Dictionary = data.extras.base64Dictionary;
+                for (i = 0; i < data.extras.imagePaths.length; i++) {
+                    //   this.makeTextures(playspaceComponent, data.extras.imagePaths[i], data.extras.base64Ids[i]);
+                    this.addDeckToGame(data.extras.deckName, data.extras.imagePaths[i], data.extras.base64Ids[i], playspaceComponent);
+                    console.log("peer Creation?");
+                }
+                break;
             default:
                 console.log('Received action did not match any existing action.');
                 break;

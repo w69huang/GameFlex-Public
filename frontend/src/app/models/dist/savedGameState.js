@@ -3,27 +3,27 @@ exports.__esModule = true;
 var cardMin_1 = require("./cardMin");
 var deckMin_1 = require("./deckMin");
 var handMin_1 = require("./handMin");
-var CachedGameState = /** @class */ (function () {
-    function CachedGameState(gameState) {
+var savedPlayerData_1 = require("../models/savedPlayerData");
+var SavedGameState = /** @class */ (function () {
+    function SavedGameState(username, name, gameState, playerData) {
         var _this = this;
         this.cardMins = [];
         this.deckMins = [];
         this.handMins = [];
-        // base64Cards: base64CardMin[] = [];
-        // base64Decks: base64DeckMin[] = [];
-        // base64Hands: base64HandMin[] = [];
+        this.savedPlayerData = [];
         this.base64Decks = [];
+        this.username = username;
+        this.name = name;
+        this.date = new Date(); // Now
         gameState.cards.forEach(function (card) {
             if (card.base64 == false) {
                 _this.cardMins.push(new cardMin_1["default"](card));
             }
             else {
-                card.imagePath = null;
-                // this.base64Cards.push(new base64CardMin(card));
                 var cardMin = new cardMin_1["default"](card);
+                cardMin.id = card.base64Id;
                 cardMin.base64 = true;
                 cardMin.deckName = card.base64Deck;
-                cardMin.id = card.base64Id;
                 _this.cardMins.push(cardMin);
             }
         });
@@ -33,8 +33,11 @@ var CachedGameState = /** @class */ (function () {
         gameState.hands.forEach(function (hand) {
             _this.handMins.push(new handMin_1["default"](hand));
         });
+        playerData.forEach(function (data) {
+            _this.savedPlayerData.push(new savedPlayerData_1["default"](data));
+        });
         this.base64Decks = gameState.base64Decks;
     }
-    return CachedGameState;
+    return SavedGameState;
 }());
-exports["default"] = CachedGameState;
+exports["default"] = SavedGameState;

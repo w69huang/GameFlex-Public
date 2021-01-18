@@ -57,7 +57,7 @@ public fileList$: fileObject[] = [];
   this.deckNameEmitter.subscribe(deckName => {
     this.fileService.list(deckName, userID).subscribe((data) => {
       console.log(data);
-      this.renderImages(data);
+      this.renderImages(data.dataFiles);
     });
   });
  }

@@ -42,6 +42,10 @@ export default class Deck {
      */
     rightClick: boolean;
 
+    base64: boolean;
+    
+    base64DeckName: string;
+
     /**
      * Used to create a new deck
      * @param id - The ID for the deck
@@ -56,6 +60,8 @@ export default class Deck {
         this.x = x;
         this.y = y;
         this.rightClick = false;
+        this.base64 = false;
+        this.base64DeckName = null;
 
         if (cards) {
             this.cards = cards;

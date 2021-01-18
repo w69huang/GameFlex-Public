@@ -15,7 +15,7 @@ var gameState_1 = require("../models/gameState");
 var savedGameState_1 = require("../models/savedGameState");
 var playspaceScene_1 = require("../models/phaser-scenes/playspaceScene");
 var PlayspaceComponent = /** @class */ (function () {
-    function PlayspaceComponent(hostService, onlineGamesService, savedGameStateService, router, middleware, dialog) {
+    function PlayspaceComponent(hostService, onlineGamesService, savedGameStateService, router, middleware, dialog, fileService) {
         var _this = this;
         this.hostService = hostService;
         this.onlineGamesService = onlineGamesService;
@@ -23,6 +23,7 @@ var PlayspaceComponent = /** @class */ (function () {
         this.router = router;
         this.middleware = middleware;
         this.dialog = dialog;
+        this.fileService = fileService;
         this.popupCount = 0;
         this.sceneWidth = 1000;
         this.sceneHeight = 1000;
@@ -146,16 +147,33 @@ var PlayspaceComponent = /** @class */ (function () {
     };
     PlayspaceComponent.prototype.uploadCards = function () {
         var _this = this;
-        console.log("Uploaded?");
         this.uploadCardToGameStateEmitter.subscribe(function (data) {
             var i;
+            console.log("Playspace");
+            console.log(data);
+            _this.gameState.generateBase64Dictionary(data.deckName, false, data);
+            _this.gameState.sendTexturesToPeers(data.cards, data.deckName, data.ids);
             for (i = 0; i < data.cards.length; i++) {
-                console.log("Card data?");
-                // this.gameState.addCardToGame(cards[i], this);
-                _this.gameState.addDeckToGame(data.deckName, data.cards, _this);
+                _this.gameState.addDeckToGame(data.deckName, data.cards[i], data.ids[i], _this);
             }
         });
     };
+    PlayspaceComponent.prototype.getDecks = function (deckName, username) {
+        return this.fileService.list(deckName, username);
+    };
+    // getDecks(deckName: string, username: string, gameState: GameState) {
+    //   this.fileService.list(deckName, username).subscribe(function(data) {
+    //     let arrayOfBase64=[];
+    //     for(let i = 0; i < data.ids.length; i ++) {
+    //         if (!(data.ids[i] in arrayOfBase64) ) {
+    //             arrayOfBase64[data.ids[i]] = data.dataFiles[i];
+    //         } else {
+    //             console.log("Duplicate ID within this deck!  ", deckName);
+    //         }
+    //     }
+    //     gameState.base64Dictionary[deckName] = arrayOfBase64;
+    //   }.bind(this));
+    // }
     PlayspaceComponent.prototype.undoGameState = function () {
         var _this = this;
         this.undoGameStateEmitter.subscribe(function (count) {
@@ -205,7 +223,43 @@ var PlayspaceComponent = /** @class */ (function () {
         });
         dialogRef.afterClosed().subscribe(function (object) {
             if (object.loadFromCache === true) {
-                _this.gameState.buildGameFromCache(_this, true);
+                if (Object.keys(_this.gameState.base64Dictionary).length == 0) {
+                    var promise = new Promise(function (resolve, pending) {
+                        var username = _this.middleware.getUsername();
+                        var cache = JSON.parse(localStorage.getItem('cachedGameState'));
+                        cache.base64Decks.forEach(function (deck) {
+                            _this.getDecks(deck, username).subscribe(function (data) {
+                                var arrayOfBase64 = [];
+                                for (var i = 0; i < data.ids.length; i++) {
+                                    if (!(data.ids[i] in arrayOfBase64)) {
+                                        arrayOfBase64[data.ids[i]] = data.dataFiles[i];
+                                    }
+                                    else {
+                                        console.log("Duplicate ID within this deck!  ", deck);
+                                    }
+                                }
+                                this.gameState.base64Dictionary[deck] = arrayOfBase64;
+                                if (Object.keys(this.gameState.base64Dictionary).length > 0) {
+                                    resolve(true);
+                                }
+                                else {
+                                    pending("Loading");
+                                }
+                            }.bind(_this));
+                            ;
+                            // this.gameState.generateBase64Dictionary(deck, true, null, this);
+                        });
+                    });
+                    promise.then(function (res) {
+                        console.log("Promise Result: ", res);
+                        _this.gameState.buildGameFromCache(_this, true);
+                    })["catch"](function (err) {
+                        console.log("Promise error: ", err);
+                    });
+                }
+                else {
+                    _this.gameState.buildGameFromCache(_this, true);
+                }
             }
             else if (object.loadFromCache === false) {
                 _this.gameState.clearCache();

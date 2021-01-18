@@ -15,6 +15,13 @@ import SentGameState from './sentGameState';
 import PlayerData from './playerData';
 import { EventEmitter, OnInit } from '@angular/core';
 import { Data } from 'phaser';
+import base64CardMin from './base64CardMin';
+import base64DeckMin from './base64DeckMin';
+import {MiddleWare} from '../services/middleware';
+import { DeckService } from '../services/deck.service';
+import { FileService } from '../services/file.service';
+import { WebService } from '../services/web.service';
+import { HttpClient } from '@angular/common/http';
 
 /**
  * An enum representing all types of actions
@@ -30,7 +37,8 @@ export enum EActionTypes {
     sendTopCard = "sendTopCard",
     removeFromHand = "removeFromHand",
     importDeck = "importDeck",
-    updateRenderOrder = "updateRenderOrder"
+    updateRenderOrder = "updateRenderOrder",
+    createTextures = "createTextures"
 }
 
 /**
@@ -79,6 +87,13 @@ export class GameObjectExtraProperties {
     finishedMoving?: boolean;
     destination?: HelperFunctions.EDestination;
     highestDepth?: number;
+    deckName?: string;
+    base64Ids?: string[];
+    base64Dictionary?: Object;
+    texturepack?:Object;
+    base64?:boolean;
+    base64Id?: number;
+    base64Deck?: string;
 }
 
 /**
@@ -245,6 +260,13 @@ export default class GameState {
      */
     public highestDepth: number = 0;
 
+    public base64Dictionary: Object;
+    public base64Decks: String[] = []
+    public middleware: MiddleWare;
+    // private fileService: FileService;
+
+    private texturepack: Object;
+
     /**
      * The constructor for the game state
      * @param cards - The cards to add to the table at initialization time
@@ -258,6 +280,8 @@ export default class GameState {
         this._hands = hands;
         this.myHand = new Hand(null, []);
         this._counters = counters;
+        this.base64Dictionary = {}
+        this.texturepack = {}
     }
 
     /**
@@ -311,17 +335,94 @@ export default class GameState {
         return this.amHost;
     }
 
-    public addCardToGame(cardData, playspaceComponent) {
-        const card: Card = new Card(Math.floor(Math.random() *100000000 ), cardData, 50, 50);
+    
+    public addDeckToGame(deckName, cardsdata, id, playspaceComponent) {
+        console.log("Add deck to game");
+        const card: Card = new Card(id, cardsdata, 50, 50);
         card.base64 = true;
-        console.log(card);
+        card.base64Id = id;
+        card.base64Deck = deckName;
+        // console.log(card);
         HelperFunctions.createCard(card, playspaceComponent, HelperFunctions.EDestination.TABLE, 0, true);
-        console.log("Built?")
+        console.log("Built?");   
     }
 
-    public addDeckToGame(deckName, cards, playspaceComponent) {
-        
+    public generateBase64Dictionary(deckName: string, api:boolean=true, payload = null, playspaceComponent:PlayspaceComponent = null) {
+        if (this.amHost) {
+            if (this.base64Dictionary == undefined || !(deckName in this.base64Dictionary)){
+                if(api == true) {
+                    const username = localStorage.getItem("username");
+                    
+                    // playspaceComponent.getDecks(deckName, username).subscribe(function(data) {
+                    //     let arrayOfBase64=[];
+                    //     for(let i = 0; i < data.ids.length; i ++) {
+                    //         if (!(data.ids[i] in arrayOfBase64) ) {
+                    //             arrayOfBase64[data.ids[i]] = data.dataFiles[i];
+                    //         } else {
+                    //             console.log("Duplicate ID within this deck!  ", deckName);
+                    //         }
+                    //     }
+                    //     this.base64Dictionary[deckName] = arrayOfBase64;
+                    //     console.log(this.base64Dictionary)
+                    // }.bind(this));
+                    // playspaceComponent.getDecks(deckName, username, this)
+                    console.log(this.base64Dictionary);
+                    // this.fileService.list(deckName, username).subscribe( function(data) {
+                    //     for(let i = 0; i < data.ids.length; i ++) {
+                    //         if (!(data.ids[i] in arrayOfBase64) ) {
+                    //             arrayOfBase64[data.ids[i]] = data.dataFiles[i];
+                    //         } else {
+                    //             console.log("Duplicate ID within this deck!  ", deckName);
+                    //         }
+                    //     }
+                    //     this.base64Dictionary[deckName] = arrayOfBase64;
+                    // })
+                    
+                } else {
+                    let arrayOfBase64: Object = {};
+                    for(let i = 0; i < payload.ids.length; i ++) {
+                        if ( arrayOfBase64 == undefined || !(payload.ids[i] in arrayOfBase64) ) {
+                            arrayOfBase64[payload.ids[i]] = payload.cards[i];
+                        } else {
+                            console.log("Duplicate ID within this deck!  ", deckName);
+                        }
+                    }
+                    this.base64Dictionary[deckName] = arrayOfBase64;
+                }
+            }
+            if (this.base64Decks.indexOf(deckName) == -1) {
+                this.base64Decks.push(deckName);
+            }
+        }
     }
+
+    
+
+    public sendTexturesToPeers(cards, base64DeckName, ids) {
+        if(this.amHost) {
+            console.log("Send textures to peers;")
+            this.texturepack["cards"] = cards;
+            this.texturepack["base64DeckName"] = base64DeckName;
+            this.texturepack["ids"] = ids;
+            this.sendPeerData(EActionTypes.createTextures, {imagePaths: cards, deckName: base64DeckName, base64Ids: ids, base64Dictionary: this.base64Dictionary});
+        }
+    }
+
+    // public createTextures(cards, base64DeckName, ids, playspaceComponent) {
+    //     var i;
+    //     for(i=0; i < cards.length; i ++) {
+    //         this.makeTextures(playspaceComponent, cards[i], ids[i]);
+    //         console.log("peer Creation?")
+    //     }
+    // }
+
+    // public deleteTextures(cards, playspaceComponent){
+    //     var i;
+    //     for(i=0; i < cards.length; i ++) {
+    //         this.removeTextures(playspaceComponent, cards[i], null);
+    //         console.log("peer deletion?")
+    //     }
+    // }
 
     public setCachingEnabled(enable: boolean) {
         this.cachingEnabled = enable;
@@ -399,8 +500,9 @@ export default class GameState {
                 for (let i: number = 0; i < this.connections.length; i++) {
                     if (playerData.peerID === this.connections[i].peer) {
                         if (((onlySendTo !== "" && onlySendTo === playerData.peerID) || onlySendTo === "") && (doNotSendTo === "" || (doNotSendTo !== playerData.peerID))) {
+                            
                             let sentGameState: SentGameState = new SentGameState(this, playerData.id);
-                            this.connections[i].send(new GameObjectProperties(this.amHost, 'replicateState', this.myPeerID, this.playerID, { 'state': sentGameState }));
+                            this.connections[i].send(new GameObjectProperties(this.amHost, 'replicateState', this.myPeerID, this.playerID, { 'state': sentGameState , 'base64Dictionary': this.base64Dictionary, 'texturepack': this.texturepack}));
                             break; 
                         }
                     }
@@ -418,7 +520,7 @@ export default class GameState {
         if (this.amHost) {
             for (let i: number = 0; i < this.connections.length; i++) {
                 if (this.connections[i].peer === peerID) {
-                    this.connections[i].send(new GameObjectProperties(this.amHost, 'replicateState', this.myPeerID, this.playerID, { 'state': sentGameState }));
+                    this.connections[i].send(new GameObjectProperties(this.amHost, 'replicateState', this.myPeerID, this.playerID, { 'state': sentGameState, 'base64Dictionary': this.base64Dictionary, 'texturepack': this.texturepack }));
                 }
             }
         }
@@ -458,15 +560,41 @@ export default class GameState {
                 this.setCachingEnabled(false);
 
                 this.cleanUp();
-      
+                console.log(cache.gamestate);
+                console.log(Object.keys(this.base64Dictionary));
+                // console.log(this.middleware.getUsername());
+                if(Object.keys(this.base64Dictionary).length == 0) {
+                    cache.gamestate.base64Decks.forEach(deckName => {
+                        this.generateBase64Dictionary(deckName, true, null, playspaceComponent);
+                        console.log(this.base64Dictionary)
+                    });
+                }
+
                 cache.gamestate.cardMins.forEach((cardMin: CardMin) => {
-                    const card: Card = new Card(cardMin.id, cardMin.imagePath, cardMin.x, cardMin.y);
-                    HelperFunctions.createCard(card, playspaceComponent, HelperFunctions.EDestination.TABLE, cardMin.depth);
+                    if (cardMin.base64 == false ) {
+                        const card: Card = new Card(cardMin.id, cardMin.imagePath, cardMin.x, cardMin.y);
+                        HelperFunctions.createCard(card, playspaceComponent, HelperFunctions.EDestination.TABLE, cardMin.depth);
+                    } else {
+
+                        const card: Card = new Card(cardMin.id, null, cardMin.x, cardMin.y);
+                        card.base64Deck = cardMin.deckName;
+                        card.base64 = true;
+                        card.base64Id = cardMin.id
+                        HelperFunctions.createCard(card, playspaceComponent, HelperFunctions.EDestination.TABLE, cardMin.depth, true);
+                    }
                 });
                 cache.gamestate.deckMins.forEach((deckMin: DeckMin) => {
                     let cardList: Card[] = [];
                     deckMin.cardMins.forEach((cardMin: CardMin) => {
-                        cardList.push(new Card(cardMin.id, cardMin.imagePath, cardMin.x, cardMin.y));
+                        if (cardMin.base64 == false) {
+                            cardList.push(new Card(cardMin.id, cardMin.imagePath, cardMin.x, cardMin.y));
+                        } else {
+                            let card: Card = new Card(cardMin.id, null, cardMin.x, cardMin.y);
+                            card.base64Deck = cardMin.deckName;;
+                            card.base64 = true;
+                            card.base64Id = cardMin.id
+                            cardList.push(card);
+                        }
                     });
                     const deck: Deck = new Deck(deckMin.id, deckMin.imagePath, cardList, deckMin.x, deckMin.y);
                     HelperFunctions.createDeck(deck, playspaceComponent, deckMin.depth);
@@ -474,14 +602,37 @@ export default class GameState {
                 for (let i = 0; i < cache.gamestate.handMins.length; i++) {
                     cache.gamestate.handMins[i].cardMins.forEach((cardMin: CardMin) => {
                         if (cache.gamestate.handMins[i].playerID === this.playerID) {
-                            const card: Card = new Card(cardMin.id, cardMin.imagePath, cardMin.x, cardMin.y);
-                            this.addCardToOwnHand(card);
-                            HelperFunctions.createCard(card, playspaceComponent, HelperFunctions.EDestination.HAND, cardMin.depth);
+                            if (cardMin.base64 == false) {
+                                const card: Card = new Card(cardMin.id, cardMin.imagePath, cardMin.x, cardMin.y);
+                                this.addCardToOwnHand(card);
+                                HelperFunctions.createCard(card, playspaceComponent, HelperFunctions.EDestination.HAND, cardMin.depth);
+                            } else {
+                                const card: Card = new Card(cardMin.id, null, cardMin.x, cardMin.y);
+                                card.base64Deck = cardMin.deckName;
+                                card.base64 = true;
+                                card.base64Id = cardMin.id;
+                                this.addCardToOwnHand(card);
+                                HelperFunctions.createCard(card, playspaceComponent, HelperFunctions.EDestination.HAND, cardMin.depth, true);
+
+                            }
                         } else {
-                            this.addCardToPlayerHand(new Card(cardMin.id, cardMin.imagePath, cardMin.x, cardMin.y), cache.gamestate.handMins[i].playerID);
+                            if (cardMin.base64) {
+                                this.addCardToPlayerHand(new Card(cardMin.id, cardMin.imagePath, cardMin.x, cardMin.y), cache.gamestate.handMins[i].playerID);
+                            } else {
+                                let card: Card = new Card(cardMin.id, null, cardMin.x, cardMin.y);
+                                card.base64Deck = cardMin.deckName;
+                                card.base64 = true;
+                                card.base64Id = cardMin.id;
+                                this.addCardToPlayerHand(card, cache.gamestate.handMins[i].playerID);
+                            }
                         }
                     });
                 }
+
+                // TO DO: Pull all the decks and such associated with this game with gridfs. Create a middleware function
+                // That pulls the image ID based on the card ID and then passes it into the below functions.
+                // NOTE: remember to set base64 = true to all the Card, Hand and Deck classes.
+                // NOTE: the nulls all need to be changed to the image path which is the base64 string for the cards. 
             
                 // Just a temporary thing for now. Ask Zach where the host sends the game state on load.
                 if (undo > 0) {
@@ -515,13 +666,30 @@ export default class GameState {
             this.cleanUp();
       
             savedGameState.cardMins.forEach((cardMin: CardMin) => {
-                const card: Card = new Card(cardMin.id, cardMin.imagePath, cardMin.x, cardMin.y);
-                HelperFunctions.createCard(card, playspaceComponent, HelperFunctions.EDestination.TABLE, cardMin.depth);
+                if(cardMin.base64 == false){ 
+                    const card: Card = new Card(cardMin.id, cardMin.imagePath, cardMin.x, cardMin.y);
+                    HelperFunctions.createCard(card, playspaceComponent, HelperFunctions.EDestination.TABLE, cardMin.depth);
+                } else {
+                    const card: Card = new Card(cardMin.id, null, cardMin.x, cardMin.y);
+                    card.base64Deck = cardMin.deckName;
+                    card.base64 = true;
+                    card.base64Id = cardMin.id;
+                    HelperFunctions.createCard(card, playspaceComponent, HelperFunctions.EDestination.TABLE, cardMin.depth, true);
+                
+                }
             });
             savedGameState.deckMins.forEach((deckMin: DeckMin) => {
                 let cardList: Card[] = [];
                 deckMin.cardMins.forEach((cardMin: CardMin) => {
-                    cardList.push(new Card(cardMin.id, cardMin.imagePath, cardMin.x, cardMin.y));
+                    if(cardMin.base64 == false ){
+                        cardList.push(new Card(cardMin.id, cardMin.imagePath, cardMin.x, cardMin.y));
+                    } else {
+                        let card: Card = new Card(cardMin.id, null, cardMin.x, cardMin.y);
+                        card.base64Deck = cardMin.deckName;;
+                        card.base64 = true;
+                        card.base64Id = cardMin.id;
+                        cardList.push(card);
+                    }
                 });
                 const deck: Deck = new Deck(deckMin.id, deckMin.imagePath, cardList, deckMin.x, deckMin.y);
                 HelperFunctions.createDeck(deck, playspaceComponent, deckMin.depth);
@@ -529,11 +697,31 @@ export default class GameState {
             for (let i = 0; i < savedGameState.handMins.length; i++) {
                 savedGameState.handMins[i].cardMins.forEach((cardMin: CardMin) => {
                     if (savedGameState.handMins[i].playerID === this.playerID) {
-                        const card: Card = new Card(cardMin.id, cardMin.imagePath, cardMin.x, cardMin.y);
-                        this.addCardToOwnHand(card);
-                        HelperFunctions.createCard(card, playspaceComponent, HelperFunctions.EDestination.HAND, cardMin.depth);
+                        if (cardMin.base64 == false) {
+                            const card: Card = new Card(cardMin.id, cardMin.imagePath, cardMin.x, cardMin.y);
+                            this.addCardToOwnHand(card);
+                            HelperFunctions.createCard(card, playspaceComponent, HelperFunctions.EDestination.HAND, cardMin.depth);
+                        } else {
+                            const card: Card = new Card(cardMin.id, null, cardMin.x, cardMin.y);
+                            card.base64Deck = cardMin.deckName;
+                            card.base64 = true;
+                            card.base64Id = cardMin.id;
+                            this.addCardToOwnHand(card);
+                            HelperFunctions.createCard(card, playspaceComponent, HelperFunctions.EDestination.HAND, cardMin.depth, true);
+
+
+                        }
                     } else {
-                        this.addCardToPlayerHand(new Card(cardMin.id, cardMin.imagePath, cardMin.x, cardMin.y), savedGameState.handMins[i].playerID);
+                        if (cardMin.base64 == false) {
+                            this.addCardToPlayerHand(new Card(cardMin.id, cardMin.imagePath, cardMin.x, cardMin.y), savedGameState.handMins[i].playerID);
+                        } else {
+                            let card: Card = new Card(cardMin.id, null, cardMin.x, cardMin.y);
+                            card.base64Deck = cardMin.deckName;
+                            card.base64 = true;
+                            card.base64Id = cardMin.id;
+                            this.addCardToPlayerHand(card, savedGameState.handMins[i].playerID);
+
+                        }
                     }
                 });
             }
@@ -582,7 +770,9 @@ export default class GameState {
     
         if (deck) {
             card.inDeck = true;
-
+            if (card.base64 == true) {
+                card.imagePath = null;
+            }
             if (this.amHost) {
                 deck.cards.push(card);
             }
@@ -702,9 +892,10 @@ export default class GameState {
             if (removeOnRetrieve) {
                 deck.cards = this.filterOutID(deck.cards, card);
                 card.inDeck = false;
-
                 this.delay(this.saveToCache())
             }
+            console.log("card from deck");
+            console.log(card);
             card.x = deck.x;
             card.y = deck.y;
             return card;
@@ -918,20 +1109,40 @@ export default class GameState {
             console.log("Received state.");
             const receivedGameState: SentGameState = data.extras.state;
             this.playerID = receivedGameState.playerID;
-    
+            this.base64Dictionary = data.extras.base64Dictionary;
+            this.texturepack = data.extras.texturepack;
             this.cleanUp();
     
             receivedGameState.cardMins.forEach((cardMin: CardMin) => {
-              let card: Card = new Card(cardMin.id, cardMin.imagePath, cardMin.x, cardMin.y);
-              HelperFunctions.createCard(card, playspaceComponent, HelperFunctions.EDestination.TABLE, cardMin.depth);
+              if(cardMin.base64 == false) {  
+                let card: Card = new Card(cardMin.id, cardMin.imagePath, cardMin.x, cardMin.y);
+                HelperFunctions.createCard(card, playspaceComponent, HelperFunctions.EDestination.TABLE, cardMin.depth);
+              } else {
+                console.log("Base64 card min");
+                console.log(cardMin);
+                let card: Card = new Card(cardMin.id, null, cardMin.x, cardMin.y);
+                card.base64 = true;
+                card.base64Deck = cardMin.deckName
+                card.base64Id = cardMin.id;
+                HelperFunctions.createCard(card, playspaceComponent, HelperFunctions.EDestination.TABLE, cardMin.depth, true);
+              }
             });
             receivedGameState.deckMins.forEach((deckMin: DeckMin) => {
               let deck: Deck = new Deck(deckMin.id, deckMin.imagePath, [], deckMin.x, deckMin.y);
               HelperFunctions.createDeck(deck, playspaceComponent, deckMin.depth);
             });
             receivedGameState.handMin.cardMins.forEach((cardMin: CardMin) => {
-              let card: Card = new Card(cardMin.id, cardMin.imagePath, cardMin.x, cardMin.y, true);
-              HelperFunctions.createCard(card, playspaceComponent, HelperFunctions.EDestination.HAND, cardMin.depth);
+              if(cardMin.base64 == false) {  
+                let card: Card = new Card(cardMin.id, cardMin.imagePath, cardMin.x, cardMin.y, true);
+                HelperFunctions.createCard(card, playspaceComponent, HelperFunctions.EDestination.HAND, cardMin.depth);
+              } else {
+
+                let card: Card = new Card(cardMin.id, null, cardMin.x, cardMin.y, true);
+                card.base64 = true;
+                card.base64Deck = cardMin.deckName
+                card.base64Id = cardMin.id;
+                HelperFunctions.createCard(card, playspaceComponent, HelperFunctions.EDestination.HAND, cardMin.depth, true);
+              }
             });
     
             document.getElementById('loading').style.display = "none";
@@ -999,25 +1210,52 @@ export default class GameState {
                 card.y = data.extras.destination === HelperFunctions.EDestination.TABLE ? deck.y : playspaceComponent.gameState.myHand.gameObject.y + 200;
     
                 if (data.extras.destination === HelperFunctions.EDestination.TABLE) {
-                    HelperFunctions.createCard(card, playspaceComponent, HelperFunctions.EDestination.TABLE);
+                    if(card.base64 == false) {
+                        HelperFunctions.createCard(card, playspaceComponent, HelperFunctions.EDestination.TABLE);
+                    } else {
+                        HelperFunctions.createCard(card, playspaceComponent, HelperFunctions.EDestination.TABLE, undefined, true);
+
+                    }
                 } else if (data.extras.destination === HelperFunctions.EDestination.HAND) {
                     this.addCardToPlayerHand(card, data.playerID);
                 }
-    
-                this.sendPeerData(
-                    EActionTypes.sendTopCard,
-                    {
-                      cardID: card.id,
-                      deckID: deck.id,
-                      type: EGameObjectType.CARD,
-                      x: card.x,
-                      y: card.y,
-                      imagePath: card.imagePath,
-                      destination: data.extras.destination
-                    },
-                    [],
-                    data.extras.destination === HelperFunctions.EDestination.HAND ? [data.peerID] : []
-                );
+                console.log("retrieve top card:");
+                console.log(card);
+                if(card.base64 == false) {
+                    this.sendPeerData(
+                        EActionTypes.sendTopCard,
+                        {
+                        cardID: card.id,
+                        deckID: deck.id,
+                        type: EGameObjectType.CARD,
+                        x: card.x,
+                        y: card.y,
+                        imagePath: card.imagePath,
+                        destination: data.extras.destination
+                        },
+                        [],
+                        data.extras.destination === HelperFunctions.EDestination.HAND ? [data.peerID] : []
+                    );
+                } else {
+                    this.sendPeerData(
+                        EActionTypes.sendTopCard,
+                        {
+                        cardID: card.id,
+                        deckID: deck.id,
+                        type: EGameObjectType.CARD,
+                        x: card.x,
+                        y: card.y,
+                        imagePath: null,
+                        destination: data.extras.destination,
+                        base64: card.base64,
+                        base64Id: card.base64Id,
+                        base64Deck: card.base64Deck,
+                        // base64Dictionary: this.base64Dictionary
+                        },
+                        [],
+                        data.extras.destination === HelperFunctions.EDestination.HAND ? [data.peerID] : []
+                    );
+                }
               }
             }
             break;
@@ -1030,9 +1268,20 @@ export default class GameState {
               if (deck) {
     
                 let card: Card = new Card(data.extras.cardID, data.extras.imagePath, data.extras.x, data.extras.y);
+                if(data.extras.base64 == true ) {
+                    card.base64 = true;
+                    card.base64Id = data.extras.base64Id;
+                    card.base64Deck = data.extras.base64Deck;
+                    // this.base64Dictionary = data.extras.base64Dictionary;
+                }
+                console.log("SendTop Card:")
+                console.log(card);
                 card.inDeck = false;
-    
-                HelperFunctions.createCard(card, playspaceComponent, data.extras.destination);
+                if (card.base64 == false) {
+                    HelperFunctions.createCard(card, playspaceComponent, data.extras.destination);
+                } else {
+                    HelperFunctions.createCard(card, playspaceComponent, data.extras.destination, 0, true);
+                }
               }
             }
             break;
@@ -1047,19 +1296,38 @@ export default class GameState {
                 if (this.amHost) {
                   // If I am the host, tell everyone else that this card was inserted
                   // Assuming they can actually see the card all ready -- if it was in the person's hand, no point in telling them
-    
-                  this.sendPeerData(
-                    EActionTypes.insertIntoDeck,
-                    {
-                      cardID: card.id,
-                      deckID: deck.id,
-                      type: EGameObjectType.CARD,
-                      x: card.x,
-                      y: card.y,
-                      imagePath: card.imagePath
-                    },
-                    [data.peerID]
-                  );
+                  console.log("Insert Into Deck:")
+                  console.log(card);
+                  if (card.base64 == true) {
+                    this.sendPeerData(
+                        EActionTypes.insertIntoDeck,
+                        {
+                        cardID: card.id,
+                        deckID: deck.id,
+                        type: EGameObjectType.CARD,
+                        x: card.x,
+                        y: card.y,
+                        imagePath: null,
+                        base64: card.base64,
+                        base64Id: card.base64Id,
+                        base64Deck: card.base64Deck
+                        },
+                        [data.peerID]
+                    );
+                  } else {
+                    this.sendPeerData(
+                        EActionTypes.insertIntoDeck,
+                        {
+                        cardID: card.id,
+                        deckID: deck.id,
+                        type: EGameObjectType.CARD,
+                        x: card.x,
+                        y: card.y,
+                        imagePath: card.imagePath
+                        },
+                        [data.peerID]
+                    );
+                    }
                 }
     
                 this.addCardToDeck(card, deck.id);
@@ -1168,7 +1436,22 @@ export default class GameState {
                     [data.peerID]
                   );
               }
-    
+              break;
+
+          case EActionTypes.createTextures:
+              console.log("CreateTextures Case");
+              console.log(data);
+              var i;
+              this.base64Dictionary = data.extras.base64Dictionary;
+              for(i=0; i < data.extras.imagePaths.length; i ++) {
+                //   this.makeTextures(playspaceComponent, data.extras.imagePaths[i], data.extras.base64Ids[i]);
+                  this.addDeckToGame(data.extras.deckName, data.extras.imagePaths[i], data.extras.base64Ids[i], playspaceComponent);
+                  console.log("peer Creation?")
+              }
+
+
+              break;
+
           default:
             console.log('Received action did not match any existing action.');
             break;

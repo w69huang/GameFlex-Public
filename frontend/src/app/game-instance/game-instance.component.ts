@@ -30,7 +30,7 @@ export class GameInstanceComponent implements OnInit {
 
   public saveGameStateEmitter: EventEmitter<string> = new EventEmitter<string>();
   public getAllSavedGameStatesEmitter: EventEmitter<SavedGameState> = new EventEmitter<SavedGameState>();
-  public uploadCardToGameStateEmitter: EventEmitter<Array<string>> = new EventEmitter<Array<string>>();
+  public uploadCardToGameStateEmitter: EventEmitter<Object> = new EventEmitter<Object>();
   
   public undoGameStateEmitter: EventEmitter<integer> = new EventEmitter<integer>();
 
@@ -112,37 +112,40 @@ export class GameInstanceComponent implements OnInit {
   }
 
   uploadCard(){
-    let dialogRef = this.dialog.open(LoadCardsPopupComponent, {
-      height: 'auto',
-      width: 'auto',
-    });
+    if(this.amHost){
+      let dialogRef = this.dialog.open(LoadCardsPopupComponent, {
+        height: 'auto',
+        width: 'auto',
+      });
 
-    dialogRef.afterClosed().subscribe(formData => {
-      console.log("Closed Data:");
-      console.log(formData.name);
-      if (formData.name != null ){
-        var username = this.middleware.getUsername();
-        var i;
-        for(i = 0; i < formData.name.length; i ++) {
-          this.fileService.list(formData.name[i], username).subscribe((data) => {
-            console.log("GameInstance Componenet Pulled Files:")
-            console.log(data)
-            this.uploadCardToGameStateEmitter.emit(data);
-        
-          });
+      dialogRef.afterClosed().subscribe(formData => {
+        console.log("Closed Data:");
+        console.log(formData.name);
+        if (formData.name != null ){
+          var username = this.middleware.getUsername();
+          var i;
+          for(i = 0; i < formData.name.length; i ++) {
+            this.fileService.list(formData.name[i], username).subscribe(function(formData, i, data) {
+              var payload = {
+                deckName: formData.name[i],
+                cards: data.dataFiles,
+                ids: data.ids,
+              };
+              console.log("GameInstance Componenet Pulled Files:")
+              console.log(payload)
+              this.uploadCardToGameStateEmitter.emit(payload);
+          
+            }.bind(this, formData, i));
+          }
         }
-      }
-    });
-    // this.fileService.list('TestDeck2', 'test2').subscribe((data) => {
-    //   console.log("GameInstance Componenet Pulled Files:")
-    //   console.log(data)
-    //   this.uploadCardToGameStateEmitter.emit(data);
+      });
+      // this.fileService.list('TestDeck2', 'test2').subscribe((data) => {
+      //   console.log("GameInstance Componenet Pulled Files:")
+      //   console.log(data)
+      //   this.uploadCardToGameStateEmitter.emit(data);
 
-    // })
+      // })
+    }
   }
-
-createCards(username, deck) {
-  
-}
 }
 

@@ -43,6 +43,10 @@ export default class Card {
 
     base64: boolean;
 
+    base64Id: number;
+
+    base64Deck: string;
+
     /**
      * Used to create a new card
      * @param id - The ID for the card
@@ -60,5 +64,7 @@ export default class Card {
         this.inHand = inHand;
         this.inDeck = inDeck;
         this.base64 = false;
+        this.base64Id = null;
+        this.base64Deck = null;
     }
 }

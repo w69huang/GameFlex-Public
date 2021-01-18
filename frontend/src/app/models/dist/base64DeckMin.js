@@ -1,8 +1,8 @@
 "use strict";
 exports.__esModule = true;
-var cardMin_1 = require("./cardMin");
-var DeckMin = /** @class */ (function () {
-    function DeckMin(deck) {
+var base64CardMin_1 = require("./base64CardMin");
+var base64DeckMin = /** @class */ (function () {
+    function base64DeckMin(deck) {
         var _this = this;
         var _a;
         this.width = 99;
@@ -15,21 +15,13 @@ var DeckMin = /** @class */ (function () {
         this.x = deck.x;
         this.y = deck.y;
         this.depth = deck.gameObject ? deck.gameObject.depth : 0;
-        this.cardMins = [];
+        this.base64CardMin = [];
         (_a = deck.cards) === null || _a === void 0 ? void 0 : _a.forEach(function (card) {
             if (card.base64 == false) {
-                _this.cardMins.push(new cardMin_1["default"](card));
-            }
-            else {
-                var cardMin = new cardMin_1["default"](card);
-                cardMin.id = card.base64Id;
-                cardMin.base64 = true;
-                cardMin.deckName = card.base64Deck;
-                cardMin.imagePath = null;
-                _this.cardMins.push(cardMin);
+                _this.base64CardMin.push(new base64CardMin_1["default"](card));
             }
         });
     }
-    return DeckMin;
+    return base64DeckMin;
 }());
-exports["default"] = DeckMin;
+exports["default"] = base64DeckMin;

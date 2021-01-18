@@ -82,6 +82,7 @@ module.exports = (upload) => {
         const deckName = req.query.deckName;
 
         let fileArray = [];
+        let idArray = [];
         var fileProcessCounter = 0;
         
         Deck.findOne({ deckName: deckName, userID: userID })
@@ -122,13 +123,22 @@ module.exports = (upload) => {
                                 
                                 }).on('end', 
                                     function() { // done
+                                        console.log("Check This File!!!");
+                                        // console.log(file);
+                                        idArray.push(file._id);
                                         var fbuf = Buffer.concat(bufs);
                                         var base64 = (fbuf.toString('base64'));
                                         fileArray.push(base64);
                                         fileProcessCounter ++; 
                                         if(fileProcessCounter === files.length) {
                                             console.log("file array sent")
-                                            res.send(fileArray);
+                                            console.log(idArray);
+                                            var data = {
+                                                ids: idArray,
+                                                dataFiles: fileArray,
+                                            }
+                                            // res.send(fileArray);
+                                            res.send(data);
                                         }
                                     });
                         } else {

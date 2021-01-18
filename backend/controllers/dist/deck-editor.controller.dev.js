@@ -91,6 +91,7 @@ module.exports = function (upload) {
     var userID = req.query.userID;
     var deckName = req.query.deckName;
     var fileArray = [];
+    var idArray = [];
     var fileProcessCounter = 0;
     Deck.findOne({
       deckName: deckName,
@@ -126,6 +127,9 @@ module.exports = function (upload) {
               bufs.push(chunk);
             }).on('end', function () {
               // done
+              console.log("Check This File!!!"); // console.log(file);
+
+              idArray.push(file._id);
               var fbuf = Buffer.concat(bufs);
               var base64 = fbuf.toString('base64');
               fileArray.push(base64);
@@ -133,7 +137,13 @@ module.exports = function (upload) {
 
               if (fileProcessCounter === files.length) {
                 console.log("file array sent");
-                res.send(fileArray);
+                console.log(idArray);
+                var data = {
+                  ids: idArray,
+                  dataFiles: fileArray
+                }; // res.send(fileArray);
+
+                res.send(data);
               }
             });
           } else {//     res.status(404).json({

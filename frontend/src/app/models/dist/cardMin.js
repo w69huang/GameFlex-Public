@@ -1,15 +1,7 @@
-import Card from './card';
-
-export default class CardMin {
-    id: number;
-    imagePath: string;
-    x: number;
-    y: number;
-    depth: number;
-    base64: boolean;
-    deckName: string;
-
-    constructor(card: Card) {
+"use strict";
+exports.__esModule = true;
+var CardMin = /** @class */ (function () {
+    function CardMin(card) {
         this.id = card.id;
         this.imagePath = card.imagePath;
         this.x = card.x;
@@ -18,4 +10,6 @@ export default class CardMin {
         this.base64 = false;
         this.deckName = card.base64Deck;
     }
-}
+    return CardMin;
+}());
+exports["default"] = CardMin;

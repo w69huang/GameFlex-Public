@@ -29,6 +29,8 @@ var Card = /** @class */ (function () {
         this.inHand = inHand;
         this.inDeck = inDeck;
         this.base64 = false;
+        this.base64Id = null;
+        this.base64Deck = null;
     }
     return Card;
 }());

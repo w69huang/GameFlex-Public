@@ -16,6 +16,9 @@
         <a *ngIf="!isLoggedIn" mat-button routerLink="/login">Login</a>
         <a *ngIf="isLoggedIn" mat-button routerLink="/changepassword">Change Password</a>
         <a *ngIf="isLoggedIn" mat-button (click)="signOut()">Logout</a>
+        
     </mat-toolbar-row>
+    <div> 
+    </div>
 </mat-toolbar>
 <router-outlet></router-outlet>

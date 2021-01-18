@@ -22,6 +22,8 @@ export default class Hand {
      */
     type: string = EGameObjectType.HAND;
 
+    base64: boolean;
+
     /**
      * Used to create a hand
      * @param playerID - The ID of the player who owns the hand
@@ -29,7 +31,7 @@ export default class Hand {
      */
     constructor(playerID: number, cards: Card[]) {
         this.playerID = playerID;
-
+        this.base64 = false;
         if (cards) {
             this.cards = cards;
         } else {

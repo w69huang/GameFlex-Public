@@ -19,16 +19,24 @@ export enum EDestination {
 
 export function createCard(card: Card, playspaceComponent: PlayspaceComponent, destination: string, depth?: number, base64?: boolean): void {
     // Need to ensure the card is added to table/hand, and not delayed by the cardCreationCallback
+    let string = 'data:image/png;base64,'
+
     if (destination === EDestination.TABLE) {
         playspaceComponent.gameState.addCardToTable(card);
     } else {
         playspaceComponent.gameState.addCardToOwnHand(card);
     }
 
-    if (playspaceComponent.phaserScene.textures.exists(card.imagePath)) {
+    if(card.imagePath == null && base64 == true){
+        let deck = card.base64Deck
+        let id = card.base64Id
+        card.imagePath = playspaceComponent.gameState.base64Dictionary[deck][id];
+    }
+
+    if (playspaceComponent.phaserScene.textures.exists(String(card.id))) {
         // If the image already exists in the texture manager's cache, we can create the object now
 
-        card.gameObject = playspaceComponent.phaserScene.add.image(card.x, card.y, card.imagePath);
+        card.gameObject = playspaceComponent.phaserScene.add.image(card.x, card.y, String(card.id));
         card.gameObject.setInteractive();
         playspaceComponent.phaserScene.input.setDraggable(card.gameObject);
         card.gameObject.on('dragstart', SA.updateRenderOrder.bind(this, card, playspaceComponent));
@@ -38,49 +46,42 @@ export function createCard(card: Card, playspaceComponent: PlayspaceComponent, d
         card.gameObject.displayHeight = 150;
         playspaceComponent.gameState.highestDepth++;
         card.gameObject.setDepth(depth ? depth : playspaceComponent.gameState.highestDepth);
+        console.log("Text EXISTS. EXECUTE THIS");
     } else {
         // Otherwise, we have to dynamically load it
         if (base64 == true) {
-            let string = 'data:image/png;base64,'
-
-            // let counter = 0;
-            // playspaceComponent.phaserScene.textures.addBase64(String(card.id), string + card.imagePath);
-            // playspaceComponent.phaserScene.textures.on('onload', function() {
-            //     counter ++;
-            // });
-            // let customTimer = playspaceComponent.phaserScene.time.addEvent({ delay: 500, callback: function callback() {
-
-            //     if (counter === 1) {
-            //         customTimer.remove(false);
-            //         playspaceComponent.phaserScene.add.sprite(100, 100, String(card.id));
-            //     }
-            // }});
-
             playspaceComponent.phaserScene.textures.once('addtexture', function() {
-                card.gameObject = playspaceComponent.phaserScene.add.image(400,400, String(card.imagePath));
-                card.gameObject.setInteractive();
-                playspaceComponent.phaserScene.input.setDraggable(card.gameObject);
-                card.gameObject.on('dragstart', SA.updateRenderOrder.bind(this, card, playspaceComponent));
-                card.gameObject.on('drag', SA.onDragMove.bind(this, card, playspaceComponent));
-                card.gameObject.on('dragend', SA.onDragEnd.bind(this, card, playspaceComponent));
-                card.gameObject.displayWidth = 100;
-                card.gameObject.displayHeight = 150;
-                playspaceComponent.gameState.highestDepth++;
-                card.gameObject.setDepth(depth ? depth : playspaceComponent.gameState.highestDepth);
-            }, playspaceComponent.phaserScene);
-
-            playspaceComponent.phaserScene.textures.addBase64(String(card.imagePath), string + card.imagePath);
+                setTimeout( function() {
+                    card.gameObject = playspaceComponent.phaserScene.add.image(card.x,card.y, String(card.id));
+                    card.gameObject.setInteractive();
+                    playspaceComponent.phaserScene.input.setDraggable(card.gameObject);
+                    card.gameObject.on('dragstart', SA.updateRenderOrder.bind(this, card, playspaceComponent));
+                    card.gameObject.on('drag', SA.onDragMove.bind(this, card, playspaceComponent));
+                    card.gameObject.on('dragend', SA.onDragEnd.bind(this, card, playspaceComponent));
+                    card.gameObject.displayWidth = 100;
+                    card.gameObject.displayHeight = 150;
+                    playspaceComponent.gameState.highestDepth++;
+                    card.gameObject.setDepth(depth ? depth : playspaceComponent.gameState.highestDepth);
+                }, 200)
+            }, playspaceComponent.phaserScene.textures);
+            console.log("BASE 64 Text Doesnt Exists");
+            playspaceComponent.phaserScene.textures.addBase64(String(card.id), string + String(card.imagePath));  
 
         } else {
-            playspaceComponent.phaserScene.load.image(card.imagePath, card.imagePath);
+            playspaceComponent.phaserScene.load.image(String(card.id), card.imagePath);
             playspaceComponent.phaserScene.load.once("complete", cardCreationCallback.bind(this, card, playspaceComponent, destination, depth));
             playspaceComponent.phaserScene.load.start();
+            console.log("Text DOESNT EXISTS")
         }
+    }
+
+    if(base64 == true) {
+        card.imagePath = null;
     }
 }
 
 export function cardCreationCallback(card: Card, playspaceComponent: PlayspaceComponent, destination: string, depth?: number): void {
-    card.gameObject = playspaceComponent.phaserScene.add.image(card.x, card.y, card.imagePath);
+    card.gameObject = playspaceComponent.phaserScene.add.image(card.x, card.y, String(card.id));
     card.gameObject.setInteractive();
     playspaceComponent.phaserScene.input.setDraggable(card.gameObject);
     card.gameObject.on('dragstart', SA.updateRenderOrder.bind(this, card, playspaceComponent));

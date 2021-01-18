@@ -14,6 +14,8 @@ export class AppComponent {
   title = 'frontend';
 
   isLoggedIn = JSON.parse(localStorage.getItem('loggedIn') || 'false');
+
+  username: string;
   
   signOut() {
     localStorage.setItem('loggedIn', 'false');

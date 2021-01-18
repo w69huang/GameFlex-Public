@@ -44,9 +44,11 @@ export function retrieveTopCard(popupScene: PopupScene, deck: Deck, playspaceCom
                 card.inDeck = false;
                 card.x = optionObjectConfig.destination === HelperFunctions.EDestination.TABLE ? deck.x : playspaceComponent.gameState.myHand.gameObject.x + 150;
                 card.y = optionObjectConfig.destination === HelperFunctions.EDestination.TABLE ? deck.y : playspaceComponent.gameState.myHand.gameObject.y + 200;
-
-                HelperFunctions.createCard(card, playspaceComponent, optionObjectConfig.destination);
-
+                if (card.base64 == false ) {
+                    HelperFunctions.createCard(card, playspaceComponent, optionObjectConfig.destination);
+                } else {
+                    HelperFunctions.createCard(card, playspaceComponent, optionObjectConfig.destination, undefined, true);
+                }
                 if (optionObjectConfig.destination === HelperFunctions.EDestination.TABLE) {
                     playspaceComponent.gameState.sendPeerData(
                         EActionTypes.sendTopCard,
