@@ -96,6 +96,7 @@ export class CounterComponent implements OnInit {
    */
   initCounter(): void {
     let dialogRef = this.dialog.open(CreateCounterPopupComponent, {
+      panelClass: 'mat-dialog',
       height: '500px',
       width: '500px',
     });

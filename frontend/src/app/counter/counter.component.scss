@@ -1,9 +1,6 @@
 @import '../../main.scss';
 
 mat-card {
-    background-color: $themeDarkGray;
-    color: white;
-
     h3 {
         text-align: center;
     }
@@ -31,7 +28,6 @@ mat-card {
         }
 
         input {
-            background-color: $themeLightGray;
             width: 100%;
             height: 35px;
         }
@@ -41,21 +37,4 @@ mat-card {
 button {
     width: 60%;
     margin-left: 20%;
-    color: white;
-    background-color: $themePurple;
-    border: none;
-    margin-bottom: 10px;
-}
-
-button:focus {
-    color: white;
-    background-color: $themePurple;
-    border: none;
-    box-shadow: none;
-}
-
-button:hover {
-    color: white;
-    background-color: $themeDarkestGray;
-    border: none;
 }

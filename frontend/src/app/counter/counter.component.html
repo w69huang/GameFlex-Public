@@ -1,6 +1,6 @@
 <mat-card>
     <h3>Counters</h3>
-    <button class="btn btn-primary" (click)="initCounter()">Create Counter</button>
+    <button class="btn" (click)="initCounter()">Create Counter</button>
     <div class="counterDiv" *ngFor="let counter of counters">
         <div class="counterHeader">
             <label for="nameField">{{ counter.name }}</label>
