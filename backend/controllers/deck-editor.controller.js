@@ -37,26 +37,17 @@ module.exports = (upload) => {
     */
     router.route('/upload')
         .post(upload.array('file', 60), (req, res, next) => {
-            try{                
-                console.log(req.body);
-                console.log("FILES:");
-                console.log(req.files[0]);
+            try{             
                 const cardID = req.files[0].id;
                 const userID = req.body.username;
                 const deckName = req.body.deckName;
 
-                
-                console.log(userID);
-                console.log(deckName);
-                
                 UserDeck.findOneAndUpdate({ deckName: deckName, userID: userID }, 
-                    {$push: {imageID: cardID} },
+                    {$push: {imageID: cardID} }, {new: true}, 
                     function (err, success) {
                         if(err) {
                             console.log(err + " was the error");
-                        } else {
-                            console.log(success);
-                        };
+                        } else { console.log(success); };
                     });
              
 
@@ -82,7 +73,6 @@ module.exports = (upload) => {
     router.route('/files').get((req, res, next) => {
 
         //find the deck using deckname and userID
-        console.log("In the file grabber");
         const userID = req.query.userID;
         const deckName = req.query.deckName;
 
@@ -93,14 +83,9 @@ module.exports = (upload) => {
             .then((currentDeck) => {
 
                 var cardIDs = currentDeck.imageID;
-        
-                console.log("user Id " + userID);
-                console.log("deckName " + deckName);
-                console.log("card IDs " + cardIDs);
                 console.log(currentDeck);
 
                 gfs.find({ _id: { $in : cardIDs } }).toArray((err, files) => {
-                    console.log(files);
                     if (!files || files.length === 0) {
                         return res.status(200).json({
                             success: false,
@@ -114,8 +99,6 @@ module.exports = (upload) => {
                             || file.contentType === 'image/png'
                             || file.contentType === 'image/svg+xml') {
                                 file.isImage = true;
-
-                                console.log("file analyzed");
                                 
                                 var rstream = gfs.openDownloadStream(file._id);
 
@@ -212,21 +195,17 @@ module.exports = (upload) => {
 
         const userID = req.query.userID;
         const deckName = req.query.deckName;
+        const cardID = new mongoose.Types.ObjectId(req.query.id);
         console.log('deleting file: ' + req.query.id);
-
-        
 
        //TODO: remove fileID from mongo deck storage!!!
        
        userDeck.findOneAndUpdate({ deckName: deckName, userID: userID },
-        {$pull: { imageID: req.query.id }},
+        {$pull: { imageID: cardID }}, {new: true}, 
             function (err, success) {
-                console.log(req.query.id); 
                 if(err) {
                     console.log(err + " was the error");
-                } else {
-                    console.log(success);
-                };
+                } else { console.log(success); };
             });
 
        gfs.delete(new mongoose.Types.ObjectId(req.query.id),
@@ -251,7 +230,7 @@ module.exports = (upload) => {
 
     //this route recieves deck ID
     //finds and deletes all images with deck ID 
-    //deles the deck
+    //deletes the deck
 
     //TODO: delete the deck itself from Mongo (not just the cards from GFS)
     //TODO: better error handling
@@ -259,7 +238,7 @@ module.exports = (upload) => {
         const userID = req.query.userID;
         const deckName = req.query.deckName;
         var fileProcessCounter = 0;
-        console.log("request received to delete " +  deckName + "by user: " + userID);
+        console.log("request received to delete " +  deckName + " by user: " + userID);
         //find the deck
         UserDeck.findOne({ deckName: deckName, userID: userID })
             .then((currentDeck) => {
@@ -318,10 +297,8 @@ module.exports = (upload) => {
                 message: "error message is " + err
             });
         });
-
-
-
     });
+
    /*
         NEW-DECK: Create a new deck
     */
@@ -372,6 +349,8 @@ module.exports = (upload) => {
     /*
         Sort cards by filename
     */
+
+    //COMING SPRING 2022!!
 
 
     /*
