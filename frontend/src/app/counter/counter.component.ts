@@ -1,7 +1,9 @@
 import { Component, EventEmitter, Input, OnInit, Output } from '@angular/core';
 import { MatDialog } from '@angular/material/dialog';
-import Counter from '../models/counter';
+import { faTrash } from '@fortawesome/free-solid-svg-icons';
+
 import { CreateCounterPopupComponent } from '../popups/create-counter-popup/create-counter-popup.component';
+import Counter from '../models/counter';
 
 import * as HF from '../helper-functions';
 
@@ -49,6 +51,11 @@ export class CounterComponent implements OnInit {
    * The highest counter ID currently being used (it increments every time, so 1 will be the first one used)
    */
   private highestCounterID: number = 0; 
+
+  /**
+   * A reference to the fontawesome trash icon
+   */
+  public faTrash = faTrash;
 
   /**
    * The constructor
@@ -108,6 +115,13 @@ export class CounterComponent implements OnInit {
     });
   }
 
+  deleteCounter(counter: Counter): void {
+    this.counters = this.counters.filter((refCounter: Counter) => {
+      return counter.id != refCounter.id;
+    });
+    this.counterActionOutputEmitter.emit({ counterAction: ECounterActions.removeCounter, counter: counter });
+  }
+
   /**
    * Fired when a counter's input field is modified
    * @param counter - The counter whose input field was modified
@@ -115,6 +129,6 @@ export class CounterComponent implements OnInit {
   onChangeCounterText(counter: Counter): void {
     const counterElement: HTMLInputElement = <HTMLInputElement>document.getElementById(`counter${counter.id}`);
     counter.value = parseFloat(counterElement.value);
-    this.counterActionOutputEmitter.emit({  counterAction: ECounterActions.changeCounterValue, counter: counter });
+    this.counterActionOutputEmitter.emit({ counterAction: ECounterActions.changeCounterValue, counter: counter });
   }
 }

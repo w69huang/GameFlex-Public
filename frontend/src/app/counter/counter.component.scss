@@ -8,14 +8,26 @@ mat-card {
         text-align: center;
     }
 
-    div {
-        margin-bottom: 10px;
+    .counterDiv {
+        width: 100%;
         display: flex;
         flex-direction: column;
 
-        label {
+        .counterHeader {
+            label {
+                margin-bottom: 0px;
+            }
+            fa-icon {
+                float: right;
+                cursor: pointer;
+                transition: color 0.5s ease;
+            }
+            fa-icon:hover {
+                color: $themeError;
+            }
             border-bottom: 1px solid $themeLightGray; 
             font-size: 24px;
+            margin-bottom: 10px;
         }
 
         input {
