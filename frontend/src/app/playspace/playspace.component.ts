@@ -369,16 +369,4 @@ export class PlayspaceComponent implements OnInit {
     }
   }
 
-  // addHand() {
-  //   this.gameState.
-  //   console.log('addHand');
-  // }
-  // nextHand() {
-  //   this.gameState.nextHand();
-  //   console.log('nextHand');
-  // }
-  // prevHand() {
-  //   this.gameState.previousHand();
-  //   console.log('prevHand');
-  // }
 }

@@ -47,6 +47,15 @@ export function createMyHand(component: PlayspaceComponent) {
 
     updateHandTracker(component);
 
+    if(!component.gameState.getAmHost()) {
+        component.gameState.sendPeerData(
+            EActionTypes.createHand,
+            {
+            type: EGameObjectType.HAND,
+            } //TODO should probably send to only host
+        );
+    }
+
     component.gameState.delay(() => { component.gameState.saveToCache(); });
 }
 
@@ -80,6 +89,16 @@ export function deleteMyHand(component: PlayspaceComponent) {
 
     component.gameState.myHands.splice(myHandToDel, 1);
     updateHandTracker(component);
+
+    if(!component.gameState.getAmHost()) {
+        component.gameState.sendPeerData(
+            EActionTypes.deleteHand,
+            {
+            type: EGameObjectType.HAND,
+            handIndex: myHandToDel
+            } //TODO should probably send to only host
+        );
+    }
 
     component.gameState.delay(() => { component.gameState.saveToCache(); });
 }
