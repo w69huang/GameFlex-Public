@@ -41,7 +41,7 @@ export default class PlayspaceScene extends Phaser.Scene {
         this.playspaceComponent.startConnectionProcess();
       });
       this.handTrackerText = this.add.text(850, 625, '', {color: 'black', fontStyle: 'bold'});
-      this.addHandButton = HF.createPhaserImageButton(this, 960, 630, 30, 30, 'add-hand', () => { HA.createHand(this.playspaceComponent) });
+      this.addHandButton = HF.createPhaserImageButton(this, 960, 630, 30, 30, 'add-hand', () => { HA.createHand(this.playspaceComponent, this.playspaceComponent.gameState.playerID) });
       this.delHandButton = HF.createPhaserImageButton(this, 30, 630, 30, 30, 'del-hand', () => { HA.deleteMyHand(this.playspaceComponent) } );
       this.nextHandButton = HF.createPhaserImageButton(this, 960, 820, 30, 30, 'next-hand', () => { HA.nextHand(this.playspaceComponent) });
       this.prevHandButton = HF.createPhaserImageButton(this, 30, 820, 30, 30, 'prev-hand', () => { HA.previousHand(this.playspaceComponent) } );

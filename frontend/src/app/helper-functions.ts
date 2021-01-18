@@ -56,8 +56,7 @@ export function cardCreationCallback(card: Card, playspaceComponent: PlayspaceCo
 
     // If creating a card in the off hand set it to invisible
     if(destination === EDestination.HAND && playspaceComponent.gameState.myCurrHand != handIndex){
-        let cards = playspaceComponent.gameState.myHands[handIndex].cards
-        cards[cards.length - 1].gameObject.setVisible(false);
+        card.gameObject.setVisible(false);
     }
 }
 

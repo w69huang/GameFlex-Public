@@ -1064,7 +1064,7 @@ export default class GameState {
                 });
                 //handMin is now handMins need to go through each of the hands in the array and populate
                 receivedGameState.handMins.forEach( (handMin: HandMin, handIndex: integer) => {
-                    HA.createHand(playspaceComponent);
+                    HA.createHand(playspaceComponent, this.playerID);
                     handMin.cardMins.forEach((cardMin: CardMin) => {
                         let card: Card = new Card(cardMin.id, cardMin.imagePath, cardMin.x, cardMin.y, cardMin.flippedOver, true);
                         HF.createCard(card, playspaceComponent, HF.EDestination.HAND, cardMin.depth, handIndex);

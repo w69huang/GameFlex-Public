@@ -35,14 +35,25 @@ export function previousHand(component: PlayspaceComponent) {
 /**
  * Creates a hand
  */
-export function createHand(component: PlayspaceComponent, playerID?: number) {
-    let hand = new Hand(playerID ? playerID : component.gameState.playerID, []);
+export function createHand(component: PlayspaceComponent, playerID: number) {
+    let hand = new Hand(playerID, []);
+
+    // If I'm creating a hand for myself
     if (playerID === component.gameState.playerID) {
         component.gameState.myHands.push(hand);
-        component.gameState.hands[component.gameState.playerID] = component.gameState.myHands;
+        component.gameState.hands[playerID] = component.gameState.myHands;
 
         // Only navigate to the newly created hand if we aren't in the middle of loading a game state
         if(component.gameState.cachingEnabled){
+            if(!component.gameState.getAmHost()) {
+                component.gameState.sendPeerData(
+                    EActionTypes.createHand,
+                    {
+                        type: EGameObjectType.HAND,
+                    }
+                );
+            } 
+
             let myLastHand = component.gameState.myCurrHand;
             component.gameState.myCurrHand = component.gameState.myHands.length-1;
             renderHand(component, myLastHand, component.gameState.myCurrHand);
@@ -50,14 +61,7 @@ export function createHand(component: PlayspaceComponent, playerID?: number) {
 
         updateHandTracker(component);
 
-        if(!component.gameState.getAmHost()) {
-            component.gameState.sendPeerData(
-                EActionTypes.createHand,
-                {
-                    type: EGameObjectType.HAND,
-                }
-            );
-        }
+
     } else {
         if (!component.gameState.hands[playerID]) {
             component.gameState.hands[playerID] = [];
