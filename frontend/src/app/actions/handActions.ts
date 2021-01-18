@@ -35,28 +35,39 @@ export function previousHand(component: PlayspaceComponent) {
 /**
  * Creates a hand
  */
-export function createMyHand(component: PlayspaceComponent) {
-    let hand = new Hand(component.gameState.playerID, []);
-    component.gameState.myHands.push(hand);
-    component.gameState.hands[component.gameState.playerID] = component.gameState.myHands;
-    if(component.gameState.cachingEnabled){
-        let myLastHand = component.gameState.myCurrHand;
-        component.gameState.myCurrHand = component.gameState.myHands.length-1;
-        renderHand(component, myLastHand, component.gameState.myCurrHand);
+export function createHand(component: PlayspaceComponent, playerID?: number) {
+    let hand = new Hand(playerID ? playerID : component.gameState.playerID, []);
+    if (playerID === component.gameState.playerID) {
+        component.gameState.myHands.push(hand);
+        component.gameState.hands[component.gameState.playerID] = component.gameState.myHands;
+
+        // Only navigate to the newly created hand if we aren't in the middle of loading a game state
+        if(component.gameState.cachingEnabled){
+            let myLastHand = component.gameState.myCurrHand;
+            component.gameState.myCurrHand = component.gameState.myHands.length-1;
+            renderHand(component, myLastHand, component.gameState.myCurrHand);
+        }
+
+        updateHandTracker(component);
+
+        if(!component.gameState.getAmHost()) {
+            component.gameState.sendPeerData(
+                EActionTypes.createHand,
+                {
+                    type: EGameObjectType.HAND,
+                }
+            );
+        }
+    } else {
+        if (!component.gameState.hands[playerID]) {
+            component.gameState.hands[playerID] = [];
+        }
+        component.gameState.hands[playerID].push(new Hand(playerID, []));
     }
 
-    updateHandTracker(component);
-
-    if(!component.gameState.getAmHost()) {
-        component.gameState.sendPeerData(
-            EActionTypes.createHand,
-            {
-            type: EGameObjectType.HAND,
-            } //TODO should probably send to only host
-        );
+    if (component.gameState.getAmHost()) {
+        component.gameState.delay(() => { component.gameState.saveToCache(); });
     }
-
-    component.gameState.delay(() => { component.gameState.saveToCache(); });
 }
 
 /**

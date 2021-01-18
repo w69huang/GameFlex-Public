@@ -536,7 +536,7 @@ export default class GameState {
             let playersHandMins: HandMin[] = keyval[1];
 
             playersHandMins.forEach( (playersHandMin: HandMin, handIndex: integer) => {
-                HA.createMyHand(playspaceComponent);
+                HA.createHand(playspaceComponent, playerID);
 
                 // TODO Need to clear anything that was there before
                 playersHandMin.cardMins.forEach((cardMin: CardMin) => {
@@ -1063,11 +1063,11 @@ export default class GameState {
                     HF.createDeck(deck, playspaceComponent, deckMin.depth);
                 });
                 //handMin is now handMins need to go through each of the hands in the array and populate
-                receivedGameState.handMins.forEach( (handMin: HandMin, h: integer) => {
-                    playspaceComponent.gameState.myHands.push(new Hand(this.playerID, []));
+                receivedGameState.handMins.forEach( (handMin: HandMin, handIndex: integer) => {
+                    HA.createHand(playspaceComponent);
                     handMin.cardMins.forEach((cardMin: CardMin) => {
                         let card: Card = new Card(cardMin.id, cardMin.imagePath, cardMin.x, cardMin.y, cardMin.flippedOver, true);
-                        HF.createCard(card, playspaceComponent, HF.EDestination.HAND, cardMin.depth, h);
+                        HF.createCard(card, playspaceComponent, HF.EDestination.HAND, cardMin.depth, handIndex);
                     });
                 });
         
