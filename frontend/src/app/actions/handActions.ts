@@ -35,19 +35,43 @@ export function previousHand(component: PlayspaceComponent) {
 /**
  * Creates a hand
  */
-export function createMyHand(component: PlayspaceComponent) {
-    let hand = new Hand(component.gameState.playerID, []);
-    component.gameState.myHands.push(hand);
-    component.gameState.hands[component.gameState.playerID] = component.gameState.myHands;
-    if(component.gameState.cachingEnabled){
-        let myLastHand = component.gameState.myCurrHand;
-        component.gameState.myCurrHand = component.gameState.myHands.length-1;
-        renderHand(component, myLastHand, component.gameState.myCurrHand);
+export function createHand(component: PlayspaceComponent, playerID: number) {
+    let hand = new Hand(playerID, []);
+
+    // If I'm creating a hand for myself
+    if (playerID === component.gameState.playerID) {
+        component.gameState.myHands.push(hand);
+        component.gameState.hands[playerID] = component.gameState.myHands;
+
+        // Only navigate to the newly created hand if we aren't in the middle of loading a game state
+        if(!component.gameState.buildingGame){
+            if(!component.gameState.getAmHost()) {
+                component.gameState.sendPeerData(
+                    EActionTypes.createHand,
+                    {
+                        type: EGameObjectType.HAND,
+                    }
+                );
+            } 
+
+            let myLastHand = component.gameState.myCurrHand;
+            component.gameState.myCurrHand = component.gameState.myHands.length-1;
+            renderHand(component, myLastHand, component.gameState.myCurrHand);
+        }
+
+        updateHandTracker(component);
+
+
+    } else {
+        if (!component.gameState.hands[playerID]) {
+            component.gameState.hands[playerID] = [];
+        }
+        component.gameState.hands[playerID].push(new Hand(playerID, []));
     }
 
-    updateHandTracker(component);
-
-    component.gameState.delay(() => { component.gameState.saveToCache(); });
+    if (component.gameState.getAmHost()) {
+        component.gameState.delay(() => { component.gameState.saveToCache(); });
+    }
 }
 
 /**
@@ -80,6 +104,16 @@ export function deleteMyHand(component: PlayspaceComponent) {
 
     component.gameState.myHands.splice(myHandToDel, 1);
     updateHandTracker(component);
+
+    if(!component.gameState.getAmHost()) {
+        component.gameState.sendPeerData(
+            EActionTypes.deleteHand,
+            {
+            type: EGameObjectType.HAND,
+            handIndex: myHandToDel
+            } //TODO should probably send to only host
+        );
+    }
 
     component.gameState.delay(() => { component.gameState.saveToCache(); });
 }
