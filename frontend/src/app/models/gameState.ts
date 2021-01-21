@@ -494,7 +494,7 @@ export default class GameState {
     public buildGame(gameStateMin: CachedGameState | SavedGameState, playspaceComponent: PlayspaceComponent, undo?: number): void {
         this.cachingEnabled = false;
 
-        this.cleanUp();
+        this.cleanUp(playspaceComponent);
         let highestDepth: number = 0;
 
         console.log('savedGameState', gameStateMin);
@@ -984,7 +984,7 @@ export default class GameState {
     /**
      * Used to clean up the game state, i.e. destroy all game objects and wipe all arrays
      */
-    public cleanUp(): void {
+    public cleanUp(component: PlayspaceComponent): void {
         this._cards.forEach((card: Card) => {
             card.gameObject?.destroy();
         });
@@ -1002,6 +1002,7 @@ export default class GameState {
         this._hands = [];
         this.myHands = [];
         this._counters = [];
+        component.phaserScene.handTrackerText.setText('');
     }
 
     /**
@@ -1052,7 +1053,7 @@ export default class GameState {
                 const receivedGameState: SentGameState = data.extras.state;
                 this.playerID = receivedGameState.playerID;
         
-                this.cleanUp();
+                this.cleanUp(playspaceComponent);
         
                 receivedGameState.cardMins.forEach((cardMin: CardMin) => {
                     let card: Card = new Card(cardMin.id, cardMin.imagePath, cardMin.x, cardMin.y, cardMin.flippedOver);
