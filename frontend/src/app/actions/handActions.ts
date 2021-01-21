@@ -77,9 +77,10 @@ export function createHand(component: PlayspaceComponent, playerID: number) {
 /**
  * Deletes the current hand hand. Sends alert if there are cards in the hand.
  */
-export function deleteMyHand(component: PlayspaceComponent) {
+export function deleteHand(component: PlayspaceComponent, playerID: number, handIndex?: integer) {
 
-    let myHandToDel = component.gameState.myCurrHand;
+
+    let myHandToDel = handIndex ? component.gameState.hands[playerID][handIndex] : component.gameState.myCurrHand;
 
     if( component.gameState.myHands.length <= 1 ) {
         // Do not delete the last hand
@@ -91,19 +92,26 @@ export function deleteMyHand(component: PlayspaceComponent) {
         return 
     }
 
-    // Move to the previous hand on delete or stay on first hand
-    if( component.gameState.myCurrHand > 0) {
-        component.gameState.myCurrHand = component.gameState.myCurrHand - 1;
-        // Change render order before hand is deleted 
-        renderHand(component, myHandToDel, component.gameState.myCurrHand, false);
-    } else {
-        component.gameState.myCurrHand = 0;
-        // Change render order before hand is deleted to +1 since we are deleting the current 0
-        renderHand(component, myHandToDel, component.gameState.myCurrHand + 1, false);
+
+    if (playerID === component.gameState.playerID) {
+        // Move to the previous hand on delete or stay on first hand
+        if( component.gameState.myCurrHand > 0) {
+            component.gameState.myCurrHand = component.gameState.myCurrHand - 1;
+            // Change render order before hand is deleted 
+            renderHand(component, myHandToDel, component.gameState.myCurrHand, false);
+        } else {
+            component.gameState.myCurrHand = 0;
+            // Change render order before hand is deleted to +1 since we are deleting the current 0
+            renderHand(component, myHandToDel, component.gameState.myCurrHand + 1, false);
+        }
     }
 
-    component.gameState.myHands.splice(myHandToDel, 1);
-    updateHandTracker(component);
+
+    component.gameState.hands[playerID].splice(myHandToDel, 1);
+
+    if (playerID === component.gameState.playerID) {
+        updateHandTracker(component);
+    }
 
     if(!component.gameState.getAmHost()) {
         component.gameState.sendPeerData(
@@ -113,6 +121,8 @@ export function deleteMyHand(component: PlayspaceComponent) {
             handIndex: myHandToDel
             } //TODO should probably send to only host
         );
+    } else {
+        component.gameState.delay(() => { component.gameState.saveToCache(); });
     }
 
     component.gameState.delay(() => { component.gameState.saveToCache(); });
