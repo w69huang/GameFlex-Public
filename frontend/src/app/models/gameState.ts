@@ -638,7 +638,9 @@ export default class GameState {
                 if (undo > 0) {
                     this.sendGameStateToPeers();
                     this.currentMove = new CachedGameState(this); 
-                }        
+                } else if (initialBuild) {
+                    this.sendGameStateToPeers();
+                }
 
                 this.setCachingEnabled(true);
             }            
@@ -728,6 +730,7 @@ export default class GameState {
             
             this.cachingEnabled = true;
             this.delay(this.saveToCache());
+            this.sendGameStateToPeers();
         }
     }
 
