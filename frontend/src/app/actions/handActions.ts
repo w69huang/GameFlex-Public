@@ -44,7 +44,7 @@ export function createHand(component: PlayspaceComponent, playerID: number) {
         component.gameState.hands[playerID] = component.gameState.myHands;
 
         // Only navigate to the newly created hand if we aren't in the middle of loading a game state
-        if(component.gameState.cachingEnabled){
+        if(!component.gameState.cachingEnabled){
             if(!component.gameState.getAmHost()) {
                 component.gameState.sendPeerData(
                     EActionTypes.createHand,
