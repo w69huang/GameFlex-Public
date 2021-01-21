@@ -412,7 +412,7 @@ export default class GameState {
      * Used to save the current game state to the user's local storage
      */
     public saveToCache(): void {
-        if (this.buildingGame && this.amHost) {
+        if (!this.buildingGame && this.amHost) {
             this.numCachedMoves++;
             const cachedGameState = new CachedGameState(this);
             localStorage.setItem('cachedGameState', JSON.stringify(cachedGameState)); 
