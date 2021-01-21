@@ -32,7 +32,6 @@ public deckName;
  constructor(private fileService: FileService, private middleWare: MiddleWare, private cfr: ComponentFactoryResolver, private dialog: MatDialog) { }
 
  public download(fileName: string):  void {
-   //TODO: Dont have this hard coded! File names and ID's should be accesible
    fileName = fileName;
    this.fileService.download(fileName).subscribe((data) => {
      
@@ -109,12 +108,17 @@ public deckName;
  ngOnInit(): void {
   const userID: string = this.middleWare.getUsername(); 
   this.deckNameEmitter.subscribe(deckName => {
+    const deckContainer = document.getElementById("deckDisplayContainer");
+    while ( deckContainer.firstChild ) {
+      deckContainer.removeChild(deckContainer.lastChild); 
+    }
     this.deckName = deckName;
     this.fileService.list(deckName, userID).subscribe((data) => {
       if(data.success === false) {
         document.getElementById('loadingText').style.display = "none";
       }
       else {
+        console.log(data); 
         this.renderImages(data);
       }
     });

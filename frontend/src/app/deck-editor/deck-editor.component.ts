@@ -55,6 +55,8 @@ export class DeckEditorComponent implements OnInit {
     this.deckService.createDeck(username, deckName).subscribe((data: {message: string, deck: deckObject}) => {
       if(data.deck){ 
         this.deckList$.push(data.deck); 
+        //Is this the best way of doing this? 
+        this.errorsDiv.nativeElement.innerHTML = "";
       }     
     });
   }
@@ -71,14 +73,14 @@ export class DeckEditorComponent implements OnInit {
       }
     });
 
-    dialogRef.afterClosed().subscribe(deckData => {
-      const deckName: string = deckData.name;
-      const username: string = this.middleWare.getUsername();
+    // dialogRef.afterClosed().subscribe(deckData => {
+    //   const deckName: string = deckData.name;
+    //   const username: string = this.middleWare.getUsername();
 
-      deckData.files?.forEach(file => {  
-        this.uploadFile(file, deckName, username);  
-      });
-    });
+    //   deckData.files?.forEach(file => {  
+    //     this.uploadFile(file, deckName, username);  
+    //   });
+    // });
    }
 
   public deleteDeck(deckName: string) {
@@ -109,34 +111,34 @@ export class DeckEditorComponent implements OnInit {
   // TODO: Take the deckName and pass it into the service call to the backend when we upload a file
   // That way, we can associate the file with a name on the backend
   // --> Also, we'll probably want to pass in the player's username
-  uploadFile(file, deckName: string, username: string) {  
-    const formData = new FormData();  
-    formData.append('file', file.data);
-    formData.append('deckName', deckName);
-    formData.append('username', username);
+  // uploadFile(file, deckName: string, username: string) {  
+  //   const formData = new FormData();  
+  //   formData.append('file', file.data);
+  //   formData.append('deckName', deckName);
+  //   formData.append('username', username);
 
-    //Using the "new" fileService
-    //this.fileService.upload(file.data.name, formData)
+  //   //Using the "new" fileService
+  //   //this.fileService.upload(file.data.name, formData)
     
-    file.inProgress = true;
-    console.log("uploading now...")  
-    this.fileService.upload(file.data, formData).pipe(  
-      // map(event => {  
-      //   switch (event.type) {  
-      //     case HttpEventType.UploadProgress:  
-      //       file.progress = Math.round(event.loaded * 100 / event.total);  
-      //       break;  
-      //     case HttpEventType.Response:  
-      //       return event;  
-      //   }  
-      // }),  
-      catchError((error: HttpErrorResponse) => {  
-        file.inProgress = false;  
-        return of(`${file.data.name} upload failed.`);  
-      })).subscribe((event: any) => {  
-        if (typeof (event) === 'object') {  
-          console.log(event.body);  
-        }  
-      });  
-  }
+  //   file.inProgress = true;
+  //   console.log("uploading now...")  
+  //   this.fileService.upload(file.data, formData).pipe(  
+  //     // map(event => {  
+  //     //   switch (event.type) {  
+  //     //     case HttpEventType.UploadProgress:  
+  //     //       file.progress = Math.round(event.loaded * 100 / event.total);  
+  //     //       break;  
+  //     //     case HttpEventType.Response:  
+  //     //       return event;  
+  //     //   }  
+  //     // }),  
+  //     catchError((error: HttpErrorResponse) => {  
+  //       file.inProgress = false;  
+  //       return of(`${file.data.name} upload failed.`);  
+  //     })).subscribe((event: any) => {  
+  //       if (typeof (event) === 'object') {  
+  //         console.log(event.body);  
+  //       }  
+  //     });  
+  // }
 }

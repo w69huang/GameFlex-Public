@@ -5,6 +5,11 @@ import { Inject } from '@angular/core';
 // import { FontAwesomeModule, FaIconLibrary  } from '@fortawesome/angular-fontawesome';
 import { faCoffee, fas } from '@fortawesome/free-solid-svg-icons';
 import { FaIconLibrary } from '@fortawesome/angular-fontawesome';
+import { MiddleWare } from 'src/app/services/middleware';
+import { FileService } from 'src/app/services/file.service';
+import { catchError } from 'rxjs/operators';
+import { HttpErrorResponse } from '@angular/common/http';
+import { of } from 'rxjs';
 
 
 @Component({
@@ -26,7 +31,9 @@ export class UploadCardsPopupComponent implements OnInit {
   constructor(
     private dialogRef: MatDialogRef<UploadCardsPopupComponent>,
     @Inject(MAT_DIALOG_DATA) public data: any,
-    library: FaIconLibrary
+    library: FaIconLibrary,
+    private middleWare: MiddleWare,
+    private fileService: FileService,
   ) { 
     library.addIconPacks(fas);
     library.addIcons(faCoffee);
@@ -47,7 +54,17 @@ export class UploadCardsPopupComponent implements OnInit {
   }
 
   submit(): void {
-    this.dialogRef.close({ name: this.deckNameData, files: this.files });
+    // this.dialogRef.close({ name: this.deckNameData, files: this.files });
+    const deckName: string = this.deckNameData
+    const username: string = this.middleWare.getUsername();
+    const numberOfFiles = this.files.length;
+    const fileData = []; 
+
+    this.files?.forEach(file => {
+        fileData.push(file.data);   
+      });
+      this.uploadFile(fileData, deckName, username); 
+      this.files = [];
   }
 
   // ngOnDestroy(): void {
@@ -60,10 +77,14 @@ export class UploadCardsPopupComponent implements OnInit {
       for (let index = 0; index < fileUpload.files.length; index++) {  
         const file = fileUpload.files[index];  
         console.log(file);
+        if (file.type != 'image/png' && file.type !=='image/PNG' && file.type !== 'image/jpg' && file.type !== 'image/jpeg') {
+          alert("Only PNG or JPEG files can be uploaded!");
+          continue;
+        }
         this.files.push({ data: file, inProgress: false, progress: 0});
       }  
     };  
-    fileUpload.click();  
+    fileUpload.click();   
   }
 
   removeStagedCard(cardData: any){
@@ -71,5 +92,25 @@ export class UploadCardsPopupComponent implements OnInit {
     this.files = this.files.filter((fileObject: any) => {
       return fileObject.data.name !== cardData.name;
     });
+  }
+
+  uploadFile(files, deckName: string, username: string) {  
+    const formData = new FormData();  
+    formData.append('file', files);
+    formData.append('deckName', deckName);
+    formData.append('username', username);
+
+    console.log("uploading now...")  
+    this.fileService.upload(files, formData).pipe(  
+      catchError((error: HttpErrorResponse) => {   
+        return of(`upload failed.`);  
+      })).subscribe((event: any) => {
+
+        this.deckNameEmitter.emit(this.deckNameData);
+
+        if (typeof (event) === 'object') {  
+          console.log(event);  
+        }  
+      });  
   }
 }
