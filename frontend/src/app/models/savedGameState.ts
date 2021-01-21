@@ -14,7 +14,7 @@ export default class SavedGameState {
     date: Date;
     cardMins: CardMin[] = [];
     deckMins: DeckMin[] = [];
-    handMins: HandMin[] = [];
+    handMins: any = [];
     savedPlayerData: SavedPlayerData[] = [];
 
     constructor(username: string, name: string, gameState: GameState, playerData: PlayerData[]) { 
@@ -27,8 +27,19 @@ export default class SavedGameState {
         gameState.decks.forEach((deck: Deck) => {
             this.deckMins.push(new DeckMin(deck));
         });
-        gameState.hands.forEach((hand: Hand) => {
-            this.handMins.push(new HandMin(hand));
+
+        Object.entries(gameState.hands).forEach((keyval) => {
+            const playerID = parseInt(keyval[0]);
+            const hands = keyval[1];
+            let convertedHands = [];
+
+            // convert hands to handMins
+            hands.forEach(hand => {
+                convertedHands.push(new HandMin(hand));
+            });
+
+            this.handMins.push({ playerID: playerID, innerHandMins: convertedHands});
+
         });
         playerData.forEach((data: PlayerData) => {
             this.savedPlayerData.push(new SavedPlayerData(data));

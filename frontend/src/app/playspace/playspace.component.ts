@@ -17,6 +17,7 @@ import OnlineGame from '../models/onlineGame';
 import PlayspaceScene from '../models/phaser-scenes/playspaceScene';
 import { MatDialog } from '@angular/material/dialog';
 import SentGameState from '../models/sentGameState';
+import * as HF from '../helper-functions';
 
 @Component({
   selector: 'app-playspace',
@@ -27,11 +28,7 @@ export class PlayspaceComponent implements OnInit {
   public phaserGame: Phaser.Game;
   public phaserScene: PlayspaceScene;
   public config: Phaser.Types.Core.GameConfig;
-  public aceOfSpades: Phaser.GameObjects.Image;
   public popupCount: number = 0;
-  public sceneWidth: number = 1000;
-  public sceneHeight: number = 1000;
-  public handBeginY: number = 600;
   public highestID: number = 1;
 
   // From Game Instance
@@ -77,7 +74,7 @@ export class PlayspaceComponent implements OnInit {
     // 1. npm install -g peer
     // 2. peerjs --port 9000 --key peerjs --path /peerserver
     this.peer = new Peer(this.gameState.myPeerID, { // You can pass in a specific ID as the first argument if you want to hardcode the peer ID
-      // host: 'localhost',
+      //host: 'localhost',
       host: '35.215.71.108', // This is reserved for the external IP of the mongo DB instance. Replace this IP with the new IP generated when starting up the 
       port: 9000,
       path: '/peerserver' // Make sure this path matches the path you used to launch it
@@ -164,11 +161,11 @@ export class PlayspaceComponent implements OnInit {
   }
 
   initialize(): void {
-    this.phaserScene = new PlayspaceScene(this, this.sceneWidth, this.sceneHeight, this.handBeginY);
+    this.phaserScene = new PlayspaceScene(this);
     this.config = {
       type: Phaser.AUTO,
-      height: this.sceneHeight,
-      width: this.sceneWidth,
+      height: HF.sceneHeight,
+      width: HF.sceneWidth,
       scene: [this.phaserScene],
       parent: 'gameContainer',
     };
@@ -179,6 +176,8 @@ export class PlayspaceComponent implements OnInit {
   getAllSavedGameStates() {
     this.getAllSavedGameStatesEmitter.subscribe((savedGameState: SavedGameState) => {
       if (savedGameState) { // If they actually chose a saved game state
+        // let processedSavedGameState = processSavedGameState(savedGameState, true, false);
+
         this.gameState.buildGameStateFromSavedState(savedGameState, this);      
       }
     });
@@ -194,6 +193,8 @@ export class PlayspaceComponent implements OnInit {
 
   saveGameState(): void {
     this.saveGameStateEmitter.subscribe((name: string) => {
+      // let processedSavedGameState = processSavedGameState(savedGameState, true, false);
+
       this.savedGameStateService.create(new SavedGameState(this.middleware.getUsername(), name, this.gameState, this.gameState.playerDataObjects));
     });
   }
@@ -248,7 +249,6 @@ export class PlayspaceComponent implements OnInit {
     } else {
       this.gameState.clearCache();
     }
-    this.gameState.setCachingEnabled(true);
   }
 
   finishConnectionProcess(): void {
@@ -367,4 +367,5 @@ export class PlayspaceComponent implements OnInit {
       this.checkIfCanOpenConnectionInterval = setInterval(this.checkIfCanOpenConnection.bind(this), 2000);
     }
   }
+
 }
