@@ -136,7 +136,7 @@ export enum EOverlapType {
 export default class GameState {
 
     /**
-     * Whether a game is in the middle of being built; will only ever be true at times for the host since the host is the only one who builds games from the database
+     * Whether a game is in the middle of being built
      */
     private _buildingGame: boolean = false;
 
@@ -1000,6 +1000,7 @@ export default class GameState {
             });
             myHand.cards = [];
         })
+        this.myCurrHand = 0;
         this._hands = [];
         this.myHands = [];
         this._counters = [];
@@ -1046,6 +1047,8 @@ export default class GameState {
             // Receives the state from the host and setups up the local gameState correctly
             case EActionTypes.replicateState:
                 console.log("Received state.");
+                this.buildingGame = true;
+
                 if (data.extras.undo) {
                     this.sendPeerData(EActionTypes.confirmUndo);
                 }
@@ -1071,6 +1074,8 @@ export default class GameState {
                         HF.createCard(card, playspaceComponent, HF.EDestination.HAND, cardMin.depth, handIndex);
                     });
                 });
+
+                this.buildingGame = false;
         
                 document.getElementById('loading').style.display = "none";
                 document.getElementById('loadingText').style.display = "none";
