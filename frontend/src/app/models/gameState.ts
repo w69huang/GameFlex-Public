@@ -1218,11 +1218,7 @@ export default class GameState {
             // Received by the host when a player creates a new hand
             case EActionTypes.createHand:
                 if (data.extras.type === EGameObjectType.HAND && this.amHost) {
-
-                    if(!this.hands[data.playerID]) { // TODO this should be done in some initPlayerPeer or something like that
-                        this.hands[data.playerID] = [new Hand(data.playerID, [])];
-                    }
-                    this.hands[data.playerID].push(new Hand(data.playerID, []));
+                    HA.createHand(playspaceComponent, data.playerID);
                 }
                 break;
     
