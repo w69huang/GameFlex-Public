@@ -23,6 +23,7 @@ export default class PlayspaceScene extends Phaser.Scene {
     }
   
     create() {  
+      this.playspaceComponent.gameState.buildingGame = true;
       if (this.playspaceComponent.gameState.myHand.gameObject == null) {
         let hand = this.add.image(0, HF.handBeginY, 'grey-background').setOrigin(0);
         hand.setInteractive();
@@ -45,7 +46,7 @@ export default class PlayspaceScene extends Phaser.Scene {
       this.delHandButton = HF.createPhaserImageButton(this, 30, 630, 30, 30, 'del-hand', () => { HA.deleteMyHand(this.playspaceComponent) } );
       this.nextHandButton = HF.createPhaserImageButton(this, 960, 820, 30, 30, 'next-hand', () => { HA.nextHand(this.playspaceComponent) });
       this.prevHandButton = HF.createPhaserImageButton(this, 30, 820, 30, 30, 'prev-hand', () => { HA.previousHand(this.playspaceComponent) } );
-
+      this.playspaceComponent.gameState.buildingGame = false;
     }
   
     preload() {
