@@ -1226,7 +1226,7 @@ export default class GameState {
             // Received by the host when a player deletes a hand
             case EActionTypes.deleteHand:
                 if (data.extras.type === EGameObjectType.HAND && this.amHost) {
-                    this.hands[data.playerID].splice(data.extras.handIndex, 1);
+                    HA.deleteHand(playspaceComponent, data.playerID, data.extras.handIndex);
                 }
                 break;
 

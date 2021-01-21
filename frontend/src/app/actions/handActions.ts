@@ -77,50 +77,54 @@ export function createHand(component: PlayspaceComponent, playerID: number) {
 /**
  * Deletes the current hand hand. Sends alert if there are cards in the hand.
  */
-export function deleteMyHand(component: PlayspaceComponent) {
+export function deleteHand(component: PlayspaceComponent, playerID: number, handIndex?: number) {
 
-    let myHandToDel = component.gameState.myCurrHand;
+    if (playerID === component.gameState.playerID) {
+        // This is my hand
 
-    if( component.gameState.myHands.length <= 1 ) {
-        // Do not delete the last hand
-        return
+        let myHandToDel = component.gameState.myCurrHand;
+
+        if( component.gameState.myHands.length <= 1 ) {
+            // Do not delete the last hand
+            return
+        }
+
+        if ( component.gameState.myHand.cards.length > 0 ) {
+            alert('Error: You can only delete a hand that is empty.');
+            return 
+        }
+
+        // Move to the previous hand on delete or stay on first hand
+        if( component.gameState.myCurrHand > 0) {
+            component.gameState.myCurrHand = component.gameState.myCurrHand - 1;
+            // Change render order before hand is deleted 
+            renderHand(component, myHandToDel, component.gameState.myCurrHand, false);
+        } else {
+            component.gameState.myCurrHand = 0;
+            // Change render order before hand is deleted to +1 since we are deleting the current 0
+            renderHand(component, myHandToDel, component.gameState.myCurrHand + 1, false);
+        }
+
+        component.gameState.myHands.splice(myHandToDel, 1);
+        updateHandTracker(component);
+
+        if(!component.gameState.getAmHost()) {
+            component.gameState.sendPeerData(
+                EActionTypes.deleteHand,
+                {
+                type: EGameObjectType.HAND,
+                handIndex: myHandToDel
+                }
+            );
+        }
+    } else if (component.gameState.getAmHost()) {
+        component.gameState.hands[playerID].splice(handIndex, 1);
+
+        component.gameState.delay(() => { component.gameState.saveToCache(); });
     }
-
-    if ( component.gameState.myHand.cards.length > 0 ) {
-        alert('Error: You can only delete a hand that is empty.');
-        return 
-    }
-
-    // Move to the previous hand on delete or stay on first hand
-    if( component.gameState.myCurrHand > 0) {
-        component.gameState.myCurrHand = component.gameState.myCurrHand - 1;
-        // Change render order before hand is deleted 
-        renderHand(component, myHandToDel, component.gameState.myCurrHand, false);
-    } else {
-        component.gameState.myCurrHand = 0;
-        // Change render order before hand is deleted to +1 since we are deleting the current 0
-        renderHand(component, myHandToDel, component.gameState.myCurrHand + 1, false);
-    }
-
-    component.gameState.myHands.splice(myHandToDel, 1);
-    updateHandTracker(component);
-
-    if(!component.gameState.getAmHost()) {
-        component.gameState.sendPeerData(
-            EActionTypes.deleteHand,
-            {
-            type: EGameObjectType.HAND,
-            handIndex: myHandToDel
-            } //TODO should probably send to only host
-        );
-    }
-
-    component.gameState.delay(() => { component.gameState.saveToCache(); });
 }
 
 // The following functions are support functions and do not correlate directly to a users action 
-
-
 
 /**
  * Hides cards for the last hand shown, and displays the new hands cards
