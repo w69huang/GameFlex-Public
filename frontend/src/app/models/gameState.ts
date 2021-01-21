@@ -136,22 +136,23 @@ export enum EOverlapType {
 export default class GameState {
 
     /**
-     * Whether caching of the game state is enabled
+     * Whether a game is in the middle of being built
      */
-    private _cachingEnabled: boolean = false;
+    private _buildingGame: boolean = false;
 
     /**
-     * A public accessor to get cachingEnabled
+     * A public accessor to get buildingGame
      */
-    public get cachingEnabled(): boolean {
-        return this._cachingEnabled;
+    public get buildingGame(): boolean {
+        return this._buildingGame;
     }
 
     /**
-     * A method used by the game state and external methods to enable/disable caching
+     * A method used by the game state and external methods to set whether or not a game is being built
+     * @param building - Whether or not we are building a game
      */
-    public set cachingEnabled(enable: boolean) {
-        this._cachingEnabled = enable;
+    public set buildingGame(building: boolean) {
+        this._buildingGame = building;
     }
 
     /**
@@ -411,7 +412,7 @@ export default class GameState {
      * Used to save the current game state to the user's local storage
      */
     public saveToCache(): void {
-        if (this._cachingEnabled && this.amHost) {
+        if (!this.buildingGame && this.amHost) {
             this.numCachedMoves++;
             const cachedGameState = new CachedGameState(this);
             localStorage.setItem('cachedGameState', JSON.stringify(cachedGameState)); 
@@ -492,7 +493,7 @@ export default class GameState {
      * @param undo - The number of undos, if applicable
      */
     public buildGame(gameStateMin: CachedGameState | SavedGameState, playspaceComponent: PlayspaceComponent, undo?: number): void {
-        this.cachingEnabled = false;
+        this.buildingGame = true;
 
         this.cleanUp(playspaceComponent);
         let highestDepth: number = 0;
@@ -558,7 +559,7 @@ export default class GameState {
         this.sendGameStateToPeers(undo > 0 ? true : false);
         this.currentMove = new CachedGameState(this);     
 
-        this.cachingEnabled = true;
+        this.buildingGame = false;
 
         if (!undo) {
             this.delay(() => { this.saveToCache(); });
@@ -900,7 +901,7 @@ export default class GameState {
      * @param func - The function to delay execution of
      */
     public delay(functionCallback: () => void) {
-        if (this._cachingEnabled) {
+        if (!this.buildingGame) {
             setTimeout(() => { functionCallback(); }, 200);
         }
     }
@@ -999,6 +1000,7 @@ export default class GameState {
             });
             myHand.cards = [];
         })
+        this.myCurrHand = 0;
         this._hands = [];
         this.myHands = [];
         this._counters = [];
@@ -1046,6 +1048,8 @@ export default class GameState {
             // Receives the state from the host and setups up the local gameState correctly
             case EActionTypes.replicateState:
                 console.log("Received state.");
+                this.buildingGame = true;
+
                 if (data.extras.undo) {
                     this.sendPeerData(EActionTypes.confirmUndo);
                 }
@@ -1071,6 +1075,8 @@ export default class GameState {
                         HF.createCard(card, playspaceComponent, HF.EDestination.HAND, cardMin.depth, handIndex);
                     });
                 });
+
+                this.buildingGame = false;
         
                 document.getElementById('loading').style.display = "none";
                 document.getElementById('loadingText').style.display = "none";
