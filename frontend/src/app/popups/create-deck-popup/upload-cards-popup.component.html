@@ -1,0 +1,29 @@
+<h1>Your Deck</h1>
+<div id = "deckDisplayContainer"></div>
+
+<h1 class="cardStagingList" *ngIf="files.length>0">Cards to Upload</h1>
+<ul>
+    <li *ngFor="let fileObject of files" >
+        {{fileObject.data.name}}&nbsp;&nbsp;
+        <span (click)="removeStagedCard(fileObject.data)">Remove</span>
+    </li>
+</ul> 
+
+<app-file-list
+[deckNameEmitter] = "deckNameEmitter"
+></app-file-list>
+
+<div class="actions" mat-dialog-actions>
+    <mat-card>
+        <button mat-button (click)="cancel()">Close</button>
+    </mat-card>
+    <mat-card>
+        <button mat-button (click)="upload()">Upload Files</button>
+    </mat-card>
+    <mat-card>
+        <button mat-button (click)="submit()" value="Submit">Confirm</button>
+    </mat-card>
+</div>
+<input type="file" #fileUpload id="fileUpload" name="fileUpload" multiple="multiple" accept="image/*" style="display:none;" />
+
+

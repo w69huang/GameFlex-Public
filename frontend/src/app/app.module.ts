@@ -2,6 +2,7 @@ import { BrowserModule } from '@angular/platform-browser';
 import { NgModule } from '@angular/core';
 import { HttpClientModule } from "@angular/common/http";
 import { FormsModule, ReactiveFormsModule } from '@angular/forms';
+import { CommonModule } from '@angular/common';
 
 import { AppRoutingModule } from './app-routing.module';
 import { AppComponent } from './app.component';
@@ -17,6 +18,8 @@ import { MatIconModule } from '@angular/material/icon';
 import { MatCardModule } from '@angular/material/card';
 import { MatButtonModule } from '@angular/material/button';
 import { MatProgressBarModule } from '@angular/material/progress-bar';
+import { FileListComponent } from './file-list/file-list.component';
+import { FileUploaderComponent } from './file-uploader/file-uploader.component';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatSelectModule} from '@angular/material/select';
 import { GameBrowserPopupComponent } from './popups/game-browser-password-popup/game-browser-password-popup.component';
@@ -35,6 +38,9 @@ import { AuthGuard } from './services/auth-guard';
 import { JoinByCodeComponent } from './join-by-code/join-by-code.component';
 import { GameInstanceComponent } from './game-instance/game-instance.component';
 import { LoadGameStatePopupComponent } from './popups/load-game-state-popup/load-game-state-popup.component';
+import { UploadCardsPopupComponent } from './popups/create-deck-popup/upload-cards-popup.component';
+import { FontAwesomeModule } from '@fortawesome/angular-fontawesome';
+import { CardLargeThumbnailPopupComponent } from './popups/card-large-thumbnail-popup/card-large-thumbnail-popup.component';
 import { UndoGameStatePopupComponent } from './popups/undo-game-state-popup/undo-game-state-popup.component';
 import { CreateCounterPopupComponent } from './popups/create-counter-popup/create-counter-popup.component';
 import { ConfigEditorComponent } from './config-editor/config-editor.component';
@@ -49,6 +55,8 @@ import { SaveConfigurationPopupComponent } from './popups/save-configuration-pop
     NewTaskComponent,
     PlayspaceComponent,
     DeckEditorComponent,
+    FileListComponent,
+    FileUploaderComponent,
     GameBrowserComponent,
     GameBrowserPopupComponent,
     GameSetupPopupComponent,
@@ -61,6 +69,9 @@ import { SaveConfigurationPopupComponent } from './popups/save-configuration-pop
     RetrieveGameStatePopupComponent,
     JoinByCodeComponent,
     GameInstanceComponent,
+    LoadGameStatePopupComponent,
+    UploadCardsPopupComponent,
+    CardLargeThumbnailPopupComponent,
     CreateCounterPopupComponent,
     LoadGameStatePopupComponent,
     UndoGameStatePopupComponent,
@@ -82,7 +93,9 @@ import { SaveConfigurationPopupComponent } from './popups/save-configuration-pop
     MatSelectModule,
     FormsModule,
     ReactiveFormsModule,
-    NgxMatSelectSearchModule
+    NgxMatSelectSearchModule,
+    FontAwesomeModule,
+    CommonModule
   ],
   entryComponents: [
     SaveConfigurationPopupComponent,
@@ -92,7 +105,9 @@ import { SaveConfigurationPopupComponent } from './popups/save-configuration-pop
     CreateCounterPopupComponent,
     RetrieveGameStatePopupComponent,
     LoadGameStatePopupComponent,
-    DialogForgotPassword
+    UploadCardsPopupComponent,
+    DialogForgotPassword,
+    CardLargeThumbnailPopupComponent
   ],
   providers: [
     MiddleWare, 

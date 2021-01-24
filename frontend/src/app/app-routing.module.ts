@@ -13,8 +13,8 @@ import { LoginComponent } from './login/login.component';
 import { ChangepasswordComponent } from './changepassword/changepassword.component';
 import { AuthGuard } from './services/auth-guard';
 import { JoinByCodeComponent } from './join-by-code/join-by-code.component';
+import { FileListComponent } from './file-list/file-list.component';
 import { GameInstanceComponent } from './game-instance/game-instance.component';
-
 
 const routes: Routes = [
   { path: '', redirectTo: 'gameBrowser', pathMatch: 'full' },
