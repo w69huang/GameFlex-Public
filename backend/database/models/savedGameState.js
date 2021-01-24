@@ -17,9 +17,14 @@ const SavedGameStateSchema = new mongoose.Schema({
     date: Date,
     cardMins: [Card],
     deckMins: [Deck],
-    handMins: [Hand],
+    handMins :[ 
+        {
+            playerID: Number,
+            innerHandMins: [Hand]
+        },
+    ],
     counters: [Counter],
-    savedPlayerData: [SavedPlayerData]
+    savedPlayerData: [SavedPlayerData],
 })
 
 const SavedGameState = mongoose.model('SavedGameState', SavedGameStateSchema)

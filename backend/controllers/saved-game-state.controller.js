@@ -35,7 +35,9 @@ function create(request, result) {
     
                     (new SavedGameState(savedGameState))
                         .save()
-                        .then((savedGameState) => result.send(savedGameState))
+                        .then((savedGameState) => {
+                            result.send(savedGameState);
+                        })
                         .catch((error) => console.log(error));
                 }
             } 

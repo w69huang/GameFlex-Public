@@ -39,17 +39,17 @@ export default class SavedGameState {
     deckMins: DeckMin[] = [];
 
     /**
-     * The list of minified hands to save
-     */
-    handMins: HandMin[] = [];
-
-    /**
      * The list of counters to save (no need to minify)
      */
     counters: Counter[] = [];
 
     /**
      * A list of username/playerID pairs
+     */
+    handMins: any = [];
+
+    /**
+     * An array of saved player data to track username/playerID pairs
      */
     savedPlayerData: SavedPlayerData[] = [];
 
@@ -69,8 +69,19 @@ export default class SavedGameState {
         gameState.decks.forEach((deck: Deck) => {
             this.deckMins.push(new DeckMin(deck));
         });
-        gameState.hands.forEach((hand: Hand) => {
-            this.handMins.push(new HandMin(hand));
+
+        Object.entries(gameState.hands).forEach((keyval) => {
+            const playerID = parseInt(keyval[0]);
+            const hands = keyval[1];
+            let convertedHands = [];
+
+            // convert hands to handMins
+            hands.forEach(hand => {
+                convertedHands.push(new HandMin(hand));
+            });
+
+            this.handMins.push({ playerID: playerID, innerHandMins: convertedHands});
+
         });
         gameState.counters.forEach((counter: Counter) => {
             this.counters.push(new Counter(counter.id, counter.name, counter.value));

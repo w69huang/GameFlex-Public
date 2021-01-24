@@ -27,9 +27,9 @@ export default class SentGameState {
     deckMins: DeckMin[] = [];
 
     /**
-     * The list of minified hands to save
+     * A list of hand mins to send to a given player
      */
-    handMin: HandMin;
+    handMins: HandMin[] = [];
 
     /**
      * The list of counters to save (no need to minify)
@@ -44,6 +44,15 @@ export default class SentGameState {
     constructor(gameState: GameState, playerID: number) {
         this.playerID = playerID;
 
+        // If the player does not have any hands initialize a hand for them
+        if(!gameState?.hands[this.playerID]) {
+            gameState.hands[this.playerID] = [new Hand(this.playerID, [])]
+        }
+
+        // Convert to the min version of each object
+        gameState?.hands[this.playerID].forEach( (hand: Hand) => {
+                this.handMins.push(new HandMin(hand));
+        });            
         gameState?.cards.forEach((card: Card) => {
             this.cardMins.push(new CardMin(card));
         });
@@ -51,21 +60,6 @@ export default class SentGameState {
             this.deckMins.push(new DeckMin(deck));
         });
 
-        let handFound: boolean = false;
-        for (let i = 0; i < gameState?.hands.length; i++) {
-            if (gameState?.hands[i].playerID === this.playerID) {
-                this.handMin = new HandMin(gameState?.hands[i]);
-                handFound = true;
-                break;
-            }
-        }
-
-        if (!handFound) {
-            this.handMin = new HandMin(new Hand(this.playerID, []));
-        }
-
-        gameState.counters.forEach((counter: Counter) => {
-            this.counters.push(new Counter(counter.id, counter.name, counter.value));
-        });
+        this.counters = gameState?.counters;
     }
 }

@@ -12,22 +12,22 @@ import Counter from './counter';
  */
 export default class CachedGameState {
     /**
-     * The list of minified cards to save
+     * The list of minified cards to cache
      */
     cardMins: CardMin[] = [];
     
     /**
-     * The list of minified decks to save
+     * The list of minified decks to cache
      */
     deckMins: DeckMin[] = [];
 
     /**
-     * The list of minified hands to save
+     * The hand dictionary to cache
      */
-    handMins: HandMin[] = [];
+    handMins: Object = {};
 
     /**
-     * The list of counters to save (no need to minify)
+     * The list of counters to cache (no need to minify)
      */
     counters: Counter[] = [];
 
@@ -47,8 +47,12 @@ export default class CachedGameState {
         gameState.decks.forEach((deck: Deck) => {
             this.deckMins.push(new DeckMin(deck));
         });
-        gameState.hands.forEach((hand: Hand) => {
-            this.handMins.push(new HandMin(hand));
+        Object.entries(gameState.hands).forEach((val) => {
+            const [playerID, hands] = val;
+            this.handMins[playerID] = [];
+            hands.forEach(hand => {
+                this.handMins[playerID].push(new HandMin(hand));
+            });
         });
         gameState.counters.forEach((counter: Counter) => {
             this.counters.push(new Counter(counter.id, counter.name, counter.value));

@@ -17,8 +17,10 @@ import PlayerData from '../models/playerData';
 import SavedGameState from '../models/savedGameState';
 import OnlineGame from '../models/onlineGame';
 import PlayspaceScene from '../models/phaser-scenes/playspaceScene';
+import SentGameState from '../models/sentGameState';
 
 import * as CoA from '../actions/counterActions';
+import * as HF from '../helper-functions';
 
 @Component({
   selector: 'app-playspace',
@@ -29,11 +31,7 @@ export class PlayspaceComponent implements OnInit {
   public phaserGame: Phaser.Game;
   public phaserScene: PlayspaceScene;
   public config: Phaser.Types.Core.GameConfig;
-  public aceOfSpades: Phaser.GameObjects.Image;
   public popupCount: number = 0;
-  public sceneWidth: number = 1000;
-  public sceneHeight: number = 1000;
-  public handBeginY: number = 600;
   public highestID: number = 1;
 
   // From Game Instance
@@ -167,11 +165,11 @@ export class PlayspaceComponent implements OnInit {
   }
 
   initialize(): void {
-    this.phaserScene = new PlayspaceScene(this, this.sceneWidth, this.sceneHeight, this.handBeginY);
+    this.phaserScene = new PlayspaceScene(this);
     this.config = {
       type: Phaser.AUTO,
-      height: this.sceneHeight,
-      width: this.sceneWidth,
+      height: HF.sceneHeight,
+      width: HF.sceneWidth,
       scene: [this.phaserScene],
       parent: 'gameContainer',
     };
@@ -182,6 +180,8 @@ export class PlayspaceComponent implements OnInit {
   setUpEmitters(): void {
     this.getAllSavedGameStatesEmitter.subscribe((savedGameState: SavedGameState) => {
       if (savedGameState) { // If they actually chose a saved game state
+        // let processedSavedGameState = processSavedGameState(savedGameState, true, false);
+
         this.gameState.buildGameStateFromSavedState(savedGameState, this);      
       }
     });
@@ -266,7 +266,6 @@ export class PlayspaceComponent implements OnInit {
     } else {
       this.gameState.clearCache();
     }
-    this.gameState.setCachingEnabled(true);
   }
 
   finishConnectionProcess(): void {
@@ -385,4 +384,5 @@ export class PlayspaceComponent implements OnInit {
       this.checkIfCanOpenConnectionInterval = setInterval(this.checkIfCanOpenConnection.bind(this), 2000);
     }
   }
+
 }

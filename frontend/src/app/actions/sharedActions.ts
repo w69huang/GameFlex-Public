@@ -53,6 +53,7 @@ export function onDragEnd(object: any, playspaceComponent: PlayspaceComponent, p
         {
           cardID: card.id,
           type: object.type,
+          handIndex: overlapObject.handIndex
         }
       );
     } else if (overlapObject.overlapType === EOverlapType.ALREADYINHAND && !playspaceComponent.gameState.getAmHost()) {
