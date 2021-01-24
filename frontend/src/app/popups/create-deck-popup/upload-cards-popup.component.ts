@@ -80,8 +80,12 @@ export class UploadCardsPopupComponent implements OnInit {
         if (file.type != 'image/png' && file.type !=='image/PNG' && file.type !== 'image/jpg' && file.type !== 'image/jpeg') {
           alert("Only PNG or JPEG files can be uploaded!");
           continue;
+        } 
+        if (file.size > 1000000) {
+          alert(`${file.name} is too large to upload. Please select an image 1mb or smaller`);
+          continue; 
         }
-        this.files.push({ data: file, inProgress: false, progress: 0});
+        this.files.push({ data: file });
       }  
     };  
     fileUpload.click();   
@@ -95,10 +99,16 @@ export class UploadCardsPopupComponent implements OnInit {
   }
 
   uploadFile(files, deckName: string, username: string) {  
-    const formData = new FormData();  
-    formData.append('file', files);
+    const formData = new FormData(); 
+
+    files.forEach(file => {
+      formData.append('files', file);
+    });
+    
     formData.append('deckName', deckName);
     formData.append('username', username);
+
+    // console.log(formData); 
 
     console.log("uploading now...")  
     this.fileService.upload(files, formData).pipe(  

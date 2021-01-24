@@ -36,26 +36,29 @@ module.exports = (upload) => {
         Post: Upload multiple files
     */
     router.route('/upload')
-        .post(upload.array('file', 60), (req, res, next) => {
-            try{   
-                console.log(req.body.file[0]);           
-                // const cardID = req.files[0].id;
+        .post(upload.array('files', 60), (req, res, next) => {
+            try{
+                 
+                fileIDArray = [];
+                req.files.forEach((file) => {
+                    fileIDArray.push(file.id);
+                })          
                 const userID = req.body.username;
                 const deckName = req.body.deckName;
 
-                // UserDeck.findOneAndUpdate({ deckName: deckName, userID: userID }, 
-                //     {$push: {imageID: cardID} }, {new: true}, 
-                //     function (err, success) {
-                //         if(err) {
-                //             console.log(err + " was the error");
-                //         } else { console.log(success); };
-                //     });
+                UserDeck.findOneAndUpdate({ deckName: deckName, userID: userID }, 
+                    {$push: {imageID: { $each: fileIDArray } } }, {new: true}, 
+                    function (err, success) {
+                        if(err) {
+                            console.log(err + " was the error");
+                        } else { console.log(success); };
+                    });
              
 
-                // res.status(200).json({
-                //     success: true,
-                //     message: req.files.length + ' file(s) uploaded succesfully',
-                // });
+                res.status(200).json({
+                    success: true,
+                    message: req.files.length + ' file(s) uploaded succesfully',
+                });
             }
             catch(err) {
                 console.log("there was an error!");
