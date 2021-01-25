@@ -1223,7 +1223,7 @@ export default class GameState {
                     let card: Card = new Card(data.extras.cardID, data.extras.imagePath, data.extras.x, data.extras.y, data.extras.flippedOver);
                     card.inDeck = false;
         
-                    HF.createCard(card, playspaceComponent, data.extras.destination);
+                    HF.createCard(card, playspaceComponent, data.extras.destination, null, playspaceComponent.gameState.myCurrHand);
                 }
                 }
                 break;
