@@ -30,9 +30,7 @@ export class DeckEditorComponent implements OnInit {
     this.deckService.list(username).subscribe((data) => {
       for (var i = 0; i < data.length; i++) {
         var deckData = data[i];
-        console.log(deckData);
         this.deckList$.push({deckID: deckData._id, deckName: deckData.deckName});
-        console.log(this.deckList$);
       }
      });
    }
@@ -99,7 +97,6 @@ export class DeckEditorComponent implements OnInit {
     this.fileService.download(fileName).subscribe((data) => {
       
      //render base64 image to screen
-      console.log(data);
       var outputImage: HTMLImageElement = document.createElement('img');
       outputImage.height = 200;
       outputImage.width = 200; 

@@ -51,14 +51,19 @@ module.exports = (upload) => {
                     function (err, success) {
                         if(err) {
                             console.log(err + " was the error");
-                        } else { console.log(success); };
+                            res.status(500).json({
+                                success: false,
+                                message: "Error when updating deck!"
+                            });
+                        } else { 
+                            console.log(success); 
+                            res.status(200).json({
+                                success: true,
+                                message: req.files.length + ' file(s) uploaded succesfully',
+                            });
+                        };
                     });
-             
-
-                res.status(200).json({
-                    success: true,
-                    message: req.files.length + ' file(s) uploaded succesfully',
-                });
+            
             }
             catch(err) {
                 console.log("there was an error!");

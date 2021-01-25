@@ -1,0 +1,13 @@
+<mat-card>
+    <h3>Counters</h3>
+    <button class="btn" (click)="initCounter()">Create Counter</button>
+    <div class="counterDiv" *ngFor="let counter of counters">
+        <div class="counterHeader">
+            <label for="nameField">{{ counter.name }}</label>
+            <fa-icon [icon]="faTrash" (click)="deleteCounter(counter)"></fa-icon>
+        </div>
+        <input (change)="onChangeCounterText(counter)" type="number" id="counter{{counter.id}}" 
+        placeholder="##" value="{{counter.value}}" max="{{counter.maxValue}}" min="{{counter.minValue}}" style="font-size: 24px">
+        <!-- Having the id as the counter.id is probably not the best... also is that even valid without the double { -->
+     </div>
+</mat-card>

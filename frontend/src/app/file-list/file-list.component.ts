@@ -36,7 +36,6 @@ public deckName;
    this.fileService.download(fileName).subscribe((data) => {
      
     //render base64 image to screen
-     console.log(data);
      var outputImage: HTMLImageElement = document.createElement('img');
      outputImage.height = 200;
      outputImage.width = 200; 
@@ -108,6 +107,7 @@ public deckName;
  ngOnInit(): void {
   const userID: string = this.middleWare.getUsername(); 
   this.deckNameEmitter.subscribe(deckName => {
+    document.getElementById('loadingText').style.display = "unset";
     const deckContainer = document.getElementById("deckDisplayContainer");
     while ( deckContainer.firstChild ) {
       deckContainer.removeChild(deckContainer.lastChild); 
@@ -118,7 +118,6 @@ public deckName;
         document.getElementById('loadingText').style.display = "none";
       }
       else {
-        console.log(data); 
         this.renderImages(data);
       }
     });

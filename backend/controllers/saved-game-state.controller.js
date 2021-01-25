@@ -31,7 +31,9 @@ function create(request, result) {
         } else {
             if (user[0] != undefined) {
                 if (request.query.password == user[0].password) {
-                    (new SavedGameState(request.body))
+                    var savedGameState = request.body;    
+    
+                    (new SavedGameState(savedGameState))
                         .save()
                         .then((savedGameState) => {
                             result.send(savedGameState);

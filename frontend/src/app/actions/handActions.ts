@@ -1,9 +1,7 @@
 import { PlayspaceComponent } from '../playspace/playspace.component';
-import { EActionTypes, EGameObjectType, EOverlapType, OverlapObject } from '../models/gameState';
+import { EActionTypes, EGameObjectType } from '../models/gameState';
 import Hand from '../models/hand';
 import Card from '../models/card';
-import { delay } from 'rxjs/operators';
-
 
 /**
 * Sets the next hand 
@@ -85,13 +83,13 @@ export function deleteHand(component: PlayspaceComponent, playerID: number, hand
         let myHandToDel = component.gameState.myCurrHand;
 
         if( component.gameState.myHands.length <= 1 ) {
-            // Do not delete the last hand
-            return
+            alert('Error: You cannot delete the only hand you have.');
+            return;
         }
 
         if ( component.gameState.myHand.cards.length > 0 ) {
             alert('Error: You can only delete a hand that is empty.');
-            return 
+            return;
         }
 
         // Move to the previous hand on delete or stay on first hand
@@ -119,9 +117,9 @@ export function deleteHand(component: PlayspaceComponent, playerID: number, hand
         }
     } else if (component.gameState.getAmHost()) {
         component.gameState.hands[playerID].splice(handIndex, 1);
-
-        component.gameState.delay(() => { component.gameState.saveToCache(); });
     }
+
+    component.gameState.delay(() => { component.gameState.saveToCache(); });
 }
 
 // The following functions are support functions and do not correlate directly to a users action 

@@ -4,10 +4,6 @@
 </div>
 <div #errorsDiv id="errorsDiv"></div>
 <div class="actions" mat-dialog-actions>
-    <mat-card>
-        <button mat-button (click)="cancel()">Cancel</button>
-    </mat-card>
-    <mat-card>
-        <button mat-button (click)="submit(saveNameInput.value)" value="Submit">Submit</button>
-    </mat-card>
+    <button mat-button (click)="cancel()">Cancel</button>
+    <button mat-button (click)="submit(saveNameInput.value)" value="Submit">Submit</button>
 </div>

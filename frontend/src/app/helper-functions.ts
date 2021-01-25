@@ -15,6 +15,19 @@ export const handWidth: number = sceneWidth;
 export const handHeight: number = sceneHeight - handBeginY;
 
 /**
+ * Used to filter objects out of an object list that match an ID
+ * @param objectListToFilter - The list to remove objects from
+ * @param object - The object to be removed by ID
+ */
+export function filterOutID(objectListToFilter: any[], object: any): any[] {
+    objectListToFilter = objectListToFilter.filter( (refObject: any) => {
+        return object.id !== refObject.id;
+    });
+
+    return objectListToFilter;
+}
+
+/**
  * An enum representing the possible destinations for a card after being moved/retrieved from a deck/etc
  */
 export enum EDestination {
