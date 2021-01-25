@@ -72,7 +72,7 @@ export class UploadCardsPopupComponent implements OnInit {
 
   upload() {  
     const fileUpload = this.fileUpload.nativeElement;
-    fileUpload.value = ''; 
+    fileUpload.value = '';
     fileUpload.onchange = () => {  
       for (let index = 0; index < fileUpload.files.length; index++) {  
         const file = fileUpload.files[index];  
@@ -85,7 +85,6 @@ export class UploadCardsPopupComponent implements OnInit {
           continue; 
         }
         this.files.push({ data: file });
-        console.log(this.files);
       }  
     };  
     fileUpload.click();   
