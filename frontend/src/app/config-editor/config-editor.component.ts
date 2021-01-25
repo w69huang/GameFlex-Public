@@ -1,7 +1,7 @@
 import { ConfigurationService } from 'src/app/services/configuration.service';
-import { Router, ActivatedRoute, Params } from '@angular/router';
+import { Router, ActivatedRoute } from '@angular/router';
 import { MatDialog } from '@angular/material/dialog';
-import { Component, OnInit } from '@angular/core';
+import { Component, EventEmitter, OnInit } from '@angular/core';
 
 import Phaser from 'phaser';
 import Deck from '../models/deck';
@@ -13,8 +13,11 @@ import ConfigScene from '../models/phaser-scenes/configScene';
 import { CreateCounterPopupComponent } from '../popups/create-counter-popup/create-counter-popup.component';
 import { SaveConfigurationPopupComponent } from '../popups/save-configuration-popup/save-configuration-popup.component';
 import { MiddleWare } from '../services/middleware';
+import { CounterActionObject, ECounterActions } from '../counter/counter.component';
 
-import * as HelperFunctions from '../helper-functions';
+import * as HF from '../helper-functions';
+import * as CoA from '../actions/counterActions';
+import { RetrieveConfigPopupComponent } from '../popups/retrieve-config-popup/retrieve-config-popup.component';
 
 @Component({
   selector: 'app-config-editor',
@@ -36,6 +39,11 @@ export class ConfigEditorComponent implements OnInit {
   public playerID: number = 1;
 
   configuration: Configuration;
+
+  /**
+   * An emitter used to output counter actions to the counter component
+   */
+  public sendCounterActionEmitter: EventEmitter<CounterActionObject> = new EventEmitter<CounterActionObject>();
 
   constructor(
     private configurationService: ConfigurationService,
@@ -70,6 +78,25 @@ export class ConfigEditorComponent implements OnInit {
     this.phaserGame.destroy(true);
   }
 
+  receiveCounterAction(counterActionObject: CounterActionObject) {
+    switch (counterActionObject.counterAction) {
+      case ECounterActions.addCounter:
+        CoA.addCounter(counterActionObject.counter, null, null, this);
+        break;
+      
+      case ECounterActions.removeCounter:
+        CoA.removeCounter(counterActionObject.counter, null, null, this);
+        break;
+
+      case ECounterActions.changeCounterValue:
+        CoA.changeCounterValue(counterActionObject.counter, null, null, this);
+        break;
+        
+      default:
+        break;
+    }
+  }
+
   // API CALLS
 
   saveConfig() {
@@ -98,8 +125,7 @@ export class ConfigEditorComponent implements OnInit {
   updateConfig() {
     let processedConfiguration = this.processConfigurationForBackend(this.configuration);
     this.configurationService.updateConfiguration(processedConfiguration)
-      .subscribe((configuration: Configuration) => {
-      });
+      .subscribe((configuration: Configuration) => {});
   }
 
   deleteConfig(configurationId: string = this?.configuration._id) { //TODO: Should this attempt to grab from the input box first?
@@ -109,20 +135,23 @@ export class ConfigEditorComponent implements OnInit {
       });
   }
 
-  getConfig(configurationId: string) {
-    // TODO: auto save before get (maybe)
-    // saveConfig()
-
+  getConfig() {
     // Reset the highestID since we are getting a new config
     this.highestID = 1;
 
-    this.configurationService.getConfiguration(configurationId)
-      .subscribe((configuration: Configuration) => {
+    let dialogRef = this.dialog.open(RetrieveConfigPopupComponent, {
+      height: '225',
+      width: '300px',
+    });
+
+    dialogRef.afterClosed().subscribe((configuration: Configuration) => {
+      if (configuration) {
         let newConfiguration = this.processConfigurationFromBackend(configuration);
         this.renderConfiguration(newConfiguration);
         this.configuration = newConfiguration;
-      });
-
+        this.sendCounterActionEmitter.emit({ counterAction: ECounterActions.replaceCounters, counters: [...configuration.counters] });
+      }
+    });
   }
 
   // HELPER FUNCTIONS
@@ -149,29 +178,7 @@ export class ConfigEditorComponent implements OnInit {
    */
   initDeck() {
     let deck: Deck = new Deck(this.highestID++, "assets/images/playing-cards-extras/deck.png", [], 400, 250);
-    HelperFunctions.createDeck(deck, this);
-  }
-
-  /**
-   * Creates a new counter.
-   */
-  initCounter() {
-
-    let dialogRef = this.dialog.open(CreateCounterPopupComponent, {
-      height: '500px',
-      width: '500px',
-    });
-
-    dialogRef.afterClosed().subscribe(createCounterData => {
-      if (createCounterData) {
-
-        // Just for the create counter button
-        let counter: Counter = new Counter(this.highestID++, createCounterData.name, parseFloat(createCounterData.defaultValue)); //TODO: Take in meaningful names
-        this.configuration.counters.push(counter);
-        
-      }
-    });
-
+    HF.createDeck(deck, this);
   }
 
   /**
@@ -192,12 +199,6 @@ export class ConfigEditorComponent implements OnInit {
       deckObj.type = "deck"; //TODO This is probably not needed later 
       deckObj.imagePath = "assets/images/playing-cards-extras/deck.png";
       deckObj.id = this.highestID++;
-    });
-
-    configurationObj.counters.forEach(counterObj => {
-      // Object.setPrototypeOf(configurationObj, Configuration.prototype)
-      Object.assign(counterObj, Counter);
-      counterObj.id = this.highestID++;
     });
 
     // Corrects the date format since the backend auto-formats it
@@ -228,7 +229,7 @@ export class ConfigEditorComponent implements OnInit {
    this.clearConfig();
 
     configuration.decks.forEach(deck => {
-      HelperFunctions.createDeck(deck, this);
+      HF.createDeck(deck, this);
     });
 
     // Counters are rendered by the html

@@ -1,6 +1,7 @@
 import { Component, EventEmitter, Input, OnInit, Output } from '@angular/core';
-import { DataConnection } from 'peerjs';
 import { Router } from '@angular/router';
+import { MatDialog } from '@angular/material/dialog';
+import { DataConnection } from 'peerjs';
 import Peer from 'peerjs';
 import Phaser from 'phaser';
 
@@ -9,14 +10,17 @@ import { OnlineGamesService } from '../services/online-games.service';
 import { SavedGameStateService } from '../services/saved-game-state.service';
 import { MiddleWare } from '../services/middleware';
 import { LoadGameStatePopupComponent } from '../popups/load-game-state-popup/load-game-state-popup.component';
+import { ECounterActions, CounterActionObject } from '../counter/counter.component';
 
 import GameState, { EActionTypes } from '../models/gameState';
 import PlayerData from '../models/playerData';
 import SavedGameState from '../models/savedGameState';
 import OnlineGame from '../models/onlineGame';
 import PlayspaceScene from '../models/phaser-scenes/playspaceScene';
-import { MatDialog } from '@angular/material/dialog';
 import SentGameState from '../models/sentGameState';
+
+import * as CoA from '../actions/counterActions';
+import * as HF from '../helper-functions';
 
 @Component({
   selector: 'app-playspace',
@@ -27,11 +31,7 @@ export class PlayspaceComponent implements OnInit {
   public phaserGame: Phaser.Game;
   public phaserScene: PlayspaceScene;
   public config: Phaser.Types.Core.GameConfig;
-  public aceOfSpades: Phaser.GameObjects.Image;
   public popupCount: number = 0;
-  public sceneWidth: number = 1000;
-  public sceneHeight: number = 1000;
-  public handBeginY: number = 600;
   public highestID: number = 1;
 
   // From Game Instance
@@ -39,11 +39,14 @@ export class PlayspaceComponent implements OnInit {
   @Input() private onlineGameID: string;
   @Input() private saveGameStateEmitter: EventEmitter<string> = new EventEmitter<string>();
   @Input() private getAllSavedGameStatesEmitter: EventEmitter<SavedGameState> = new EventEmitter<SavedGameState>();
-  @Input() private undoGameStateEmitter: EventEmitter<integer> = new EventEmitter<integer>();
+  @Input() private undoGameStateEmitter: EventEmitter<number> = new EventEmitter<number>();
+  @Input() private counterActionInputEmitter: EventEmitter<CounterActionObject> = new EventEmitter<CounterActionObject>();
+
   // To Game Instance
   @Output() public playerDataEmitter: EventEmitter<PlayerData[]> = new EventEmitter<PlayerData[]>();
   @Output() private onlineGameEmitter: EventEmitter<OnlineGame> = new EventEmitter<OnlineGame>();
   @Output() private amHostEmitter: EventEmitter<boolean> = new EventEmitter<boolean>();
+  @Output() public counterActionOutputEmitter: EventEmitter<CounterActionObject> = new EventEmitter<CounterActionObject>();
 
   // Peer
   public peer: any;
@@ -121,7 +124,7 @@ export class PlayspaceComponent implements OnInit {
     });
   }
 
-  hostHandleConnectionClose(conn: DataConnection) {
+  hostHandleConnectionClose(conn: DataConnection): void {
     conn.close();
     this.gameState.connections = this.filterOutPeer(this.gameState.connections, conn);
     
@@ -141,16 +144,14 @@ export class PlayspaceComponent implements OnInit {
     }
   }
 
-  ngOnInit() {
+  ngOnInit(): void {
     // TODO: Band-aid solution, find a better one at some point
     setTimeout(_ => this.initialize(), 100);
     this.checkIfCanOpenConnectionInterval = setInterval(this.checkIfCanOpenConnection.bind(this), 5000);
-    this.getAllSavedGameStates();
-    this.saveGameState();
-    this.undoGameState();
+    this.setUpEmitters();
   }
 
-  ngOnDestroy() {
+  ngOnDestroy(): void {
     this.connectionClosedIntentionally = true;
     clearInterval(this.updateOnlineGameInterval);
     this.finishConnectionProcess();
@@ -164,11 +165,11 @@ export class PlayspaceComponent implements OnInit {
   }
 
   initialize(): void {
-    this.phaserScene = new PlayspaceScene(this, this.sceneWidth, this.sceneHeight, this.handBeginY);
+    this.phaserScene = new PlayspaceScene(this);
     this.config = {
       type: Phaser.AUTO,
-      height: this.sceneHeight,
-      width: this.sceneWidth,
+      height: HF.sceneHeight,
+      width: HF.sceneWidth,
       scene: [this.phaserScene],
       parent: 'gameContainer',
     };
@@ -176,25 +177,42 @@ export class PlayspaceComponent implements OnInit {
     this.phaserGame = new Phaser.Game(this.config);
   }
 
-  getAllSavedGameStates() {
+  setUpEmitters(): void {
     this.getAllSavedGameStatesEmitter.subscribe((savedGameState: SavedGameState) => {
       if (savedGameState) { // If they actually chose a saved game state
+        // let processedSavedGameState = processSavedGameState(savedGameState, true, false);
+
         this.gameState.buildGameStateFromSavedState(savedGameState, this);      
       }
     });
-  }
 
-  undoGameState(): void {
-    this.undoGameStateEmitter.subscribe((count: integer) => {
+    this.undoGameStateEmitter.subscribe((count: number) => {
       if (!this.gameState.undoInProgress) {
         this.gameState.buildGameFromCache(this, false, count);
       }
     });
-  }
 
-  saveGameState(): void {
     this.saveGameStateEmitter.subscribe((name: string) => {
-      this.savedGameStateService.create(new SavedGameState(this.middleware.getUsername(), name, this.gameState, this.gameState.playerDataObjects));
+      this.savedGameStateService.create(new SavedGameState(this.middleware.getUsername(), name, this.gameState));
+    });
+
+    this.counterActionInputEmitter.subscribe((counterActionObject: CounterActionObject) => {
+      switch (counterActionObject.counterAction) {
+        case ECounterActions.addCounter:
+          CoA.addCounter(counterActionObject.counter, null, this.gameState, null, true);
+          break;
+        
+        case ECounterActions.removeCounter:
+          CoA.removeCounter(counterActionObject.counter, null, this.gameState, null, true);
+          break;
+
+        case ECounterActions.changeCounterValue:
+          CoA.changeCounterValue(counterActionObject.counter, null, this.gameState, null, true);
+          break;
+          
+        default:
+          break;
+      }
     });
   }
 
@@ -248,7 +266,6 @@ export class PlayspaceComponent implements OnInit {
     } else {
       this.gameState.clearCache();
     }
-    this.gameState.setCachingEnabled(true);
   }
 
   finishConnectionProcess(): void {
@@ -280,6 +297,7 @@ export class PlayspaceComponent implements OnInit {
     if (this.onlineGameID) {
       this.onlineGamesService.get(this.onlineGameID).subscribe((onlineGames: OnlineGame) => {
         this.onlineGame = onlineGames[0];
+        this.onlineGame.numPlayers = 1;
 
         if (this.onlineGame) { // If the online game's hostID has updated (b/c the host disconnects), update our local hostID reference
           this.mainHostID = this.onlineGame.hostID;
@@ -296,7 +314,7 @@ export class PlayspaceComponent implements OnInit {
             this.onlineGame.hostID = this.gameState.myPeerID;
             this.onlineGamesService.update(this.onlineGame).subscribe((data) => {
               this.buildFromCacheDialog();
-              this.updateOnlineGameInterval = setInterval(this.updateOnlineGame.bind(this), 300000); // Tell the backend that this game still exists every 5 mins
+              this.updateOnlineGameInterval = setInterval(this.updateOnlineGame.bind(this), 120000); // Tell the backend that this game still exists every 5 mins
               this.finishConnectionProcess();
             });
           } else { // I am not the host
@@ -367,4 +385,5 @@ export class PlayspaceComponent implements OnInit {
       this.checkIfCanOpenConnectionInterval = setInterval(this.checkIfCanOpenConnection.bind(this), 2000);
     }
   }
+
 }

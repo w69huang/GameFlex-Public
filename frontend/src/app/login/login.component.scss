@@ -8,33 +8,6 @@
 
 mat-card {
     margin: 10px;
-    background-color: $themeDarkGray;
-    color: white;
-
-    mat-card-content {
-        background-color: $themeDarkGray;
-
-        input {
-            color: white;
-            background-color: $themeGray;
-        }
-    }
-
-    button {
-        color: white;
-        background-color: $themePurple;
-        border: none;
-    }
-
-    button:focus {
-        border: none;
-        box-shadow: none;
-    }
-
-    button:hover {
-        background-color: $themeDarkestGray;
-        border: none;
-    }
 }
 
 mat-toolbar {

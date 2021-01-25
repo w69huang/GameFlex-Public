@@ -1,21 +1,34 @@
-<h1>Config Editor</h1>
-<h2>Config id - {{configuration._id}}</h2>
-<button class="btn btn-primary" (click)="initDeck()">Create Deck</button>
-<button class="btn btn-primary" (click)="saveConfig()">Save to Mongo</button>
-<button class="btn btn-primary" (click)="updateConfig()">Update Config</button>
-<button class="btn btn-primary" (click)="deleteConfig()">Delete from Mongo</button>
-<button class="btn btn-primary" (click)="getConfig(configIdInput.value)">Get a Config</button>
-<input #configIdInput type="text" placeholder="Game Id">
-<div class="contentContainer">
+<div class="columnContainer">
+    <div class="leftSidebar">
+        <div class="leftSidebarContent">
+            <app-counter
+                (counterActionOutputEmitter)="receiveCounterAction($event)"
+                [counterActionInputEmitter]="sendCounterActionEmitter"
+            >
+            </app-counter>
+            <mat-card class="createObjectContainer">
+                <h3>Create Object</h3>
+                <div class="buttonsContainer">
+                    <button class="btn" (click)="initDeck()">Create Deck</button>
+                </div>
+            </mat-card>
+            <mat-card class="configContainer">
+                <h3>Configuration Options</h3>
+                <div class="buttonsContainer">
+                    <button class="btn" (click)="saveConfig()">Save Configuration</button>
+                    <button class="btn" (click)="updateConfig()">Update Configuraiton</button>
+                    <button class="btn" (click)="deleteConfig()">Delete Configuration</button>
+                    <button class="btn" (click)="getConfig()">Get a Configuration</button>
+                </div>
+            </mat-card>
+        </div>
+    </div>
+    <div id="configEditorContainer" oncontextmenu="return false;"></div>
     <div class="rightSidebar">
-        <mat-card>
-            <button class="btn btn-primary" (click)="initCounter()">Create Counter</button>
-            <div *ngFor="let counter of configuration.counters">
-                <label for="nameField">{{ counter.name }}</label>
-                <input (change)="onChangeCounterText(counter)" type="number" id="counter{{counter.id}}" 
-                placeholder="##" value="{{counter.value}}" style="font-size: 24px">
-                <!-- Having the id as the counter.id is probably not the best... also is that even valid without the double { -->
-             </div>
-        </mat-card>
+        <div class="rightSidebarContent">
+            <mat-card class="chatContainer">
+                <p>Chat</p>
+            </mat-card>
+        </div>
     </div>
 </div>

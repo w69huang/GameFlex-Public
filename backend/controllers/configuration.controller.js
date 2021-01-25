@@ -3,6 +3,7 @@ const router = express.Router();
 
 const Configuration = require('../database/models/configuration');
 
+router.get('/getAll', getAll);
 router.get('/:configurationId', getById);
 router.post('/', create);
 router.delete('/:configurationId', deleteById);
@@ -13,14 +14,30 @@ function getById(req, res) {
     Configuration.findOne({ _id: req.params.configurationId })
         .then((configuration) => {
             if(configuration === null) {
-                res.status(404).send('Not Found: Valid query but not value found.');
+                res.status(404).send('Error: No configuration found.');
             }
             res.send(configuration);
         })
         .catch((error) => {
             console.log(error);
-            res.status(404).send('Not Found: Invalid query.');
+            res.status(500).send('Error: Query operation failed.');
+        });
+}
+
+function getAll(req, res) {
+    Configuration.find({ username: req.query.username })
+        .then((configurations) => {
+            if (configurations === null) {
+                res.status(404).send('No configurations found for user.');
+            }
+            console.log('configs:');
+            console.log(configurations);
+            res.send(configurations);
         })
+        .catch((error) => {
+            console.log(error);
+            res.status(500).send('Error: Query operation failed.');
+        });
 }
 
 function create(req, res) {
