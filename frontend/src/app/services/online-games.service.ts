@@ -18,7 +18,7 @@ export class OnlineGamesService {
   ) { }
 
   verify(onlineGame: OnlineGame, password: string): void {
-    this.webService.post('online-games/verify', { onlineGame: onlineGame, password: password }).subscribe((object: any) => {
+    this.webService.post('online-games/verify', { onlineGame: onlineGame, accountUsername: this.middleware.getUsername(), accountPassword: this.middleware.getPassword(), password: password }).subscribe((object: any) => {
       if (object.hostID) {
         this.router.navigate(['/gameInstance'], { queryParams: { host: object.hostID, onlineGameID: onlineGame.id } });
       } else {
