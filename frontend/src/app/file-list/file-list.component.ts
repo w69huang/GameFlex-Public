@@ -36,7 +36,6 @@ public deckName;
    this.fileService.download(fileName).subscribe((data) => {
      
     //render base64 image to screen
-     console.log(data);
      var outputImage: HTMLImageElement = document.createElement('img');
      outputImage.height = 200;
      outputImage.width = 200; 
@@ -119,7 +118,6 @@ public deckName;
         document.getElementById('loadingText').style.display = "none";
       }
       else {
-        console.log(data); 
         this.renderImages(data);
       }
     });

@@ -21,7 +21,6 @@ export class FileService {
   }
 
   public download(fileName: string): any {
-    console.log(`image/${fileName}`);
     return this.webService.getWithArgs(`image/${fileName}`, {responseType: 'text'}, true);
   }
 
@@ -33,8 +32,6 @@ export class FileService {
   }
 
   public list(deckName: string, userID: string): any {
-    console.log("Give me " + deckName);
-    console.log(typeof deckName);
     return this.webService.get(`files?deckName=${deckName}&userID=${userID}`, true);
     //return this.fileList$;
   }

@@ -41,7 +41,6 @@ export class UploadCardsPopupComponent implements OnInit {
 
   ngOnInit(): void {
     this.deckNameData = this.data.deckNameData;
-    console.log(this.data);
     setTimeout(() => {this.deckNameEmitter.emit(this.deckNameData)} ,100); 
   }
 
@@ -73,10 +72,10 @@ export class UploadCardsPopupComponent implements OnInit {
 
   upload() {  
     const fileUpload = this.fileUpload.nativeElement;
+    fileUpload.value = ''; 
     fileUpload.onchange = () => {  
       for (let index = 0; index < fileUpload.files.length; index++) {  
         const file = fileUpload.files[index];  
-        console.log(file);
         if (file.type != 'image/png' && file.type !=='image/PNG' && file.type !== 'image/jpg' && file.type !== 'image/jpeg') {
           alert("Only PNG or JPEG files can be uploaded!");
           continue;
@@ -86,13 +85,13 @@ export class UploadCardsPopupComponent implements OnInit {
           continue; 
         }
         this.files.push({ data: file });
+        console.log(this.files);
       }  
     };  
     fileUpload.click();   
   }
 
   removeStagedCard(cardData: any){
-    console.log(cardData);
     this.files = this.files.filter((fileObject: any) => {
       return fileObject.data.name !== cardData.name;
     });
@@ -108,7 +107,6 @@ export class UploadCardsPopupComponent implements OnInit {
     formData.append('deckName', deckName);
     formData.append('username', username);
 
-    // console.log(formData); 
 
     this.fileService.upload(files, formData).pipe(  
       catchError((error: HttpErrorResponse) => {   
