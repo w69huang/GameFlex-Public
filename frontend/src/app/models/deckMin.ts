@@ -8,11 +8,6 @@ export default class DeckMin {
     x: number;
     y: number;
     depth: number;
-    width: number = 99;
-    height: number = 98;
-    rotation: number = 180;
-    onInsertVisible: boolean = true;
-    numberOfVisibleCards: number = 10;
     cardMins: CardMin[];
 
     constructor(deck: Deck) {

@@ -6,6 +6,7 @@ $themeGray: gray;
 $themeKindOfDarkGray: #4b4a4a;
 $themeDarkGray: #363636;
 $themeDarkestGray: #1f1f1f;
+$themeError: #ff4d4d;
 
 $turquoise: #44ddd0;
 $blue: #276dd7;
@@ -61,4 +62,115 @@ html, body {
 
 .is-primary {
     background: $primary;
+}
+
+// OUR STYLES
+
+mat-card {
+    background-color: $themeDarkGray;
+    color: white;
+}
+
+::ng-deep.mat-dialog-container {
+    background-color: $themeDarkGray;
+    color: white;
+
+    .mat-select-value {
+        padding: 15px;
+        color: white;
+    }
+
+    .mat-select-placeholder {
+        color: white;
+    }
+
+    .mat-select-trigger {
+        border: 1px solid white;
+    }
+
+    select {
+        background-color: $themeGray;
+        color: white;
+    }
+
+    button {
+        color: white;
+        background-color: $themePurple;
+        border: none;
+        margin-bottom: 10px;
+        transition: background-color 0.5s ease;
+    }
+    
+    button:focus {
+        color: white;
+        background-color: $themePurple;
+        border: none;
+        box-shadow: none;
+    }
+    
+    button:hover {
+        color: white;
+        background-color: $themeDarkestGray;
+        border: none;
+    }
+    
+    button:active {
+        color: $themePurple;
+    }
+    
+    input {
+        background-color: $themeGray;
+        color: white;
+    }
+
+    ::placeholder {
+        color: white;
+    }
+
+    p {
+        margin-bottom: 0;
+    }
+
+    button, input, select {
+        margin-bottom: 10px;
+    }
+}
+
+button {
+    color: white;
+    background-color: $themePurple;
+    border: none;
+    margin-bottom: 10px;
+    transition: background-color 0.5s ease;
+}
+
+button:focus {
+    color: white;
+    background-color: $themePurple;
+    border: none;
+    box-shadow: none;
+}
+
+button:hover {
+    color: white;
+    background-color: $themeDarkestGray;
+    border: none;
+}
+
+button:active {
+    color: $themePurple;
+}
+
+input {
+    background-color: $themeGray;
+    color: white;
+}
+
+select {
+    background-color: $themeGray;
+    color: white;
+}
+
+::placeholder {
+    color: white;
 }

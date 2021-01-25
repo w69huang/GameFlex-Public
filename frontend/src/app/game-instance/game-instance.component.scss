@@ -12,16 +12,17 @@
             min-width: 230px;
             margin: 10px;
 
-            .playerList, .saveContainer, .undoContainer {
-                background-color: $themeDarkGray;
-                color: white;
+            .playerList {
                 margin-bottom: 10px;
+            }
+
+            .playerList, .saveContainer, .undoContainer {
+                margin-top: 10px;
                 text-align: center;
 
                 .buttonsContainer {
                     display: flex;
                     flex-direction: column;
-                    background-color: $themeDarkGray;
 
                     input {
                         width: 60%;
@@ -58,20 +59,4 @@
 button {
     width: 60%;
     margin-left: 20%;
-    color: white;
-    background-color: $themePurple;
-    border: none;
-    margin-bottom: 10px;
-}
-
-button:focus {
-    color: white;
-    border: none;
-    box-shadow: none;
-}
-
-button:hover {
-    color: white;
-    background-color: $themeDarkestGray;
-    border: none;
 }

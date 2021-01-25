@@ -42,10 +42,10 @@ export function retrieveTopCard(popupScene: PopupScene, deck: Deck, playspaceCom
         if (card) {
             if (card.gameObject == null) {
                 card.inDeck = false;
-                card.x = optionObjectConfig.destination === HelperFunctions.EDestination.TABLE ? deck.x : playspaceComponent.gameState.myHand.gameObject.x + 150;
-                card.y = optionObjectConfig.destination === HelperFunctions.EDestination.TABLE ? deck.y : playspaceComponent.gameState.myHand.gameObject.y + 200;
+                card.x = optionObjectConfig.destination === HelperFunctions.EDestination.TABLE ? deck.x : HelperFunctions.handBeginX + 150;
+                card.y = optionObjectConfig.destination === HelperFunctions.EDestination.TABLE ? deck.y : HelperFunctions.handBeginY + 200;
 
-                HelperFunctions.createCard(card, playspaceComponent, optionObjectConfig.destination);
+                HelperFunctions.createCard(card, playspaceComponent, optionObjectConfig.destination, null, playspaceComponent.gameState.myCurrHand);
 
                 if (optionObjectConfig.destination === HelperFunctions.EDestination.TABLE) {
                     playspaceComponent.gameState.sendPeerData(
@@ -70,7 +70,8 @@ export function retrieveTopCard(popupScene: PopupScene, deck: Deck, playspaceCom
             {
                 deckID: deck.id,
                 type: EGameObjectType.CARD,
-                destination: optionObjectConfig.destination
+                destination: optionObjectConfig.destination,
+                handIndex: playspaceComponent.gameState.myCurrHand
             }
         );
     }

@@ -4,6 +4,7 @@ import { PlayspaceComponent } from 'src/app/playspace/playspace.component';
 import Card from '../card';
 import Deck from '../deck';
 import OptionObject from '../optionObject';
+import * as HF from '../../helper-functions';
 
 function popupClose(popupScene: PopupScene, deck: Deck, component: any) {
 
@@ -24,11 +25,11 @@ export default class PopupScene extends Phaser.Scene {
 
     constructor (handle: any, x: number, y: number, component: PlayspaceComponent | ConfigEditorComponent, object: Card | Deck, width: number, height: number, optionObjects: OptionObject[], optionSeparation: number) {
         super(handle);
-        if (x+width > component.sceneWidth) {
-          x = component.sceneWidth - width;
+        if (x+width > HF.sceneWidth) {
+          x = HF.sceneWidth - width;
         }
-        if (y+height > component.sceneWidth){
-          y = component.sceneHeight - height;
+        if (y+height > HF.sceneWidth){
+          y = HF.sceneHeight - height;
         }
         this.key = handle;
         this.x = x;
