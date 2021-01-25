@@ -12,27 +12,29 @@ export class UsersService {
         });
 
     }
+    //host = "http://localhost:5000";
+    host = "http://104.155.129.45";
     createUser(object) {
-        return this.http.post('35.188.40.76:5000/user/create', object.value, {headers: this.corsHeaders})
+        return this.http.post(this.host + '/user/create', object.value, {headers: this.corsHeaders})
     };
 
     getUser(object) {
-        return this.http.post('35.188.40.76:5000/user/get', object.value, {headers: this.corsHeaders})
+        return this.http.post(this.host +'/user/get', object.value, {headers: this.corsHeaders})
     }
 
     checkEmail(object) {
-        return this.http.post('35.188.40.76:5000/user/checkemail', object.value, {headers: this.corsHeaders})
+        return this.http.post(this.host +'/user/checkemail', object.value, {headers: this.corsHeaders})
     }
 
     sendEmail(object) {
-        return this.http.post('35.188.40.76:5000/user/checkemail', object.value, {headers: this.corsHeaders})
+        return this.http.post(this.host +'/user/checkemail', object.value, {headers: this.corsHeaders})
     }
 
     checkLogin(object) {
-        return this.http.post('35.188.40.76:5000/user/checklogin', object.value, {headers: this.corsHeaders})
+        return this.http.post(this.host +'/user/checklogin', object.value, {headers: this.corsHeaders})
     }
 
     changePassword(object) {
-        return this.http.post('35.188.40.76:5000/user/changepassword', object.value, {headers: this.corsHeaders});
+        return this.http.post(this.host +'/user/changepassword', object.value, {headers: this.corsHeaders});
     }
 }
