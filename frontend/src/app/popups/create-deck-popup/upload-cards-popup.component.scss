@@ -1,0 +1,20 @@
+#deckDisplayContainer{
+    display: flex;
+    flex-wrap: wrap;
+    width: 100%;
+}
+
+#deleteIconDisplay{
+    position: absolute;
+    bottom: 10px;
+    right: 10px;
+}
+
+.actions{
+    margin-bottom: 15px;
+}
+
+.cardStagingList{
+    margin-top: 20px;
+    font-size: 14pt;
+}

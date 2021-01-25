@@ -80,8 +80,8 @@ export class PlayspaceComponent implements OnInit {
     // 1. npm install -g peer
     // 2. peerjs --port 9000 --key peerjs --path /peerserver
     this.peer = new Peer(this.gameState.myPeerID, { // You can pass in a specific ID as the first argument if you want to hardcode the peer ID
-      host: 'localhost',
-      // host: '35.215.71.108', // This is reserved for the external IP of the mongo DB instance. Replace this IP with the new IP generated when starting up the 
+      // host: 'localhost',
+      host: '35.215.71.108', // This is reserved for the external IP of the mongo DB instance. Replace this IP with the new IP generated when starting up the 
       port: 9000,
       path: '/peerserver' // Make sure this path matches the path you used to launch it
     });
@@ -297,6 +297,7 @@ export class PlayspaceComponent implements OnInit {
     if (this.onlineGameID) {
       this.onlineGamesService.get(this.onlineGameID).subscribe((onlineGames: OnlineGame) => {
         this.onlineGame = onlineGames[0];
+        this.onlineGame.numPlayers = 1;
 
         if (this.onlineGame) { // If the online game's hostID has updated (b/c the host disconnects), update our local hostID reference
           this.mainHostID = this.onlineGame.hostID;
@@ -313,7 +314,7 @@ export class PlayspaceComponent implements OnInit {
             this.onlineGame.hostID = this.gameState.myPeerID;
             this.onlineGamesService.update(this.onlineGame).subscribe((data) => {
               this.buildFromCacheDialog();
-              this.updateOnlineGameInterval = setInterval(this.updateOnlineGame.bind(this), 300000); // Tell the backend that this game still exists every 5 mins
+              this.updateOnlineGameInterval = setInterval(this.updateOnlineGame.bind(this), 120000); // Tell the backend that this game still exists every 5 mins
               this.finishConnectionProcess();
             });
           } else { // I am not the host
