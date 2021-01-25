@@ -209,7 +209,7 @@ var GameState = /** @class */ (function () {
         objectListToFilter = objectListToFilter.filter(function (refObject) {
             return object.id !== refObject.id;
         });
-        this.delay(this.saveToCache());
+        this.delay(() => { this.saveToCache(); });
         return objectListToFilter;
     };
     /**
@@ -646,7 +646,7 @@ var GameState = /** @class */ (function () {
      */
     GameState.prototype.addCardToTable = function (card) {
         this._cards.push(card);
-        this.delay(this.saveToCache());
+        this.delay(() => { this.saveToCache(); });
     };
     /**
      * Used to remove a card fom the table
@@ -681,7 +681,7 @@ var GameState = /** @class */ (function () {
                 deck.cards.push(card);
             }
         }
-        this.delay(this.saveToCache());
+        this.delay(() => { this.saveToCache(); });
     };
     /**
      * Used to add a deck to the table
@@ -689,7 +689,7 @@ var GameState = /** @class */ (function () {
      */
     GameState.prototype.addDeckToTable = function (deck) {
         this._decks.push(deck);
-        this.delay(this.saveToCache());
+        this.delay(() => { this.saveToCache(); });
     };
     /**
      * Used to add a card to the player's own hand, which also adds the card to the overall hands array if the player is the host
@@ -742,7 +742,7 @@ var GameState = /** @class */ (function () {
                 this._hands.push(new hand_1["default"](playerID, [card]));
             }
             card.inHand = true;
-            this.delay(this.saveToCache());
+            this.delay(() => { this.saveToCache(); });
         }
     };
     /**
@@ -761,7 +761,7 @@ var GameState = /** @class */ (function () {
                     }
                 }
                 card.inHand = false;
-                this.delay(this.saveToCache());
+                this.delay(() => { this.saveToCache(); });
             }
         }
     };
@@ -779,7 +779,7 @@ var GameState = /** @class */ (function () {
             if (removeOnRetrieve) {
                 deck.cards = this.filterOutID(deck.cards, card);
                 card.inDeck = false;
-                this.delay(this.saveToCache());
+                this.delay(() => { this.saveToCache(); });
             }
             console.log("card from deck");
             console.log(card);
@@ -800,7 +800,7 @@ var GameState = /** @class */ (function () {
         var deck = this.getDeckByID(deckID);
         if (deck) {
             deck.cards = cardList;
-            this.delay(this.saveToCache());
+            this.delay(() => { this.saveToCache(); });
         }
     };
     /**
@@ -843,13 +843,13 @@ var GameState = /** @class */ (function () {
                 return { overlapType: EOverlapType.TABLE, wasInHand: true };
             }
             else {
-                this.delay(this.saveToCache());
+                this.delay(() => { this.saveToCache(); });
                 return { overlapType: EOverlapType.TABLE, wasInHand: false };
             }
         }
         else {
             var deck = this.getDeckByID(id);
-            this.delay(this.saveToCache());
+            this.delay(() => { this.saveToCache(); });
             return { overlapType: EOverlapType.TABLE };
         }
     };
@@ -1052,7 +1052,7 @@ var GameState = /** @class */ (function () {
                     }
                 }
                 if (data.extras.finishedMoving) { // If they have finished moving a card/deck, save to cache
-                    this.delay(this.saveToCache());
+                    this.delay(() => { this.saveToCache(); });
                 }
                 break;
             // The host receives this action, which was sent by a non-host requesting the top card of the deck

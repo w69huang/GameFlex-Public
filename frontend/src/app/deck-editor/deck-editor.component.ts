@@ -21,6 +21,7 @@ class deckObject {
 })
 export class DeckEditorComponent implements OnInit {
   @ViewChild("fileUpload", {static: false}) fileUpload: ElementRef; files = []
+  @ViewChild('errorsDiv') errorsDiv: ElementRef;
 
   public deckList$: deckObject[] = [];
 
@@ -40,10 +41,22 @@ export class DeckEditorComponent implements OnInit {
 
   //TEST THIS! DEC 15th
   createDeck(deckName: string) {
+    if(deckName === ""){
+      this.errorsDiv.nativeElement.innerHTML = "Please enter a deck name.";
+      return 0;
+    };
+
+    //check for duplicate deck name
+    if(this.deckList$.some(el => el.deckName === deckName)){
+      this.errorsDiv.nativeElement.innerHTML = "A deck of this name already exists.";
+      return 0; 
+    };
     const username: string = this.middleWare.getUsername();
     this.deckService.createDeck(username, deckName).subscribe((data: {message: string, deck: deckObject}) => {
       if(data.deck){ 
         this.deckList$.push(data.deck); 
+        //Is this the best way of doing this? 
+        this.errorsDiv.nativeElement.innerHTML = "";
       }     
     });
   }
@@ -60,17 +73,15 @@ export class DeckEditorComponent implements OnInit {
       }
     });
 
-    dialogRef.afterClosed().subscribe(deckData => {
-      const deckName: string = deckData.name;
-      const username: string = this.middleWare.getUsername();
+    // dialogRef.afterClosed().subscribe(deckData => {
+    //   const deckName: string = deckData.name;
+    //   const username: string = this.middleWare.getUsername();
 
-      deckData.files?.forEach(file => {  
-        this.uploadFile(file, deckName, username);  
-      });
-    });
+    //   deckData.files?.forEach(file => {  
+    //     this.uploadFile(file, deckName, username);  
+    //   });
+    // });
    }
-
-  findExistingDeck(name: string) { }
 
   public deleteDeck(deckName: string) {
     const username: string = this.middleWare.getUsername();
@@ -97,42 +108,37 @@ export class DeckEditorComponent implements OnInit {
     });
   }
  
-  public remove(fileName: string):  void {
-    this.fileService.remove(fileName);
-  }
- 
-
   // TODO: Take the deckName and pass it into the service call to the backend when we upload a file
   // That way, we can associate the file with a name on the backend
   // --> Also, we'll probably want to pass in the player's username
-  uploadFile(file, deckName: string, username: string) {  
-    const formData = new FormData();  
-    formData.append('file', file.data);
-    formData.append('deckName', deckName);
-    formData.append('username', username);
+  // uploadFile(file, deckName: string, username: string) {  
+  //   const formData = new FormData();  
+  //   formData.append('file', file.data);
+  //   formData.append('deckName', deckName);
+  //   formData.append('username', username);
 
-    //Using the "new" fileService
-    //this.fileService.upload(file.data.name, formData)
+  //   //Using the "new" fileService
+  //   //this.fileService.upload(file.data.name, formData)
     
-    file.inProgress = true;
-    console.log("uploading now...")  
-    this.fileService.upload(file.data, formData).pipe(  
-      // map(event => {  
-      //   switch (event.type) {  
-      //     case HttpEventType.UploadProgress:  
-      //       file.progress = Math.round(event.loaded * 100 / event.total);  
-      //       break;  
-      //     case HttpEventType.Response:  
-      //       return event;  
-      //   }  
-      // }),  
-      catchError((error: HttpErrorResponse) => {  
-        file.inProgress = false;  
-        return of(`${file.data.name} upload failed.`);  
-      })).subscribe((event: any) => {  
-        if (typeof (event) === 'object') {  
-          console.log(event.body);  
-        }  
-      });  
-  }
+  //   file.inProgress = true;
+  //   console.log("uploading now...")  
+  //   this.fileService.upload(file.data, formData).pipe(  
+  //     // map(event => {  
+  //     //   switch (event.type) {  
+  //     //     case HttpEventType.UploadProgress:  
+  //     //       file.progress = Math.round(event.loaded * 100 / event.total);  
+  //     //       break;  
+  //     //     case HttpEventType.Response:  
+  //     //       return event;  
+  //     //   }  
+  //     // }),  
+  //     catchError((error: HttpErrorResponse) => {  
+  //       file.inProgress = false;  
+  //       return of(`${file.data.name} upload failed.`);  
+  //     })).subscribe((event: any) => {  
+  //       if (typeof (event) === 'object') {  
+  //         console.log(event.body);  
+  //       }  
+  //     });  
+  // }
 }

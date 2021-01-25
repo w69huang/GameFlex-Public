@@ -5,7 +5,7 @@ export default class Counter {
     maxValue: number = 99;
     minValue: number = -99;
 
-    constructor(id, name, value) {
+    constructor(id: number, name: string, value: number) {
         this.id = id;
         this.name = name;
         this.value = value

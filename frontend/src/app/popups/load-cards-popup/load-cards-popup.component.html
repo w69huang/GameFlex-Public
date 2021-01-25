@@ -9,11 +9,16 @@
         </div>
     </div>
     <div id="loadedCards">
-        <div id = "deckDisplay"></div>
+        <div id = "deckDisplayContainer">
+        </div>
     </div>
-
-   
 </div>
+
+
+<app-file-list hidden
+[deckNameEmitter] = "deckNameEmitter"
+></app-file-list>
+
 <div class="row mr-4">
     <mat-card *ngIf="viewDeckBool">
         <button mat-button (click)="back()">Back</button>
@@ -25,6 +30,3 @@
         <button mat-button (click)="cancel()">Cancel</button>
     </mat-card>
 </div>
-<app-file-list
-[deckNameEmitter] = "deckNameEmitter"
-></app-file-list>

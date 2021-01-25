@@ -47,7 +47,7 @@ export function retrieveTopCard(popupScene: PopupScene, deck: Deck, playspaceCom
                 if (card.base64 == false ) {
                     HelperFunctions.createCard(card, playspaceComponent, optionObjectConfig.destination);
                 } else {
-                    HelperFunctions.createCard(card, playspaceComponent, optionObjectConfig.destination, undefined, true);
+                    HelperFunctions.createCard(card, playspaceComponent, optionObjectConfig.destination, undefined, null, true);
                 }
                 if (optionObjectConfig.destination === HelperFunctions.EDestination.TABLE) {
                     playspaceComponent.gameState.sendPeerData(
@@ -59,7 +59,8 @@ export function retrieveTopCard(popupScene: PopupScene, deck: Deck, playspaceCom
                             type: EGameObjectType.CARD,
                             x: deck.x,
                             y: deck.y,
-                            destination: optionObjectConfig.destination
+                            flippedOver: card.flippedOver,
+                            destination: optionObjectConfig.destination,
                         }                  
                     );
                 }
@@ -86,9 +87,18 @@ export function shuffleDeck(popupScene: PopupScene, deck: Deck, playspaceCompone
                                 .map((object) => object.card);
 
         playspaceComponent.gameState.replaceCardsInDeck(shuffled, deck.id);
+    } else {
+        playspaceComponent.gameState.sendPeerData(
+            EActionTypes.shuffleDeck,
+            {
+                deckID: deck.id
+            }
+        );
     }
 
-    popupClose(popupScene, deck, playspaceComponent);
+    if (popupScene) {
+        popupClose(popupScene, deck, playspaceComponent);
+    }
 }
 
 export function importDeck(popupScene: PopupScene, deck: Deck, playspaceComponent: PlayspaceComponent): void {

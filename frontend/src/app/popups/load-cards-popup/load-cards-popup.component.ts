@@ -87,7 +87,7 @@ export class LoadCardsPopupComponent implements OnInit {
   }
 
   viewDeck(deckName: string) {
-    document.getElementById("deckDisplay").innerHTML = '';
+    document.getElementById("deckDisplayContainer").innerHTML = '';
     this.selectedDeck = deckName;
     this.deckNameEmitter.emit(deckName);
     document.getElementById("def").style.display = "none";

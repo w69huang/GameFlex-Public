@@ -2,6 +2,7 @@ import { BrowserModule } from '@angular/platform-browser';
 import { NgModule } from '@angular/core';
 import { HttpClientModule } from "@angular/common/http";
 import { FormsModule, ReactiveFormsModule } from '@angular/forms';
+import { CommonModule } from '@angular/common';
 
 import { AppRoutingModule } from './app-routing.module';
 import { AppComponent } from './app.component';
@@ -38,6 +39,8 @@ import { JoinByCodeComponent } from './join-by-code/join-by-code.component';
 import { GameInstanceComponent } from './game-instance/game-instance.component';
 import { LoadGameStatePopupComponent } from './popups/load-game-state-popup/load-game-state-popup.component';
 import { UploadCardsPopupComponent } from './popups/create-deck-popup/upload-cards-popup.component';
+import { FontAwesomeModule } from '@fortawesome/angular-fontawesome';
+import { CardLargeThumbnailPopupComponent } from './popups/card-large-thumbnail-popup/card-large-thumbnail-popup.component';
 import { UndoGameStatePopupComponent } from './popups/undo-game-state-popup/undo-game-state-popup.component';
 import { CreateCounterPopupComponent } from './popups/create-counter-popup/create-counter-popup.component';
 import { ConfigEditorComponent } from './config-editor/config-editor.component';
@@ -67,6 +70,9 @@ import { LoadCardsPopupComponent } from './popups/load-cards-popup/load-cards-po
     RetrieveGameStatePopupComponent,
     JoinByCodeComponent,
     GameInstanceComponent,
+    LoadGameStatePopupComponent,
+    UploadCardsPopupComponent,
+    CardLargeThumbnailPopupComponent,
     CreateCounterPopupComponent,
     LoadGameStatePopupComponent,
     UndoGameStatePopupComponent,
@@ -90,7 +96,9 @@ import { LoadCardsPopupComponent } from './popups/load-cards-popup/load-cards-po
     MatSelectModule,
     FormsModule,
     ReactiveFormsModule,
-    NgxMatSelectSearchModule
+    NgxMatSelectSearchModule,
+    FontAwesomeModule,
+    CommonModule
   ],
   entryComponents: [
     LoadCardsPopupComponent,
@@ -102,7 +110,8 @@ import { LoadCardsPopupComponent } from './popups/load-cards-popup/load-cards-po
     RetrieveGameStatePopupComponent,
     LoadGameStatePopupComponent,
     UploadCardsPopupComponent,
-    DialogForgotPassword
+    DialogForgotPassword,
+    CardLargeThumbnailPopupComponent
   ],
   providers: [
     MiddleWare, 

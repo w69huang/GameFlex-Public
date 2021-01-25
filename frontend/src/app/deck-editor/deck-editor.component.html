@@ -1,46 +1,27 @@
 <mat-card>
-    <h1 class="center">Create New Deck:</h1>
+    <h1 class="center">Create New Deck</h1>
     <div>
-        <input matInput #newDeckName placeholder="deck name" required />
+        <input matInput #newDeckName placeholder="Deck Name" required />
     </div>
     <div>
         <button mat-button (click)="createDeck(newDeckName.value)">Go!</button>
     </div>
+    <div #errorsDiv id="errorsDiv"></div>
 
 
     <!--<button class="btn btn-primary center" mat-button (click)="createDeck()">Create Deck</button>
     -->
 
-
-    <h1 class="center">Find Exisiting Deck:</h1>
-    <div>
-        <input matInput #existingDeckName placeholder="deck name" required />
-    </div>
-    <div>
-        <button mat-button (click)="findExistingDeck(existingDeckName.value)">Go!</button>
-    </div>
-    <div #errorsDiv id="errorsDiv"></div>
 </mat-card>
 
 <!-- <app-deck-list></app-deck-list> -->
+<mat-card>
     <h1>Your Decks</h1>
         <ul>
             <li *ngFor="let deckData of deckList$" >
-                {{deckData.deckName}}&nbsp;&nbsp;
-                <span (click)="editDeck(deckData.deckName)">Edit Deck</span>&nbsp;
-                <span (click)="deleteDeck(deckData.deckName)">Delete Deck</span>
+                <div>{{deckData.deckName}}</div>
+                <button mat-button (click)="editDeck(deckData.deckName)">Edit Deck</button>&nbsp;
+                <button mat-button (click)="deleteDeck(deckData.deckName)">Delete Deck</button>
               </li>
-        </ul>  
-
-<div style="text-align:center; margin-top: 100px; "><mat-card style="margin-top:10px; width: 50%;">  
-    <mat-card-content>  
-        <ul>  
-            <li *ngFor="let file of files">  
-                <mat-progress-bar [value]="file.progress"></mat-progress-bar>  
-                <span id="file-label">  
-                      
-                </span>  
-            </li>  
         </ul>
-    </mat-card-content>  
 </mat-card>

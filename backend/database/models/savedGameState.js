@@ -16,6 +16,7 @@ const SavedGameStateSchema = new mongoose.Schema({
             imagePath: String,
             x: Number,
             y: Number,
+            flippedOver: Boolean,
             depth: Number
         }
     ],
@@ -32,24 +33,31 @@ const SavedGameStateSchema = new mongoose.Schema({
                     imagePath: String,
                     x: Number,
                     y: Number,
+                    flippedOver: Boolean,
                     depth: Number
                 }
             ]
         }
     ],
-    handMins: [
+    handMins : [ 
         {
-            playerID: Number,
-            cardMins: [
-                {
-                    id: Number,
-                    imagePath: String,
-                    x: Number,
-                    y: Number,
-                    depth: Number
+        playerID: Number,
+        innerHandMins: [
+                { //handMin
+                    playerID: Number,
+                    cardMins: [
+                        {
+                            id: Number,
+                            imagePath: String,
+                            x: Number,
+                            y: Number,
+                            flippedOver: Boolean,
+                            depth: Number
+                        }
+                    ]
                 }
             ]
-        }
+        },
     ],
     savedPlayerData: [
         {

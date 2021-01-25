@@ -8,5 +8,4 @@ const UserDeck = new mongoose.Schema({
     imageID: {type: Array},
 });
 
-module.exports = mongoose.model('userDeck', UserDeck)
-// module.exports = UserDeck;
+module.exports = mongoose.model('UserDeck', UserDeck)

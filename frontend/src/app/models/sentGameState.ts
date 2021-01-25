@@ -10,7 +10,7 @@ import base64DeckMin from './base64DeckMin';
 import base64HandMin from './base64HandMin';
 
 export default class SentGameState {
-    playerID: number
+    playerID: number;
     cardMins: CardMin[] = [];
     deckMins: DeckMin[] = [];
     handMin: HandMin;
@@ -18,10 +18,20 @@ export default class SentGameState {
     base64Cards: base64CardMin[] = [];
     base64Decks: base64DeckMin[] = [];
     base64Hands: base64HandMin[] = [];
+    handMins: HandMin[] = [];
 
     constructor(gameState: GameState, playerID: number) {
         this.playerID = playerID;
 
+        // If the player does not have any hands initialize a hand for them
+        if(!gameState?.hands[this.playerID]) {
+            gameState.hands[this.playerID] = [new Hand(this.playerID, [])]
+        }
+
+        // Convert to the min version of each object
+        gameState?.hands[this.playerID].forEach( (hand: Hand) => {
+                this.handMins.push(new HandMin(hand));
+        });            
         gameState?.cards.forEach((card: Card) => {
             if (card.base64 == false) {
                 this.cardMins.push(new CardMin(card));
@@ -45,26 +55,26 @@ export default class SentGameState {
             // }
         });
 
-        let handFound: boolean = false;
-        for (let i = 0; i < gameState?.hands.length; i++) {
-            if (gameState?.hands[i].playerID === this.playerID) {
-                // if (gameState?.hands[i].base64 == false) {
-                    this.handMin = new HandMin(gameState?.hands[i]);
-                    handFound = true;
-                    break;
-                // } 
-                // else {
-                //     this.base64HandMin = new base64HandMin(gameState?.hands[i]);
-                //     handFound = true;
-                //     break; 
-                // }
-            }
-        }
+        // let handFound: boolean = false;
+        // for (let i = 0; i < gameState?.hands.length; i++) {
+        //     if (gameState?.hands[i].playerID === this.playerID) {
+        //         // if (gameState?.hands[i].base64 == false) {
+        //             this.handMin = new HandMin(gameState?.hands[i]);
+        //             handFound = true;
+        //             break;
+        //         // } 
+        //         // else {
+        //         //     this.base64HandMin = new base64HandMin(gameState?.hands[i]);
+        //         //     handFound = true;
+        //         //     break; 
+        //         // }
+        //     }
+        // }
 
-        if (!handFound) {
-            this.handMin = new HandMin(new Hand(this.playerID, []));
-            // this.base64HandMin = new base64HandMin(new Hand(this.playerID, []));
+        // if (!handFound) {
+        //     this.handMin = new HandMin(new Hand(this.playerID, []));
+        //     // this.base64HandMin = new base64HandMin(new Hand(this.playerID, []));
 
-        }
+        // }
     }
 }

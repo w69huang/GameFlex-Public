@@ -17,7 +17,6 @@ import { FileListComponent } from './file-list/file-list.component';
 import { GameInstanceComponent } from './game-instance/game-instance.component';
 
 const routes: Routes = [
-  { path: 'playspace', component: PlayspaceComponent },
   { path: '', redirectTo: 'gameBrowser', pathMatch: 'full' },
   { path: 'gameInstance', component: GameInstanceComponent, canActivate:[AuthGuard] },
   { path: 'deckEditor', component: DeckEditorComponent, canActivate:[AuthGuard] },

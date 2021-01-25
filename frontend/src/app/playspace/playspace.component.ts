@@ -18,6 +18,7 @@ import PlayspaceScene from '../models/phaser-scenes/playspaceScene';
 import { MatDialog } from '@angular/material/dialog';
 import SentGameState from '../models/sentGameState';
 import { FileService } from '../services/file.service';
+import * as HF from '../helper-functions';
 
 @Component({
   selector: 'app-playspace',
@@ -28,11 +29,7 @@ export class PlayspaceComponent implements OnInit {
   public phaserGame: Phaser.Game;
   public phaserScene: PlayspaceScene;
   public config: Phaser.Types.Core.GameConfig;
-  public aceOfSpades: Phaser.GameObjects.Image;
   public popupCount: number = 0;
-  public sceneWidth: number = 1000;
-  public sceneHeight: number = 1000;
-  public handBeginY: number = 600;
   public highestID: number = 1;
 
   // From Game Instance
@@ -81,7 +78,7 @@ export class PlayspaceComponent implements OnInit {
     // 1. npm install -g peer
     // 2. peerjs --port 9000 --key peerjs --path /peerserver
     this.peer = new Peer(this.gameState.myPeerID, { // You can pass in a specific ID as the first argument if you want to hardcode the peer ID
-      // host: 'localhost',
+      //host: 'localhost',
       host: '35.215.71.108', // This is reserved for the external IP of the mongo DB instance. Replace this IP with the new IP generated when starting up the 
       port: 9000,
       path: '/peerserver' // Make sure this path matches the path you used to launch it
@@ -105,12 +102,16 @@ export class PlayspaceComponent implements OnInit {
       // Catches the case of a browser being closed
       conn.peerConnection.oniceconnectionstatechange = () => {
         if(conn.peerConnection.iceConnectionState == 'disconnected') {
-          console.log("Peer-to-Peer Error: Other party disconnected.");
+          console.log("Peer-to-Peer Error 1: Other party disconnected.");
           this.hostHandleConnectionClose(conn);
         }
       }
       conn.on('close', () => {
-        console.log("Peer-to-Peer Error: Other party disconnected.");
+        console.log("Peer-to-Peer Error 2: Other party disconnected.");
+        this.hostHandleConnectionClose(conn);
+      });
+      conn.on('disconnected', () => {
+        console.log('Peer-to-Peer Error 3: Peer disconnected from signalling server.');
         this.hostHandleConnectionClose(conn);
       });
       conn.on('error', (err) => {
@@ -122,6 +123,7 @@ export class PlayspaceComponent implements OnInit {
   }
 
   hostHandleConnectionClose(conn: DataConnection) {
+    conn.close();
     this.gameState.connections = this.filterOutPeer(this.gameState.connections, conn);
     
     let playerData: PlayerData = null;
@@ -164,11 +166,11 @@ export class PlayspaceComponent implements OnInit {
   }
 
   initialize(): void {
-    this.phaserScene = new PlayspaceScene(this, this.sceneWidth, this.sceneHeight, this.handBeginY);
+    this.phaserScene = new PlayspaceScene(this);
     this.config = {
       type: Phaser.AUTO,
-      height: this.sceneHeight,
-      width: this.sceneWidth,
+      height: HF.sceneHeight,
+      width: HF.sceneWidth,
       scene: [this.phaserScene],
       parent: 'gameContainer',
     };
@@ -179,14 +181,9 @@ export class PlayspaceComponent implements OnInit {
   getAllSavedGameStates() {
     this.getAllSavedGameStatesEmitter.subscribe((savedGameState: SavedGameState) => {
       if (savedGameState) { // If they actually chose a saved game state
+        // let processedSavedGameState = processSavedGameState(savedGameState, true, false);
+
         this.gameState.buildGameStateFromSavedState(savedGameState, this);      
-  
-        this.gameState.playerDataObjects.forEach((playerDataObject: PlayerData) => {
-          if (playerDataObject.id != this.gameState.playerID) {      
-            console.log("Sending updated state.");
-            this.gameState.sendGameStateToPeers(playerDataObject.peerID);
-          }
-        });
       }
     });
   }
@@ -199,7 +196,7 @@ export class PlayspaceComponent implements OnInit {
       this.gameState.generateBase64Dictionary(data.deckName, false, data);
       this.gameState.sendTexturesToPeers(data.cards, data.deckName, data.ids);
       for (i=0; i < data.cards.length; i ++) {
-        this.gameState.addDeckToGame(data.deckName, data.cards[i], data.ids[i], this)
+        this.gameState.addDeckToGame(data.deckName, data.cards[i].base64, data.ids[i], this)
       }
     })
   }
@@ -223,12 +220,16 @@ export class PlayspaceComponent implements OnInit {
 
   undoGameState(): void {
     this.undoGameStateEmitter.subscribe((count: integer) => {
-      this.gameState.buildGameFromCache(this, false, count);
+      if (!this.gameState.undoInProgress) {
+        this.gameState.buildGameFromCache(this, false, count);
+      }
     });
   }
 
   saveGameState(): void {
     this.saveGameStateEmitter.subscribe((name: string) => {
+      // let processedSavedGameState = processSavedGameState(savedGameState, true, false);
+
       this.savedGameStateService.create(new SavedGameState(this.middleware.getUsername(), name, this.gameState, this.gameState.playerDataObjects));
     });
   }
@@ -270,51 +271,108 @@ export class PlayspaceComponent implements OnInit {
       width: '350px',
     });
 
-    dialogRef.afterClosed().subscribe(object => {
-      if (object.loadFromCache === true) {
-        if(Object.keys(this.gameState.base64Dictionary).length == 0) {
-          const promise = new Promise((resolve, pending) => {
-            var username = this.middleware.getUsername();
-            var cache = JSON.parse(localStorage.getItem('cachedGameState'));
-            cache.base64Decks.forEach(deck => {
+    // dialogRef.afterClosed().subscribe(object => {
+    //   if (object.loadFromCache === true) {
+    //     if(Object.keys(this.gameState.base64Dictionary).length == 0) {
+    //       const promise = new Promise((resolve, pending) => {
+    //         var username = this.middleware.getUsername();
+    //         var cache = JSON.parse(localStorage.getItem('cachedGameState'));
+    //         cache.base64Decks.forEach(deck => {
             
-              this.getDecks(deck, username).subscribe(function(data) {
-                let arrayOfBase64=[];
-                for(let i = 0; i < data.ids.length; i ++) {
-                    if (!(data.ids[i] in arrayOfBase64) ) {
-                        arrayOfBase64[data.ids[i]] = data.dataFiles[i];
-                    } else {
-                        console.log("Duplicate ID within this deck!  ", deck);
-                    }
-                }
-                this.gameState.base64Dictionary[deck] = arrayOfBase64;
+    //           this.getDecks(deck, username).subscribe(function(data) {
+    //             let arrayOfBase64=[];
+    //             for(let i = 0; i < data.ids.length; i ++) {
+    //                 if (!(data.ids[i] in arrayOfBase64) ) {
+    //                     arrayOfBase64[data.ids[i]] = data.dataFiles[i];
+    //                 } else {
+    //                     console.log("Duplicate ID within this deck!  ", deck);
+    //                 }
+    //             }
+    //             this.gameState.base64Dictionary[deck] = arrayOfBase64;
 
-                if (Object.keys(this.gameState.base64Dictionary).length > 0){
-                  resolve(true); 
-                } else {
-                  pending("Loading");
-                }
-              }.bind(this));;
-              // this.gameState.generateBase64Dictionary(deck, true, null, this);
+    //             if (Object.keys(this.gameState.base64Dictionary).length > 0){
+    //               resolve(true); 
+    //             } else {
+    //               pending("Loading");
+    //             }
+    //           }.bind(this));;
+    //           // this.gameState.generateBase64Dictionary(deck, true, null, this);
+    //         });
+    //       });
+
+    //       promise.then(res => {
+    //         console.log("Promise Result: ",  res)
+    //         this.gameState.buildGameFromCache(this, true);
+    //       }).catch( err => {
+    //         console.log("Promise error: ", err)
+    //       })
+    //     } else {
+    //       this.gameState.buildGameFromCache(this, true);
+    //     }
+    //   } else if (object.loadFromCache === false) {
+    //     this.gameState.clearCache();
+    //   } else {
+    //     console.log('Error loading game from cache.');
+    //   }
+    //   // this.gameState.setCachingEnabled(true);
+    // });
+
+
+    if (JSON.parse(localStorage.getItem('cachedGameState'))?.numMoves > 0) {
+      let dialogRef = this.dialog.open(LoadGameStatePopupComponent, {
+        height: '290px',
+        width: '350px',
+      });
+  
+      dialogRef.afterClosed().subscribe(object => {
+        if (object.loadFromCache === true) {
+          if(Object.keys(this.gameState.base64Dictionary).length == 0) {
+            const promise = new Promise((resolve, pending) => {
+              var username = this.middleware.getUsername();
+              var cache = JSON.parse(localStorage.getItem('cachedGameState'));
+              cache.base64Decks.forEach(deck => {
+              
+                this.getDecks(deck, username).subscribe(function(data) {
+                  let arrayOfBase64=[];
+                  for(let i = 0; i < data.ids.length; i ++) {
+                      if (!(data.ids[i] in arrayOfBase64) ) {
+                          arrayOfBase64[data.ids[i]] = data.dataFiles[i];
+                      } else {
+                          console.log("Duplicate ID within this deck!  ", deck);
+                      }
+                  }
+                  this.gameState.base64Dictionary[deck] = arrayOfBase64;
+  
+                  if (Object.keys(this.gameState.base64Dictionary).length > 0){
+                    resolve(true); 
+                  } else {
+                    pending("Loading");
+                  }
+                }.bind(this));;
+                // this.gameState.generateBase64Dictionary(deck, true, null, this);
+              });
             });
-          });
-
-          promise.then(res => {
-            console.log("Promise Result: ",  res)
+  
+            promise.then(res => {
+              console.log("Promise Result: ",  res)
+              this.gameState.buildGameFromCache(this, true);
+            }).catch( err => {
+              console.log("Promise error: ", err)
+            })
+          } else {
             this.gameState.buildGameFromCache(this, true);
-          }).catch( err => {
-            console.log("Promise error: ", err)
-          })
+          }
+        } else if (object.loadFromCache === false) {
+          this.gameState.clearCache();
         } else {
-          this.gameState.buildGameFromCache(this, true);
+          console.log('Error loading game from cache.');
         }
-      } else if (object.loadFromCache === false) {
-        this.gameState.clearCache();
-      } else {
-        console.log('Error loading game from cache.');
-      }
-      this.gameState.setCachingEnabled(true);
-    });
+        // this.gameState.setCachingEnabled(true);
+
+      });
+    } else {
+      this.gameState.clearCache();
+    }
   }
 
   finishConnectionProcess(): void {
@@ -404,13 +462,17 @@ export class PlayspaceComponent implements OnInit {
       // Catches the case where the browser is closed
       conn.peerConnection.oniceconnectionstatechange = () => {
         if(conn.peerConnection.iceConnectionState == 'disconnected') {
-          console.log("Peer-to-Peer Error: Other party disconnected.");
+          console.log("Peer-to-Peer Error 4: Other party disconnected.");
           this.clientHandleConnectionClose(conn);
         }
       }
       conn.on('close', () => {
-        console.log("Peer-to-Peer Error: Other party disconnected.");
+        console.log("Peer-to-Peer Error 5: Other party disconnected.");
         this.clientHandleConnectionClose(conn);
+      });
+      conn.on('disconnected', () => {
+        console.log('Peer-to-Peer Error 6: Peer disconnected from signalling server.');
+        this.hostHandleConnectionClose(conn);
       });
       conn.on('error', (err) => {
         console.log("Unspecified Peer-to-Peer Error: ");
@@ -429,4 +491,5 @@ export class PlayspaceComponent implements OnInit {
       this.checkIfCanOpenConnectionInterval = setInterval(this.checkIfCanOpenConnection.bind(this), 2000);
     }
   }
+
 }

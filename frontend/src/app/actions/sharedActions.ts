@@ -11,8 +11,7 @@ export function updateRenderOrder(object: Card | Deck, playspaceComponent: Plays
       EActionTypes.updateRenderOrder,
       {
         id: object.id,
-        type: object.type,
-        highestDepth: playspaceComponent.gameState.highestDepth
+        type: object.type
       }
     );
   }
@@ -54,6 +53,7 @@ export function onDragEnd(object: any, playspaceComponent: PlayspaceComponent, p
         {
           cardID: card.id,
           type: object.type,
+          handIndex: overlapObject.handIndex
         }
       );
     } else if (overlapObject.overlapType === EOverlapType.ALREADYINHAND && !playspaceComponent.gameState.getAmHost()) {
@@ -92,6 +92,7 @@ export function onDragEnd(object: any, playspaceComponent: PlayspaceComponent, p
           imagePath: object.imagePath,
           x: object.x,
           y: object.y,
+          flippedOver: object.flippedOver,
           finishedMoving: true
         }
       );

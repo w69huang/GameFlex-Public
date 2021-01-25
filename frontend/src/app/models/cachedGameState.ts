@@ -12,11 +12,12 @@ import base64HandMin from './base64HandMin';
 export default class CachedGameState {
     cardMins: CardMin[] = [];
     deckMins: DeckMin[] = [];
-    handMins: HandMin[] = [];
     // base64Cards: base64CardMin[] = [];
     // base64Decks: base64DeckMin[] = [];
     // base64Hands: base64HandMin[] = [];
     base64Decks: String[] = [];
+    handMins: Object = {};
+    numMoves: number;
 
     constructor(gameState: GameState) { 
         gameState.cards.forEach((card: Card) => {
@@ -35,9 +36,14 @@ export default class CachedGameState {
         gameState.decks.forEach((deck: Deck) => {
             this.deckMins.push(new DeckMin(deck));
         });
-        gameState.hands.forEach((hand: Hand) => {
-            this.handMins.push(new HandMin(hand));
+        Object.entries(gameState.hands).forEach((val) => {
+            const [playerID, hands] = val;
+            this.handMins[playerID] = [];
+            hands.forEach(hand => {
+                this.handMins[playerID].push(new HandMin(hand));
+            });
         });
         this.base64Decks = gameState.base64Decks;
+        this.numMoves = gameState.numCachedMoves;
     }
 }
