@@ -154,21 +154,35 @@ function verify(request, result) {
                 }
             } else {
                 const onlineGame = res[0];
+                const accountUsername = request.body.accountUsername;
+                const accountPassword = request.body.accountPassword;
 
-                if (onlineGame.numPlayers >= onlineGame.maxPlayers) {
-                    result.send({ message: "Room is full."});
-                } else {
-                    let hashedPassword = "";
-                    if (request.body.password != "") {
-                        const hash = crypto.createHash('sha256');
-                        hashedPassword = hash.update(request.body.password).digest('hex');
-                    } 
-                    if (hashedPassword === onlineGame.encryptedPassword) {
-                        result.send({ hostID: onlineGame.hostID })
+                user.getUser(accountUsername, function(error, user) {
+                    if (error) {
+                        result.send(error);
                     } else {
-                        result.send({ message: "Password incorrect." });
+                        if (user[0] != undefined && accountPassword === user[0].password && accountUsername === user[0].username) {
+                            if (user[0].username === onlineGame.username) {
+                                result.send({ hostID: onlineGame.hostID });   
+                            } else {
+                                if (onlineGame.numPlayers >= onlineGame.maxPlayers) {
+                                    result.send({ message: "Room is full."});
+                                } else {
+                                    let hashedPassword = "";
+                                    if (request.body.password != "") {
+                                        const hash = crypto.createHash('sha256');
+                                        hashedPassword = hash.update(request.body.password).digest('hex');
+                                    } 
+                                    if (hashedPassword === onlineGame.encryptedPassword) {
+                                        result.send({ hostID: onlineGame.hostID });
+                                    } else {
+                                        result.send({ message: "Password incorrect." });
+                                    }
+                                }
+                            }
+                        }
                     }
-                }
+                });
             }
         }
     });
