@@ -1185,13 +1185,13 @@ export default class GameState {
         
                 if (deck && deck.cards.length > 0) {
                     let card: Card = this.getCardFromDeck(deck.cards.length - 1, deck.id, true);
-                    card.x = data.extras.destination === HF.EDestination.TABLE ? deck.x : playspaceComponent.gameState.myHand.gameObject.x + 150;
-                    card.y = data.extras.destination === HF.EDestination.TABLE ? deck.y : playspaceComponent.gameState.myHand.gameObject.y + 200;
+                    card.x = data.extras.destination === HF.EDestination.TABLE ? deck.x : HF.handBeginX + 150;
+                    card.y = data.extras.destination === HF.EDestination.TABLE ? deck.y : HF.handBeginY + 200;
         
                     if (data.extras.destination === HF.EDestination.TABLE) {
                         HF.createCard(card, playspaceComponent, HF.EDestination.TABLE);
                     } else if (data.extras.destination === HF.EDestination.HAND) {
-                        this.addCardToPlayerHand(card, data.playerID);
+                        this.addCardToPlayerHand(card, data.playerID, data.extras.handIndex);
                     }
         
                     this.sendPeerData(
