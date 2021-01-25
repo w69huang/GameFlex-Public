@@ -19,6 +19,10 @@ export class WebService {
     return this.http.get(`${useMongo ? this.ROOT_URL_MONGO : this.ROOT_URL_MYSQL}/${uri}`);
   }
 
+  getWithArgs (uri: string, optionalArgs: any = null, useMongo?: boolean) {
+    return this.http.get(`${useMongo ? this.ROOT_URL_MONGO : this.ROOT_URL_MYSQL}/${uri}`, optionalArgs);
+  }
+
   post (uri: string, payload: Object, useMongo?: boolean) {
     // 2nd param is the body of the request
     return this.http.post(`${useMongo ? this.ROOT_URL_MONGO : this.ROOT_URL_MYSQL}/${uri}`, payload);
