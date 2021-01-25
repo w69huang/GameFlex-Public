@@ -9,8 +9,10 @@ export class WebService {
   readonly ROOT_URL_MONGO;
 
   constructor (private http: HttpClient) {
-    this.ROOT_URL_MYSQL = "http://localhost:5000";
-    this.ROOT_URL_MONGO = "http://localhost:3000";
+    // this.ROOT_URL_MYSQL = "http://localhost:5000";
+    // this.ROOT_URL_MONGO = "http://localhost:3000";
+    this.ROOT_URL_MYSQL = "35.188.40.76:5000";
+    this.ROOT_URL_MONGO = "35.188.40.76:3000";
   }
 
   get (uri: string, useMongo?: boolean) {
