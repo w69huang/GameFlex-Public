@@ -13,7 +13,7 @@ export class UsersService {
 
     }
     createUser(object) {
-        return this.http.post('35.188.40.76/user/create', object.value, {headers: this.corsHeaders})
+        return this.http.post('35.188.40.76:5000/user/create', object.value, {headers: this.corsHeaders})
     };
 
     getUser(object) {
