@@ -32,7 +32,8 @@
               "src/styles.scss"
             ],
             "scripts": [
-              "node_modules/phaser/dist/phaser.min.js"
+              "node_modules/phaser/dist/phaser.min.js",
+              "node_modules/jquery/dist/jquery.min.js"
             ]
           },
           "configurations": {
@@ -99,7 +100,8 @@
               "src/styles.scss"
             ],
             "scripts": [
-              "node_modules/phaser/dist/phaser.min.js"
+              "node_modules/phaser/dist/phaser.min.js",
+              "node_modules/jquery/dist/jquery.min.js"
             ]
           }
         },
