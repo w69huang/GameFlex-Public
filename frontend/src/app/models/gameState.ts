@@ -132,7 +132,10 @@ export enum EOverlapType {
     TABLE,
     HAND,
     ALREADYINHAND,
-    DECK
+    DECK,
+    PREVHAND,
+    NEXTHAND,
+    ADDHAND
 }
 
 /**
@@ -226,6 +229,11 @@ export default class GameState {
      * Tracks the current hand index
      */
     public myCurrHand: integer = 0;
+
+    /**
+     * Tracks if a hover action is already occurring
+     */
+    public hoverActionInProgress: boolean = false;
 
     /**
      * Will contain the peerIDs of people who we are waiting on receiving a confirmation from
@@ -439,9 +447,9 @@ export default class GameState {
       * Used to delay function execution by a certain amount of time
       * @param func - The function to delay execution of
       */
-    public delay(functionCallback: () => void) {
+    public delay(functionCallback: () => void, ms : number = 200) {
         if (!this.buildingGame) {
-            setTimeout(() => { functionCallback(); }, 200);
+            setTimeout(() => { functionCallback(); }, ms);
         }
     }
 
@@ -837,9 +845,49 @@ export default class GameState {
     }
 
     /**
-     * Used to check overlap of an object on hands and decks
+     * Used to check overlap of a card on buttons. Does not perform the action. 
      * @param id - The id of the object overlap is being checked for (card/deck)
      * @param playerID - The id of the player responsible for firing this check
+     */
+    public checkForCardOverlappingButton(id: number): OverlapObject {
+        const cardLocationObject: CardLocationObject = this.getCardByID(id, this.playerID);
+        const card: Card = cardLocationObject?.card;
+
+        if (!card) {
+            console.error('Could not find the card we are attempting to move.');
+            return 
+        }
+
+        if ( // Add Button - should add a new hand that we can drop the card into
+            card.gameObject.x > 940 && // left 
+            card.gameObject.x < HF.handBeginX + HF.handWidth && // right
+            card.gameObject.y > HF.handBeginY  && // top 
+            card.gameObject.y < 680 // bottom
+        ) {
+            return { overlapType: EOverlapType.ADDHAND, handIndex: this.myCurrHand};
+        } else if ( // Add Button - should add a new hand that we can drop the card into
+            card.gameObject.x > 940 && // left 
+            card.gameObject.x < HF.handBeginX + HF.handWidth && // right
+            card.gameObject.y > 680  && // top 
+            card.gameObject.y < HF.handBeginY + HF.handHeight // bottom
+        ) {
+            return { overlapType: EOverlapType.NEXTHAND, handIndex: this.myCurrHand};
+        } else if ( // Add Button - should add a new hand that we can drop the card into
+            card.gameObject.x > HF.handBeginX && // left 
+            card.gameObject.x < 60 && // right
+            card.gameObject.y > 680  && // top 
+            card.gameObject.y < HF.handBeginY + HF.handHeight // bottom
+        ) {
+            return { overlapType: EOverlapType.PREVHAND, handIndex: this.myCurrHand};
+        }
+    }
+
+    /**
+     * Used to check overlap of an object on hands and decks AND perform the appropriate action if overlapped. 
+     * Note: Updating peers should be handled by the caller
+     * @param id - The id of the object overlap is being checked for (card/deck)
+     * @param playerID - The id of the player responsible for firing this check
+     * TODO: Consider refactoring + merging with the other checkFor___Overlap such that it only checks and doesn't also do the action
      */
     public checkForOverlap(id: number): OverlapObject {
         const cardLocationObject: CardLocationObject = this.getCardByID(id, this.playerID);
@@ -848,7 +896,11 @@ export default class GameState {
         let image: Phaser.GameObjects.Image;
 
         if (card) {
-            if (card.gameObject.x > HF.handBeginX && card.gameObject.x < HF.handWidth && card.gameObject.y > HF.handBeginY && card.gameObject.y < HF.handBeginY + HF.handHeight) {
+            if (card.gameObject.x > HF.handBeginX &&
+                 card.gameObject.x < HF.handBeginX + HF.handWidth &&
+                  card.gameObject.y > HF.handBeginY &&
+                   card.gameObject.y < HF.handBeginY + HF.handHeight) {
+
                 if (cardLocation !== ECardLocation.MYHAND) {
                     this._cards = this.filterOutID(this._cards, card);
                     this.addCardToOwnHand(card, this.myCurrHand);

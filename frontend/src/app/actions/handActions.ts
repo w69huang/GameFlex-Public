@@ -158,7 +158,7 @@ export function inMyHands(component: PlayspaceComponent, theCardToCheck: Card) {
 }
 
 /**
- * Updates the hand tracker to the values given. Default to the `myCurrentHand + 1` of `myHands.length`
+ * Updates the hand tracker to the values given. Default to the `myCurrHand + 1` of `myHands.length`
  */
 export function updateHandTracker(
         component: PlayspaceComponent,

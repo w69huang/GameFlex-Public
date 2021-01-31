@@ -2,6 +2,8 @@ import { PlayspaceComponent } from '../playspace/playspace.component';
 import Card from '../models/card';
 import { EActionTypes, EGameObjectType, EOverlapType, OverlapObject } from '../models/gameState';
 import Deck from '../models/deck';
+import * as HA from '../actions/handActions';
+import { delay } from 'rxjs/operators';
 
 export function updateRenderOrder(object: Card | Deck, playspaceComponent: PlayspaceComponent): void {
   playspaceComponent.gameState.highestDepth++;
@@ -20,6 +22,7 @@ export function updateRenderOrder(object: Card | Deck, playspaceComponent: Plays
 // Drag move callback for moving objects on the phaser canvas
 // Will be used for both the config editor and the playspace
 export function onDragMove(object: any, component: any, pointer: Phaser.Input.Pointer, dragX: number, dragY: number): void {
+
   if (object.type == EGameObjectType.DECK || object.type == EGameObjectType.CARD) {
     object.x = dragX;
     object.y = dragY;
@@ -37,6 +40,76 @@ export function onDragMove(object: any, component: any, pointer: Phaser.Input.Po
           }
       );
     }
+
+    // TODO: This should happen for hover too not just onDragMove, currently if you're perfectly still it stops 
+    if (object.type === EGameObjectType.CARD && component.gameState) { // type card and has a gameState (ie: is a PlaySpaceComponent)
+      const overlapObject: OverlapObject = component.gameState.checkForCardOverlappingButton(object.id);
+
+      if (overlapObject?.overlapType === EOverlapType.ADDHAND) {
+        if (!component.gameState.hoverActionInProgress) {
+          // TODO: There's a lot of common code in these three buttons, find a way to make a function or 3 or 4 in HA
+          component.gameState.removeCardFromOwnHand(object.id);
+          HA.createHand(component, component.gameState.playerID);
+          component.gameState.addCardToOwnHand(object, component.gameState.myCurrHand);
+
+          component.gameState.hoverActionInProgress = true;
+          component.gameState.delay(() => {
+            component.gameState.sendPeerData(
+              EActionTypes.insertIntoHand,
+              {
+                cardID: object.id,
+                type: object.type,
+                handIndex: overlapObject.handIndex
+              }
+            );            
+            component.gameState.hoverActionInProgress = false;
+          }, 300)
+        }
+
+      } else if (overlapObject?.overlapType === EOverlapType.NEXTHAND) {
+        if (!component.gameState.hoverActionInProgress) {
+          component.gameState.removeCardFromOwnHand(object.id);
+          HA.nextHand(component);
+          object.gameObject.setVisible(true);
+          component.gameState.addCardToOwnHand(object, component.gameState.myCurrHand);
+          
+          component.gameState.hoverActionInProgress = true;
+          component.gameState.delay(() => {
+            component.gameState.sendPeerData(
+              EActionTypes.insertIntoHand,
+              {
+                cardID: object.id,
+                type: object.type,
+                handIndex: overlapObject.handIndex
+              }
+            );            
+            component.gameState.hoverActionInProgress = false;
+          }, 300)
+        }
+      
+      } else if (overlapObject?.overlapType === EOverlapType.PREVHAND) {
+        if (!component.gameState.hoverActionInProgress) {
+          component.gameState.removeCardFromOwnHand(object.id);
+          HA.previousHand(component);
+          object.gameObject.setVisible(true);
+          component.gameState.addCardToOwnHand(object, component.gameState.myCurrHand);
+
+          component.gameState.hoverActionInProgress = true;
+          component.gameState.delay(() => {
+            component.gameState.sendPeerData(
+              EActionTypes.insertIntoHand,
+              {
+                cardID: object.id,
+                type: object.type,
+                handIndex: overlapObject.handIndex
+              }
+            );            
+            component.gameState.hoverActionInProgress = false;
+          }, 300)
+        }
+      } // Will always be undefined for configurations since there is no gamestate
+    }
+
   }
 }
 
