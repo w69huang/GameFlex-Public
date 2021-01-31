@@ -3,7 +3,6 @@ import { Routes, RouterModule } from '@angular/router';
 import { TaskViewComponent } from './pages/task-view/task-view.component';
 import { NewListComponent } from './pages/new-list/new-list.component';
 import { NewTaskComponent } from './pages/new-task/new-task.component';
-import { PlayspaceComponent } from './playspace/playspace.component';
 import { DeckEditorComponent } from './deck-editor/deck-editor.component';
 import { ConfigEditorComponent } from './config-editor/config-editor.component';
 import { GameBrowserComponent } from './game-browser/game-browser.component';
@@ -13,12 +12,11 @@ import { LoginComponent } from './login/login.component';
 import { ChangepasswordComponent } from './changepassword/changepassword.component';
 import { AuthGuard } from './services/auth-guard';
 import { JoinByCodeComponent } from './join-by-code/join-by-code.component';
-import { FileListComponent } from './file-list/file-list.component';
-import { GameInstanceComponent } from './game-instance/game-instance.component';
+import { WelcomeComponent } from './welcome/welcome.component';
 
 const routes: Routes = [
   { path: '', redirectTo: 'gameBrowser', pathMatch: 'full' },
-  { path: 'gameInstance', component: GameInstanceComponent, canActivate:[AuthGuard] },
+  { path: 'welcome', component: WelcomeComponent, canActivate:[AuthGuard] },
   { path: 'deckEditor', component: DeckEditorComponent, canActivate:[AuthGuard] },
   { path: 'configeditor', component: ConfigEditorComponent, canActivate:[AuthGuard] },
   { path: 'gameBrowser', component: GameBrowserComponent, canActivate:[AuthGuard] },
