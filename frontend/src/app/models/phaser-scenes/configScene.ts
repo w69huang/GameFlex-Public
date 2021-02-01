@@ -23,7 +23,7 @@ export default class ConfigScene extends Phaser.Scene {
   }
 
   create() {
-    this.input.mouse.disableContextMenu();
+    // Nothing right now
   }
 
   preload() {

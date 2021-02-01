@@ -44,16 +44,11 @@ export class UploadCardsPopupComponent implements OnInit {
     setTimeout(() => {this.deckNameEmitter.emit(this.deckNameData)} ,100); 
   }
 
-  // deckEmitter(): void {
-  //   this.deckNameEmitter.emit(this.deckNameData)
-  // }
-
   cancel(): void {
     this.dialogRef.close({ name: this.deckNameData });
   }
 
   submit(): void {
-    // this.dialogRef.close({ name: this.deckNameData, files: this.files });
     const deckName: string = this.deckNameData
     const username: string = this.middleWare.getUsername();
     const numberOfFiles = this.files.length;
@@ -65,10 +60,6 @@ export class UploadCardsPopupComponent implements OnInit {
       this.uploadFile(fileData, deckName, username); 
       this.files = [];
   }
-
-  // ngOnDestroy(): void {
-  //   this.dialogRef.close({ name: this.deckNameData });
-  // }
 
   upload() {  
     const fileUpload = this.fileUpload.nativeElement;

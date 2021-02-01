@@ -109,7 +109,7 @@ public deckName;
   this.deckNameEmitter.subscribe(deckName => {
     document.getElementById('loadingText').style.display = "unset";
     const deckContainer = document.getElementById("deckDisplayContainer");
-    while ( deckContainer.firstChild ) {
+    while ( deckContainer.childNodes.length > 1) {
       deckContainer.removeChild(deckContainer.lastChild); 
     }
     this.deckName = deckName;
