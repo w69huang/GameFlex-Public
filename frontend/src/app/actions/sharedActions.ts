@@ -32,7 +32,7 @@ export function onDragLeave(): void {
 export function onDragMove(object: any, component: any, pointer: Phaser.Input.Pointer, dragX: number, dragY: number): void {
 
   if (object.type == EGameObjectType.DECK || object.type == EGameObjectType.CARD) {
-    object.x = dragX;po
+    object.x = dragX;
     object.y = dragY;
     object.gameObject.setX(dragX);
     object.gameObject.setY(dragY);
@@ -56,11 +56,7 @@ export function onDragMove(object: any, component: any, pointer: Phaser.Input.Po
       if (overlapObject?.overlapType === EOverlapType.ADDHAND) {
         if (!component.gameState.hoverActionInProgress) {
           // TODO: There's a lot of common code in these three buttons, find a way to make a function or 3 or 4 in HA
-          // component.gameState.removeCardFromOwnHand(object.id);
           HA.createHand(component, component.gameState.playerID);
-          // if (!object.inHand) {
-          //   component.gameState.addCardToOwnHand(object, component.gameState.myCurrHand);
-          // }
 
           component.gameState.hoverActionInProgress = true;
           component.gameState.delay(() => {     
@@ -70,12 +66,8 @@ export function onDragMove(object: any, component: any, pointer: Phaser.Input.Po
 
       } else if (overlapObject?.overlapType === EOverlapType.NEXTHAND) {
         if (!component.gameState.hoverActionInProgress) {
-          // component.gameState.removeCardFromOwnHand(object.id);
           HA.nextHand(component);
           object.gameObject.setVisible(true);
-          // if (!object.inHand) {
-          //   component.gameState.addCardToOwnHand(object, component.gameState.myCurrHand);
-          // }
 
           component.gameState.hoverActionInProgress = true;
           component.gameState.delay(() => {          
@@ -85,12 +77,8 @@ export function onDragMove(object: any, component: any, pointer: Phaser.Input.Po
       
       } else if (overlapObject?.overlapType === EOverlapType.PREVHAND) {
         if (!component.gameState.hoverActionInProgress) {
-          // component.gameState.removeCardFromOwnHand(object.id);
           HA.previousHand(component);
           object.gameObject.setVisible(true);
-          // if (!object.inHand) {
-          //   component.gameState.addCardToOwnHand(object, component.gameState.myCurrHand);
-          // }
 
           component.gameState.hoverActionInProgress = true;
           component.gameState.delay(() => {        
