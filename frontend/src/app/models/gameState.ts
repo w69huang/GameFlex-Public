@@ -902,7 +902,7 @@ export default class GameState {
                    card.gameObject.y < HF.handBeginY + HF.handHeight) {
 
                 if (cardLocation !== ECardLocation.MYHAND) {
-                    this.removeCardFromOwnHand(card.id, true);
+                    this.removeCardFromTable(card.id);
                     this.addCardToOwnHand(card, this.myCurrHand);
                     return { overlapType: EOverlapType.HAND, handIndex: this.myCurrHand};
                 }
