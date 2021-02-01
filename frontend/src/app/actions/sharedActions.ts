@@ -19,6 +19,14 @@ export function updateRenderOrder(object: Card | Deck, playspaceComponent: Plays
   }
 }
 
+export function onDragOver(): void { //Or do we want enter?
+  // https://photonstorm.github.io/phaser3-docs/Phaser.Input.Events.html#event:GAMEOBJECT_OVER__anchor
+}
+
+export function onDragLeave(): void {
+
+}
+
 // Drag move callback for moving objects on the phaser canvas
 // Will be used for both the config editor and the playspace
 export function onDragMove(object: any, component: any, pointer: Phaser.Input.Pointer, dragX: number, dragY: number): void {
@@ -53,15 +61,7 @@ export function onDragMove(object: any, component: any, pointer: Phaser.Input.Po
           component.gameState.addCardToOwnHand(object, component.gameState.myCurrHand);
 
           component.gameState.hoverActionInProgress = true;
-          component.gameState.delay(() => {
-            component.gameState.sendPeerData(
-              EActionTypes.insertIntoHand,
-              {
-                cardID: object.id,
-                type: object.type,
-                handIndex: overlapObject.handIndex
-              }
-            );            
+          component.gameState.delay(() => {     
             component.gameState.hoverActionInProgress = false;
           }, 300)
         }
@@ -74,15 +74,7 @@ export function onDragMove(object: any, component: any, pointer: Phaser.Input.Po
           component.gameState.addCardToOwnHand(object, component.gameState.myCurrHand);
           
           component.gameState.hoverActionInProgress = true;
-          component.gameState.delay(() => {
-            component.gameState.sendPeerData(
-              EActionTypes.insertIntoHand,
-              {
-                cardID: object.id,
-                type: object.type,
-                handIndex: overlapObject.handIndex
-              }
-            );            
+          component.gameState.delay(() => {          
             component.gameState.hoverActionInProgress = false;
           }, 300)
         }
@@ -95,15 +87,7 @@ export function onDragMove(object: any, component: any, pointer: Phaser.Input.Po
           component.gameState.addCardToOwnHand(object, component.gameState.myCurrHand);
 
           component.gameState.hoverActionInProgress = true;
-          component.gameState.delay(() => {
-            component.gameState.sendPeerData(
-              EActionTypes.insertIntoHand,
-              {
-                cardID: object.id,
-                type: object.type,
-                handIndex: overlapObject.handIndex
-              }
-            );            
+          component.gameState.delay(() => {        
             component.gameState.hoverActionInProgress = false;
           }, 300)
         }
