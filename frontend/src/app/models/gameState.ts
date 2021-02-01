@@ -763,6 +763,7 @@ export default class GameState {
             card.inHand = false;
     
             // Remove from local hand tracking: `myHands`
+            // Note: If we added handIndex a a property of the card, then we couldn't need this loop (it'd be better)
             this.myHands.forEach(myHand => {
                 myHand.cards = this.filterOutID(myHand.cards, card);
                 card.inHand = false;
@@ -906,6 +907,9 @@ export default class GameState {
                     this.addCardToOwnHand(card, this.myCurrHand);
                     return { overlapType: EOverlapType.HAND, handIndex: this.myCurrHand};
                 }
+
+                this.removeCardFromOwnHand(card.id);
+                this.addCardToOwnHand(card, this.myCurrHand);
                 this.delay(() => { this.saveToCache(); });
                 return { overlapType: EOverlapType.ALREADYINHAND, handIndex: this.myCurrHand};
             } else {
