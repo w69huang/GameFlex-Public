@@ -57,7 +57,8 @@ export function onDragMove(object: any, component: any, pointer: Phaser.Input.Po
         if (!component.gameState.hoverActionInProgress) {
           // TODO: There's a lot of common code in these three buttons, find a way to make a function or 3 or 4 in HA
           HA.createHand(component, component.gameState.playerID);
-
+          object.gameObject.setVisible(true);
+          
           component.gameState.hoverActionInProgress = true;
           component.gameState.delay(() => {     
             component.gameState.hoverActionInProgress = false;
