@@ -902,7 +902,7 @@ export default class GameState {
                    card.gameObject.y < HF.handBeginY + HF.handHeight) {
 
                 if (cardLocation !== ECardLocation.MYHAND) {
-                    this._cards = this.filterOutID(this._cards, card);
+                    this.removeCardFromOwnHand(card.id, true);
                     this.addCardToOwnHand(card, this.myCurrHand);
                     return { overlapType: EOverlapType.HAND, handIndex: this.myCurrHand};
                 }
@@ -1333,8 +1333,8 @@ export default class GameState {
                 // If someone else inserts a card into their hand, we need to delete that card from everyone else's screen
                 if (data.extras.type === EGameObjectType.CARD) {
                 let card: Card = this.getCardByID(data.extras.cardID, data.playerID, true, true).card;
-        
-                    if (card) {
+                
+                if (card) {
                         if (this.amHost) {
                             // If I am the host, first we will tell any other players that the action occurred
                 
@@ -1347,7 +1347,11 @@ export default class GameState {
                                 },
                                 [data.peerID]
                             );
-                
+
+                            // Update the cards location
+                            card.x = data.extras.x;
+                            card.y = data.extras.y;
+
                             // Then, add it to the appropriate player's hand in the game state (will only actually take effect if host)
                             this.addCardToPlayerHand(card, data.playerID, data.extras.handIndex);
                         }

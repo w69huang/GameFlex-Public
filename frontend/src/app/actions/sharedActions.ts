@@ -110,6 +110,8 @@ export function onDragEnd(object: any, playspaceComponent: PlayspaceComponent, p
         {
           cardID: card.id,
           type: object.type,
+          x: object.x,
+          y: object.y,
           handIndex: overlapObject.handIndex
         }
       );
