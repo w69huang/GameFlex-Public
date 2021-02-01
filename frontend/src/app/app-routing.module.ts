@@ -13,14 +13,16 @@ import { ChangepasswordComponent } from './changepassword/changepassword.compone
 import { AuthGuard } from './services/auth-guard';
 import { JoinByCodeComponent } from './join-by-code/join-by-code.component';
 import { WelcomeComponent } from './welcome/welcome.component';
+import { GameInstanceComponent } from './game-instance/game-instance.component';
 
 const routes: Routes = [
-  { path: '', redirectTo: 'gameBrowser', pathMatch: 'full' },
+  { path: '', redirectTo: 'welcome', pathMatch: 'full' },
   { path: 'welcome', component: WelcomeComponent, canActivate:[AuthGuard] },
   { path: 'deckEditor', component: DeckEditorComponent, canActivate:[AuthGuard] },
   { path: 'configeditor', component: ConfigEditorComponent, canActivate:[AuthGuard] },
   { path: 'gameBrowser', component: GameBrowserComponent, canActivate:[AuthGuard] },
   { path: 'joinByCode', component: JoinByCodeComponent, canActivate:[AuthGuard] },
+  { path: 'gameInstance', component: GameInstanceComponent, canActivate:[AuthGuard] },
   
   { path: 'dummy', component: DummyComponent},
   { path: 'signup', component: SignupComponent,canActivate:[AuthGuard] },

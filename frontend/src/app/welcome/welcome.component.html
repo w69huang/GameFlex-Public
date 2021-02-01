@@ -21,14 +21,22 @@
     </div>
 </div>
 <div class="notSignedInDesktopContainer" *ngIf="!isLoggedIn">
-    <mat-card (click)="router.navigate(['joinByCode'])">
-        <fa-icon [icon]="faTableTennis" size="2x"></fa-icon>
-        <p>Join By Code</p>
-    </mat-card>
-    <mat-card (click)="router.navigate(['signup'])">
-        <fa-icon [icon]="faUserShield" size="2x"></fa-icon>
-        <p>Sign Up</p>
-    </mat-card>
+    <div class="containerOne">
+        <mat-card (click)="router.navigate(['login'])">
+            <fa-icon [icon]="faUserShield" size="2x"></fa-icon>
+            <p>Login</p>
+        </mat-card>
+        <mat-card (click)="router.navigate(['signup'])">
+            <fa-icon [icon]="faUserShield" size="2x"></fa-icon>
+            <p>Sign Up</p>
+        </mat-card>
+    </div>
+    <div class="containerTwo">
+        <mat-card (click)="router.navigate(['joinByCode'])">
+            <fa-icon [icon]="faTableTennis" size="2x"></fa-icon>
+            <p>Join By Code</p>
+        </mat-card>
+    </div>
 </div>
 <div class="signedInMobileContainer" *ngIf="isLoggedIn">
     <mat-card (click)="router.navigate(['deckEditor'])">

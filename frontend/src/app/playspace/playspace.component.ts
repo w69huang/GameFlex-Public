@@ -17,7 +17,6 @@ import PlayerData from '../models/playerData';
 import SavedGameState from '../models/savedGameState';
 import OnlineGame from '../models/onlineGame';
 import PlayspaceScene from '../models/phaser-scenes/playspaceScene';
-import SentGameState from '../models/sentGameState';
 
 import * as CoA from '../actions/counterActions';
 import * as HF from '../helper-functions';
