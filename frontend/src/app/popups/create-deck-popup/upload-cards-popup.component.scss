@@ -18,3 +18,47 @@
     margin-top: 20px;
     font-size: 14pt;
 }
+
+#loadingText {
+    color: white;
+    display: inline-block;
+    margin-top: 10%;
+    margin-left: 35%;
+    margin-bottom: 10%;
+    font-size: 64px;
+}
+
+@media (max-width: 420px) {
+
+    h1 {
+        width: 80%;
+        margin: auto;
+    }
+
+    #loadingText {
+        padding: 50px 0px;
+        font-size: 24pt;
+        width: 50%;
+        margin: auto;
+    }
+
+    #deckDisplayContainer {
+        width: 98%;
+        padding: 10px 0px;
+        border-top: 1px solid white;
+        border-bottom: 1px solid white;
+        margin: auto;
+    }
+    
+    button {
+        width: 70%;
+        font-size: 18pt;
+        padding: 7px;
+        margin-left: 0px !important;
+    }
+
+    .actions {
+        display: flex;
+        flex-direction: column;
+    }
+}

@@ -1,0 +1,57 @@
+<div class="signedInDesktopContainer" *ngIf="isLoggedIn">
+    <div class="containerOne">
+        <mat-card (click)="router.navigate(['gameBrowser'])">
+            <fa-icon [icon]="faUserFriends" size="2x"></fa-icon>
+            <p>Public Games</p>
+        </mat-card>
+        <mat-card (click)="router.navigate(['joinByCode'])">
+            <fa-icon [icon]="faTableTennis" size="2x"></fa-icon>
+            <p>Join By Code</p>
+        </mat-card>
+    </div>
+    <div class="containerTwo">
+        <mat-card (click)="router.navigate(['deckEditor'])">
+            <fa-icon [icon]="faPen" size="2x"></fa-icon>
+            <p>Edit Decks</p>
+        </mat-card>
+        <mat-card (click)="router.navigate(['configeditor'])">
+            <fa-icon [icon]="faCogs" size="2x"></fa-icon>
+            <p>Edit Configurations</p>
+        </mat-card>
+    </div>
+</div>
+<div class="notSignedInDesktopContainer" *ngIf="!isLoggedIn">
+    <div class="containerOne">
+        <mat-card (click)="router.navigate(['login'])">
+            <fa-icon [icon]="faUserShield" size="2x"></fa-icon>
+            <p>Login</p>
+        </mat-card>
+        <mat-card (click)="router.navigate(['signup'])">
+            <fa-icon [icon]="faUserShield" size="2x"></fa-icon>
+            <p>Sign Up</p>
+        </mat-card>
+    </div>
+    <div class="containerTwo">
+        <mat-card (click)="router.navigate(['joinByCode'])">
+            <fa-icon [icon]="faTableTennis" size="2x"></fa-icon>
+            <p>Join By Code</p>
+        </mat-card>
+    </div>
+</div>
+<div class="signedInMobileContainer" *ngIf="isLoggedIn">
+    <mat-card (click)="router.navigate(['deckEditor'])">
+        <fa-icon [icon]="faPen" size="2x"></fa-icon>
+        <p>Edit Decks</p>
+    </mat-card>
+</div>
+<div class="notSignedInMobileContainer" *ngIf="!isLoggedIn">
+    <mat-card (click)="router.navigate(['login'])">
+        <fa-icon [icon]="faUserShield" size="2x"></fa-icon>
+        <p>Login</p>
+    </mat-card>
+    <mat-card (click)="router.navigate(['signup'])">
+        <fa-icon [icon]="faUserShield" size="2x"></fa-icon>
+        <p>Sign Up</p>
+    </mat-card>
+</div>
+

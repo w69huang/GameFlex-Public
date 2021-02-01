@@ -14,3 +14,59 @@ a:hover {
     background-color: $themeDarkestGray;
     text-decoration: none;
 }
+
+.wrapper {
+    color: white;
+    background-color: $themePurple;
+    box-sizing: border-box;
+    padding: 0 16px;
+    width: 100%;
+    white-space: nowrap;
+    height: 64px;
+
+    .toolbar {
+        display: flex;
+        overflow: hidden;
+        align-items: center;
+    }
+
+    fa-icon {
+        height: 30px;
+        position: absolute;
+        top: 2%;
+        cursor: pointer;
+        transition: color 0.5s ease;
+    }
+
+    fa-icon:hover {
+        color: $themeDarkGray;
+    }
+}
+
+.toolbarMobile {
+    display: flex;
+    overflow: hidden;
+    align-items: center;
+    flex-direction: column;
+    height: 0px;
+    transition: height 0.5s ease;
+    color: white;
+    background-color: $themeDarkGray;
+
+    a {
+        width: 100%;
+        padding: 3px 0px;
+    }
+}
+
+@media screen and (min-width: 1015px) {
+    .toolbarMobile, fa-icon {
+        display: none;
+    }
+}
+
+@media (max-width: 1014px) {
+    .toolbar {
+        display: none !important;
+    }
+}

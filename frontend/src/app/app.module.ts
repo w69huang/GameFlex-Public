@@ -45,6 +45,7 @@ import { ConfigEditorComponent } from './config-editor/config-editor.component';
 import { SaveConfigurationPopupComponent } from './popups/save-configuration-popup/save-configuration-popup.component';
 import { CounterComponent } from './counter/counter.component';
 import { RetrieveConfigPopupComponent } from './popups/retrieve-config-popup/retrieve-config-popup.component';
+import { WelcomeComponent } from './welcome/welcome.component';
 
 
 @NgModule({
@@ -78,6 +79,7 @@ import { RetrieveConfigPopupComponent } from './popups/retrieve-config-popup/ret
     SaveConfigurationPopupComponent,
     CounterComponent,
     RetrieveConfigPopupComponent,
+    WelcomeComponent,
   ],
   imports: [
     BrowserModule,

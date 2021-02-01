@@ -1,5 +1,10 @@
 <h1>Your Deck</h1>
-<div id = "deckDisplayContainer"></div>
+<div id = "deckDisplayContainer">
+    <div id="loadingText">Loading...</div>
+</div>
+<app-file-list
+[deckNameEmitter] = "deckNameEmitter"
+></app-file-list>
 
 <h1 class="cardStagingList" *ngIf="files.length>0">Cards to Upload</h1>
 <ul>
@@ -8,10 +13,6 @@
         <span (click)="removeStagedCard(fileObject.data)">Remove</span>
     </li>
 </ul> 
-
-<app-file-list
-[deckNameEmitter] = "deckNameEmitter"
-></app-file-list>
 
 <div class="actions" mat-dialog-actions>
     <button mat-button (click)="cancel()">Close</button>
