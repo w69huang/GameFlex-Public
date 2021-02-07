@@ -3,7 +3,7 @@ import Card from '../models/card';
 import Deck from '../models/deck';
 import OptionObject, { OptionObjectConfig } from '../models/optionObject';
 import PopupScene from '../models/phaser-scenes/popupScene';
-import { EGameObjectType, EActionTypes } from '../models/gameState';
+import GameState, { EGameObjectType, EActionTypes } from '../models/gameState';
 
 import * as HelperFunctions from '../helper-functions';
 
@@ -130,4 +130,21 @@ export function importDeck(popupScene: PopupScene, deck: Deck, playspaceComponen
     }
 
    popupClose(popupScene, deck, playspaceComponent);
+}
+
+export function returnAllCardsToDeck(popupScene: PopupScene, deck: Deck, playspaceComponent: PlayspaceComponent): void {
+    //find all cards
+        //get all cards on the table
+        let allCards = [];
+        playspaceComponent.gameState.getCardByID()
+
+        //get all cards in 'my' hand
+        //get all cards in all hands
+    //update all card locations
+    
+}
+
+export function returnAllCardsOnTableToDeck(popupScene: PopupScene, deck: Deck, playspaceComponent: PlayspaceComponent): void {
+
+    
 }

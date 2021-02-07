@@ -968,6 +968,50 @@ export default class GameState {
         }
     }
 
+    public findAllCards(): Array<any> {
+        let allCards = []
+        let card: Card = null;
+
+        //Find cards on the table
+        for (let i = 0; i < this._cards.length; i++) {
+            card = this._cards[i];
+            allCards.push(card);
+        }
+
+        //Find cards in 'my' hand
+        for (let h = 0; h < this.myHands.length; h++) {
+            let hand = this.myHands[h];
+            for (let i = 0; i < hand.cards.length; i++) {
+                card = hand.cards[i];
+                allCards.push(card);
+            }
+        }
+
+        //Find cards in all hands
+        if (this.amHost) {
+            // for each of the users hands
+
+
+            //TODO: get a list of all players in the game
+
+
+            
+            for (let h = 0; h < this.hands[playerIDOfWhoActedOnCard].length; h++) {
+                let hand = this.hands[playerIDOfWhoActedOnCard][h];
+
+                // for each card in the hand
+                for (let j = 0; j < hand.cards.length; j++) {
+                    // if the id is that of the card
+                    if (hand.cards[j].id === id) {
+                        card = hand.cards[j];
+                    }
+                }
+            }
+        }
+
+        return allCards
+    }
+
     /**
      * Used to flip a card
      * @param cardID - The ID of the card to flip
