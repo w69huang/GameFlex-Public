@@ -17,6 +17,7 @@ import PlayerData from '../models/playerData';
 import SavedGameState from '../models/savedGameState';
 import OnlineGame from '../models/onlineGame';
 import PlayspaceScene from '../models/phaser-scenes/playspaceScene';
+import Configuration from '../models/configuration'
 
 import * as CoA from '../actions/counterActions';
 import * as HF from '../helper-functions';
@@ -40,6 +41,8 @@ export class PlayspaceComponent implements OnInit {
   @Input() private getAllSavedGameStatesEmitter: EventEmitter<SavedGameState> = new EventEmitter<SavedGameState>();
   @Input() private undoGameStateEmitter: EventEmitter<number> = new EventEmitter<number>();
   @Input() private counterActionInputEmitter: EventEmitter<CounterActionObject> = new EventEmitter<CounterActionObject>();
+  @Input() private loadConfigurationEmitter: EventEmitter<Configuration> = new EventEmitter<Configuration>();
+
 
   // To Game Instance
   @Output() public playerDataEmitter: EventEmitter<PlayerData[]> = new EventEmitter<PlayerData[]>();
@@ -182,6 +185,15 @@ export class PlayspaceComponent implements OnInit {
         // let processedSavedGameState = processSavedGameState(savedGameState, true, false);
 
         this.gameState.buildGameStateFromSavedState(savedGameState, this);      
+      }
+    });
+
+    this.loadConfigurationEmitter.subscribe((configuration: Configuration) => {
+      console.log('loafConfig... received: ', configuration)
+      if (configuration) { // If they actually chose a saved game state
+        // let processedSavedGameState = processSavedGameState(savedGameState, true, false);
+
+        this.gameState.buildGameStateFromConfiguration(configuration, this);      
       }
     });
 

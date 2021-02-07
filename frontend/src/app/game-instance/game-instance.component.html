@@ -29,6 +29,14 @@
                     <button class="btn" (click)="undo(undoCountInput.value)">Undo Move</button>
                 </div>
             </mat-card>
+            <mat-card class="configContainer">
+                <h3>Configuration Options</h3>
+                <div class="buttonsContainer">
+                    <!-- <button class="btn">Load a Configuration</button> -->
+
+                    <button class="btn" (click)="getConfig()">Load a Configuration</button>
+                </div>
+            </mat-card>
         </div>
     </div>
     <app-playspace
@@ -39,6 +47,7 @@
         [undoGameStateEmitter]="undoGameStateEmitter"
         [saveGameStateEmitter]="saveGameStateEmitter"
         [getAllSavedGameStatesEmitter]="getAllSavedGameStatesEmitter"
+        [loadConfigurationEmitter]="loadConfigurationEmitter"
         [counterActionInputEmitter]="ctrActionOutputToPlayspaceCmpEmitter"
         [mainHostID]="mainHostID"
         [onlineGameID]="onlineGameID"

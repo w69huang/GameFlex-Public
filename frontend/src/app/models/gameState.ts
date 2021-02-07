@@ -4,6 +4,7 @@ import Card from './card';
 import Deck from './deck';
 import Hand from './hand';
 import Counter from './counter';
+import Configuration from './configuration';
 import CachedGameState from './cachedGameState'
 import SavedGameState from './savedGameState';
 import CardMin from './cardMin';
@@ -633,6 +634,88 @@ export default class GameState {
     public buildGameStateFromSavedState(savedGameState: SavedGameState, playspaceComponent: PlayspaceComponent): void {
         this.buildGame(savedGameState, playspaceComponent);
     }
+
+    /**
+     * A method to build the game state from a configuration
+     * @param configuration - The saved game state to build from
+     * @param playspaceComponent - A reference to the playspace component, needed to create cards and decks
+     */
+    public buildGameStateFromConfiguration(configuration: Configuration, playspaceComponent: PlayspaceComponent): void {
+        
+        console.log('building from config')
+        // this.buildGame(configuration, playspaceComponent);
+        this.buildingGame = true;
+
+        this.cleanUp(playspaceComponent);
+
+        let highestDepth: number = 0;
+
+        // configuration.cardMins.forEach((cardMin: CardMin) => {
+        //     const card: Card = new Card(cardMin.id, cardMin.imagePath, cardMin.x, cardMin.y, cardMin.flippedOver);
+        //     HF.createCard(card, playspaceComponent, HF.EDestination.TABLE, cardMin.depth);
+        //     if (cardMin.depth > highestDepth) {
+        //         highestDepth = cardMin.depth;
+        //     }
+        // });
+
+        
+        configuration.decks.forEach((deck: Deck) => {
+            // let cardList: Card[] = [];
+            // deckMin.cardMins.forEach((cardMin: CardMin) => {
+            //     cardList.push(new Card(cardMin.id, cardMin.imagePath, cardMin.x, cardMin.y, cardMin.flippedOver));
+            // });
+            // const deck: Deck = new Deck(deckMin.id, deckMin.imagePath, cardList, deckMin.x, deckMin.y);
+            highestDepth++;
+            HF.createDeck(deck, playspaceComponent, highestDepth);
+        });
+
+        // // Convert to from {playerID: handMin[]} OR [{playerID: playerID, innerHandMins: handMin[]}] to [[ playerID, handMin[] ]]
+        // let keyvalArray: any = [];
+        // if(!(configuration.handMins instanceof Array)) {
+        //     keyvalArray = Object.entries(configuration.handMins)
+        // } else {
+        //     configuration.handMins.forEach( (obj) =>  {
+        //         keyvalArray.push([obj.playerID, obj.innerHandMins])
+        //     } )
+        // }
+
+        // // Convert handMins to hands and cardMins to cards and add them to the appropriate location 
+        // keyvalArray.forEach( (keyval) => {
+        //     let playerID: integer = parseInt(keyval[0]);
+        //     let playersHandMins: HandMin[] = keyval[1];
+
+        //     playersHandMins.forEach( (playersHandMin: HandMin, handIndex: integer) => {
+        //         HA.createHand(playspaceComponent, playerID);
+
+        //         // TODO Need to clear anything that was there before
+        //         playersHandMin.cardMins.forEach((cardMin: CardMin) => {
+        //             // If the player ID is the current player, which would only ever be the host as the host only runs this
+        //             if (playerID === this.playerID && this.amHost) {
+        //                 const card: Card = new Card(cardMin.id, cardMin.imagePath, cardMin.x, cardMin.y, cardMin.flippedOver);
+        //                 HF.createCard(card, playspaceComponent, HF.EDestination.HAND, cardMin.depth, handIndex);
+        //             } else {
+        //                 this.addCardToPlayerHand(new Card(cardMin.id, cardMin.imagePath, cardMin.x, cardMin.y, cardMin.flippedOver), playerID, handIndex);
+        //             }
+        //             if (cardMin.depth > highestDepth) {
+        //                 highestDepth = cardMin.depth;
+        //             }            
+        //         });                
+        //     });
+        // });
+
+        CoA.replaceCounters(configuration.counters, playspaceComponent.counterActionOutputEmitter, this, null, true);
+        this.highestDepth = highestDepth;
+        
+        // this.sendGameStateToPeers(undo > 0 ? true : false);
+        this.currentMove = new CachedGameState(this);     
+
+        this.buildingGame = false;
+
+        // if (!undo) {
+        //     this.delay(() => { this.saveToCache(); });
+        // }
+    }
+
 
     /**
      * ======================================

@@ -6,10 +6,12 @@ import { CounterActionObject } from '../counter/counter.component';
 import OnlineGame from '../models/onlineGame';
 import PlayerData from '../models/playerData';
 import SavedGameState from '../models/savedGameState';
+import Configuration from '../models/configuration';
 import { RetrieveGameStatePopupComponent } from '../popups/retrieve-game-state-popup/retrieve-game-state-popup.component';
 import { SaveGameStatePopupComponent } from '../popups/save-game-state-popup/save-game-state-popup.component';
 import { MiddleWare } from '../services/middleware';
 import { SavedGameStateService } from '../services/saved-game-state.service';
+import { RetrieveConfigPopupComponent } from '../popups/retrieve-config-popup/retrieve-config-popup.component';
 
 @Component({
   selector: 'app-game-instance',
@@ -33,6 +35,11 @@ export class GameInstanceComponent implements OnInit {
    * An emitter used to send the playspace a saved game state that was retrieved from the database so that it can be loaded
    */
   public getAllSavedGameStatesEmitter: EventEmitter<SavedGameState> = new EventEmitter<SavedGameState>();
+
+  /**
+   * An emitter used to send the playspace configuration that was retrieved from the database so that it can be loaded
+   */
+  public loadConfigurationEmitter: EventEmitter<Configuration> = new EventEmitter<Configuration>();
 
   /**
    * An emitter used to tell the playspace to undo a # of moves
@@ -158,4 +165,29 @@ export class GameInstanceComponent implements OnInit {
   deleteAllSaves() {
     this.savedGameStateService.deleteAll().subscribe();
   }
+
+  getConfig() {
+    // Reset the highestID since we are getting a new config
+    // this.highestID = 1;
+
+    console.log('getConfig() ran')
+
+    let dialogRef = this.dialog.open(RetrieveConfigPopupComponent, {
+      height: '225',
+      width: '300px',
+    });
+
+    dialogRef.afterClosed().subscribe((configuration: Configuration) => {
+      console.log('emit loadConfig');
+      this.loadConfigurationEmitter.emit(configuration);
+
+      // if (configuration) {
+      //   let newConfiguration = this.processConfigurationFromBackend(configuration);
+      //   this.renderConfiguration(newConfiguration);
+      //   this.configuration = newConfiguration;
+      //   this.sendCounterActionEmitter.emit({ counterAction: ECounterActions.replaceCounters, counters: [...configuration.counters] });
+      // }
+    });
+  }
+
 }
