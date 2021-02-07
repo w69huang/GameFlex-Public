@@ -120,20 +120,12 @@ export class GameInstanceComponent implements OnInit {
                 cards: data.dataFiles,
                 ids: data.ids,
               };
-              console.log("GameInstance Componenet Pulled Files:")
-              console.log(payload)
               this.uploadCardToGameStateEmitter.emit(payload);
           
             }.bind(this, formData, i));
           }
         }
       });
-      // this.fileService.list('TestDeck2', 'test2').subscribe((data) => {
-      //   console.log("GameInstance Componenet Pulled Files:")
-      //   console.log(data)
-      //   this.uploadCardToGameStateEmitter.emit(data);
-
-      // })
     }
   }
 }

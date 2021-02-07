@@ -435,7 +435,6 @@ export default class GameState {
 
     
     public addDeckToGame(deckName, cardsdata, id, playspaceComponent) {
-        console.log("Add deck to game");
         const card: Card = new Card(id, cardsdata, 50, 50);
         card.base64 = true;
         card.base64Id = id;
@@ -443,42 +442,17 @@ export default class GameState {
         // console.log(cardsdata);
         // console.log(card);
         HF.createCard(card, playspaceComponent, HF.EDestination.TABLE, 0, null, true);
-        console.log("Built?");   
     }
 
+
+    //TO DO: Clean up this function 
     public generateBase64Dictionary(deckName: string, api:boolean=true, payload = null, playspaceComponent:PlayspaceComponent = null) {
         if (this.amHost) {
             if (this.base64Dictionary == undefined || !(deckName in this.base64Dictionary)){
                 if(api == true) {
                     const username = localStorage.getItem("username");
-                    // Requires the need for the playspace or at least the ability to call the file-list class.
-
-
-                    // playspaceComponent.getDecks(deckName, username).subscribe(function(data) {
-                    //     let arrayOfBase64=[];
-                    //     for(let i = 0; i < data.ids.length; i ++) {
-                    //         if (!(data.ids[i] in arrayOfBase64) ) {
-                    //             arrayOfBase64[data.ids[i]] = data.dataFiles[i];
-                    //         } else {
-                    //             console.log("Duplicate ID within this deck!  ", deckName);
-                    //         }
-                    //     }
-                    //     this.base64Dictionary[deckName] = arrayOfBase64;
-                    //     console.log(this.base64Dictionary)
-                    // }.bind(this));
-                    // playspaceComponent.getDecks(deckName, username, this)
-                    console.log(this.base64Dictionary);
-                    // this.fileService.list(deckName, username).subscribe( function(data) {
-                    //     for(let i = 0; i < data.ids.length; i ++) {
-                    //         if (!(data.ids[i] in arrayOfBase64) ) {
-                    //             arrayOfBase64[data.ids[i]] = data.dataFiles[i];
-                    //         } else {
-                    //             console.log("Duplicate ID within this deck!  ", deckName);
-                    //         }
-                    //     }
-                    //     this.base64Dictionary[deckName] = arrayOfBase64;
-                    // })
                     
+
                 } else {
                     let arrayOfBase64: Object = {};
                     for(let i = 0; i < payload.ids.length; i ++) {
@@ -656,7 +630,6 @@ export default class GameState {
             console.log("Saved Game Not Cached Game.");
         }
 
-        console.log("Deck ", base64decks)
         // if (this.amHost) {
         if (Object.keys(this.base64Dictionary).length === 0) {
             const promise = new Promise((resolve, pending) => {
@@ -1283,8 +1256,6 @@ export default class GameState {
 
                 this.delay(() => { this.saveToCache(); });
             }
-            console.log("card from deck");
-            console.log(card);
             card.x = deck.x;
             card.y = deck.y;
             return card;
@@ -1557,8 +1528,6 @@ export default class GameState {
                 let card: Card = new Card(cardMin.id, cardMin.imagePath, cardMin.x, cardMin.y, cardMin.flippedOver);
                 HF.createCard(card, playspaceComponent, HF.EDestination.TABLE, cardMin.depth);
               } else {
-                console.log("Base64 card min");
-                console.log(cardMin);
                 let card: Card = new Card(cardMin.id, null, cardMin.x, cardMin.y, cardMin.flippedOver);
                 card.base64 = true;
                 card.base64Deck = cardMin.deckName
@@ -1663,8 +1632,6 @@ export default class GameState {
                 } else if (data.extras.destination === HF.EDestination.HAND) {
                     this.addCardToPlayerHand(card, data.playerID);
                 }
-                // console.log("retrieve top card:");
-                // console.log(card);
                 if(card.base64 == false) {
                     this.sendPeerData(
                         EActionTypes.sendTopCard,
@@ -1915,8 +1882,6 @@ export default class GameState {
                         card = this.getCardByID(data.extras.cardID, data.playerID, true, true).card;
                         card.x = data.extras.x;
                         card.y = data.extras.y;
-                        console.log("remove from hand host:");
-                        console.log(card)
                         if (card.base64 == false) {
                             HF.createCard(card, playspaceComponent, HF.EDestination.TABLE)
                         } else if (card.base64 == true) {
@@ -1955,10 +1920,6 @@ export default class GameState {
                             );      
                         }  
                     } else {
-
-                        console.log("remove from hand not host:");
-                        console.log(card)
-                        console.log(data.extras);
                         card = new Card(data.extras.cardID, data.extras.imagePath, data.extras.x, data.extras.y, data.extras.flippedOver);
                         if (data.extras.base64 == false ) {
                             // Creates a new card because it does not exist as far as a non-host player knows
@@ -2068,14 +2029,12 @@ export default class GameState {
                 break;
 
             case EActionTypes.createTextures:
-                console.log("CreateTextures Case");
-                console.log(data);
                 var i;
                 this.base64Dictionary = data.extras.base64Dictionary;
                 for(i=0; i < data.extras.base64Ids.length; i ++) {
                     //   this.makeTextures(playspaceComponent, data.extras.imagePaths[i], data.extras.base64Ids[i]);
                     this.addDeckToGame(data.extras.deckName, null, data.extras.base64Ids[i], playspaceComponent);
-                    console.log("peer Creation?")
+                   
                 }
     
     

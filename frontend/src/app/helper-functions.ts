@@ -25,7 +25,6 @@ export enum EDestination {
     HAND = "Hand"
 }
 
-// export function createCard(card: Card, playspaceComponent: PlayspaceComponent, destination: string, depth?: number, base64?: boolean): void {
 export function createCard(card: Card, playspaceComponent: PlayspaceComponent, destination: string, depth?: number, handIndex: integer = null, base64?:boolean): void {
     // Need to ensure the card is added to table/hand, and not delayed by the cardCreationCallback
     let string = 'data:image/png;base64,'
@@ -47,33 +46,12 @@ export function createCard(card: Card, playspaceComponent: PlayspaceComponent, d
     if (playspaceComponent.phaserScene.textures.exists(String(card.id))) {
         // If the image already exists in the texture manager's cache, we can create the object now
 
-        // card.gameObject = playspaceComponent.phaserScene.add.image(card.x, card.y, String(card.id));
-        // card.gameObject.setInteractive();
-        // playspaceComponent.phaserScene.input.setDraggable(card.gameObject);
-        // card.gameObject.on('dragstart', SA.updateRenderOrder.bind(this, card, playspaceComponent));
-        // card.gameObject.on('drag', SA.onDragMove.bind(this, card, playspaceComponent));
-        // card.gameObject.on('dragend', SA.onDragEnd.bind(this, card, playspaceComponent));
-        // card.gameObject.displayWidth = 100;
-        // card.gameObject.displayHeight = 150;
-        // playspaceComponent.gameState.highestDepth++;
-        // card.gameObject.setDepth(depth ? depth : playspaceComponent.gameState.highestDepth);
-        // console.log("Text EXISTS. EXECUTE THIS");
         cardCreationCallback(card, playspaceComponent, destination, depth, handIndex);
     } else {
         // Otherwise, we have to dynamically load it
         if (base64 == true) {
             playspaceComponent.phaserScene.textures.once('addtexture', function() {
                 setTimeout( function() {
-                    // card.gameObject = playspaceComponent.phaserScene.add.image(card.x,card.y, String(card.id));
-                    // card.gameObject.setInteractive();
-                    // playspaceComponent.phaserScene.input.setDraggable(card.gameObject);
-                    // card.gameObject.on('dragstart', SA.updateRenderOrder.bind(this, card, playspaceComponent));
-                    // card.gameObject.on('drag', SA.onDragMove.bind(this, card, playspaceComponent));
-                    // card.gameObject.on('dragend', SA.onDragEnd.bind(this, card, playspaceComponent));
-                    // card.gameObject.displayWidth = 100;
-                    // card.gameObject.displayHeight = 150;
-                    // playspaceComponent.gameState.highestDepth++;
-                    // card.gameObject.setDepth(depth ? depth : playspaceComponent.gameState.highestDepth);
                     cardCreationCallback(card, playspaceComponent, destination, depth, handIndex);
                 }, 200)
             }, playspaceComponent.phaserScene.textures);
@@ -92,17 +70,6 @@ export function createCard(card: Card, playspaceComponent: PlayspaceComponent, d
         card.imagePath = null;
     }
 }
-
-// export function cardCreationCallback(card: Card, playspaceComponent: PlayspaceComponent, destination: string, depth?: number): void {
-//     card.gameObject = playspaceComponent.phaserScene.add.image(card.x, card.y, String(card.id));
-//         cardCreationCallback(card, playspaceComponent, destination, depth, handIndex);
-//     } else {
-//         // Otherwise, we have to dynamically load it
-//         playspaceComponent.phaserScene.load.image(card.imagePath, card.imagePath);
-//         playspaceComponent.phaserScene.load.once("complete", cardCreationCallback.bind(this, card, playspaceComponent, destination, depth, handIndex));
-//         playspaceComponent.phaserScene.load.start();
-//     }
-// }
 
 export function cardCreationCallback(card: Card, playspaceComponent: PlayspaceComponent, destination: string, depth?: number, handIndex: integer = null): void {
     card.gameObject = playspaceComponent.phaserScene.add.image(card.x, card.y, card.flippedOver ? 'flipped-card' : String(card.id));
