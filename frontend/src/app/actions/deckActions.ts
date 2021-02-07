@@ -72,7 +72,8 @@ export function retrieveTopCard(popupScene: PopupScene, deck: Deck, playspaceCom
             {
                 deckID: deck.id,
                 type: EGameObjectType.CARD,
-                destination: optionObjectConfig.destination
+                destination: optionObjectConfig.destination,
+                handIndex: playspaceComponent.gameState.myCurrHand
             }
         );
     }

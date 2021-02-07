@@ -2,8 +2,16 @@ import { BrowserModule } from '@angular/platform-browser';
 import { NgModule } from '@angular/core';
 import { HttpClientModule } from "@angular/common/http";
 import { FormsModule, ReactiveFormsModule } from '@angular/forms';
+import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
+import { MatToolbarModule } from '@angular/material/toolbar';
+import { MatIconModule } from '@angular/material/icon';
+import { MatCardModule } from '@angular/material/card';
+import { MatButtonModule } from '@angular/material/button';
+import { MatProgressBarModule } from '@angular/material/progress-bar';
+import { MatFormFieldModule } from '@angular/material/form-field';
+import { MatSelectModule} from '@angular/material/select';
+import { MatDialog, MatDialogModule } from '@angular/material/dialog';
 import { CommonModule } from '@angular/common';
-
 import { AppRoutingModule } from './app-routing.module';
 import { AppComponent } from './app.component';
 import { TaskViewComponent } from './pages/task-view/task-view.component';
@@ -12,23 +20,13 @@ import { NewTaskComponent } from './pages/new-task/new-task.component';
 import { PlayspaceComponent } from './playspace/playspace.component';
 import { DeckEditorComponent } from './deck-editor/deck-editor.component';
 import { GameBrowserComponent } from './game-browser/game-browser.component';
-import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
-import { MatToolbarModule } from '@angular/material/toolbar';
-import { MatIconModule } from '@angular/material/icon';
-import { MatCardModule } from '@angular/material/card';
-import { MatButtonModule } from '@angular/material/button';
-import { MatProgressBarModule } from '@angular/material/progress-bar';
 import { FileListComponent } from './file-list/file-list.component';
-import { FileUploaderComponent } from './file-uploader/file-uploader.component';
-import { MatFormFieldModule } from '@angular/material/form-field';
-import { MatSelectModule} from '@angular/material/select';
 import { GameBrowserPopupComponent } from './popups/game-browser-password-popup/game-browser-password-popup.component';
 import { DummyComponent } from './dummy/dummy.component';
 import { GameSetupPopupComponent } from './popups/game-setup-popup/game-setup-popup.component';
 import { SignupComponent } from './signup/signup.component';
 import { LoginComponent, DialogForgotPassword } from './login/login.component';
 import { MiddleWare } from './services/middleware';
-import { MatDialog, MatDialogModule } from '@angular/material/dialog';
 import { ChangepasswordComponent } from './changepassword/changepassword.component';
 import { UsersService } from './services/users.service';
 import { SaveGameStatePopupComponent } from './popups/save-game-state-popup/save-game-state-popup.component';
@@ -46,6 +44,9 @@ import { CreateCounterPopupComponent } from './popups/create-counter-popup/creat
 import { ConfigEditorComponent } from './config-editor/config-editor.component';
 import { SaveConfigurationPopupComponent } from './popups/save-configuration-popup/save-configuration-popup.component';
 import { LoadCardsPopupComponent } from './popups/load-cards-popup/load-cards-popup.component';
+import { CounterComponent } from './counter/counter.component';
+import { RetrieveConfigPopupComponent } from './popups/retrieve-config-popup/retrieve-config-popup.component';
+import { WelcomeComponent } from './welcome/welcome.component';
 
 
 @NgModule({
@@ -57,7 +58,6 @@ import { LoadCardsPopupComponent } from './popups/load-cards-popup/load-cards-po
     PlayspaceComponent,
     DeckEditorComponent,
     FileListComponent,
-    FileUploaderComponent,
     GameBrowserComponent,
     GameBrowserPopupComponent,
     GameSetupPopupComponent,
@@ -80,6 +80,9 @@ import { LoadCardsPopupComponent } from './popups/load-cards-popup/load-cards-po
     SaveConfigurationPopupComponent,
     UploadCardsPopupComponent,
     LoadCardsPopupComponent
+    CounterComponent,
+    RetrieveConfigPopupComponent,
+    WelcomeComponent,
   ],
   imports: [
     BrowserModule,

@@ -1,4 +1,9 @@
-const mongoose = require('mongoose')
+const mongoose = require('mongoose');
+const Counter = require('./counter').schema;
+const Card = require('./card').schema;
+const Deck = require('./deck').schema;
+const Hand = require('./hand').schema;
+const SavedPlayerData = require('./savedPlayerData').schema;
 
 const SavedGameStateSchema = new mongoose.Schema({
     username: {
@@ -10,20 +15,7 @@ const SavedGameStateSchema = new mongoose.Schema({
         minlength: 3
     },
     date: Date,
-    cardMins: [
-        {
-            // id: Number,
-            id: String,
-            imagePath: String,
-            x: Number,
-            y: Number,
-            flippedOver: Boolean,
-            depth: Number,
-            base64: Boolean,
-            deckName: String,
-
-        }
-    ],
+    cardMins: [Card],
     base64Decks : [
         {
             deck: String
@@ -72,14 +64,10 @@ const SavedGameStateSchema = new mongoose.Schema({
             ]
         },
     ],
-    savedPlayerData: [
-        {
-            playerID: Number,
-            username: String
-        }
-    ]
+    counters: [Counter],
+    savedPlayerData: [SavedPlayerData],
 })
 
 const SavedGameState = mongoose.model('SavedGameState', SavedGameStateSchema)
 
-module.exports = SavedGameState
+module.exports = SavedGameState;

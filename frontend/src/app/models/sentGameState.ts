@@ -5,21 +5,43 @@ import GameState from './gameState';
 import CardMin from './cardMin';
 import DeckMin from './deckMin';
 import HandMin from './handMin';
-import base64CardMin from './base64CardMin';
-import base64DeckMin from './base64DeckMin';
-import base64HandMin from './base64HandMin';
+import Counter from './counter';
 
+/**
+ * The class that represents what information a user will receive when it is sent to them via the host
+ */
 export default class SentGameState {
+    /**
+     * The playerID of the user that the game state is being sent to
+     */
     playerID: number;
+
+    /**
+     * The list of minified cards to send to a given player
+     */
     cardMins: CardMin[] = [];
+    
+    /**
+     * The list of minified decks to send to a given player
+     */
     deckMins: DeckMin[] = [];
-    handMin: HandMin;
-    base64HandMin: base64HandMin;
-    base64Cards: base64CardMin[] = [];
-    base64Decks: base64DeckMin[] = [];
-    base64Hands: base64HandMin[] = [];
+
+
+    /**
+     * A list of hand mins to send to a given player
+     */
     handMins: HandMin[] = [];
 
+    /**
+     * The list of counters to save (no need to minify)
+     */
+    counters: Counter[] = [];
+
+    /**
+     * A constructor that builds the sent game state from a given game state
+     * @param gameState - The game that the sent game state is being built from
+     * @param playerID - The playerID that the sent game state is being sent to
+     */
     constructor(gameState: GameState, playerID: number) {
         this.playerID = playerID;
 
@@ -55,26 +77,6 @@ export default class SentGameState {
             // }
         });
 
-        // let handFound: boolean = false;
-        // for (let i = 0; i < gameState?.hands.length; i++) {
-        //     if (gameState?.hands[i].playerID === this.playerID) {
-        //         // if (gameState?.hands[i].base64 == false) {
-        //             this.handMin = new HandMin(gameState?.hands[i]);
-        //             handFound = true;
-        //             break;
-        //         // } 
-        //         // else {
-        //         //     this.base64HandMin = new base64HandMin(gameState?.hands[i]);
-        //         //     handFound = true;
-        //         //     break; 
-        //         // }
-        //     }
-        // }
-
-        // if (!handFound) {
-        //     this.handMin = new HandMin(new Hand(this.playerID, []));
-        //     // this.base64HandMin = new base64HandMin(new Hand(this.playerID, []));
-
-        // }
+        this.counters = gameState?.counters;
     }
 }

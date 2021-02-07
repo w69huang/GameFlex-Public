@@ -41,20 +41,14 @@ export class UploadCardsPopupComponent implements OnInit {
 
   ngOnInit(): void {
     this.deckNameData = this.data.deckNameData;
-    console.log(this.data);
     setTimeout(() => {this.deckNameEmitter.emit(this.deckNameData)} ,100); 
   }
-
-  // deckEmitter(): void {
-  //   this.deckNameEmitter.emit(this.deckNameData)
-  // }
 
   cancel(): void {
     this.dialogRef.close({ name: this.deckNameData });
   }
 
   submit(): void {
-    // this.dialogRef.close({ name: this.deckNameData, files: this.files });
     const deckName: string = this.deckNameData
     const username: string = this.middleWare.getUsername();
     const numberOfFiles = this.files.length;
@@ -67,16 +61,12 @@ export class UploadCardsPopupComponent implements OnInit {
       this.files = [];
   }
 
-  // ngOnDestroy(): void {
-  //   this.dialogRef.close({ name: this.deckNameData });
-  // }
-
   upload() {  
     const fileUpload = this.fileUpload.nativeElement;
+    fileUpload.value = '';
     fileUpload.onchange = () => {  
       for (let index = 0; index < fileUpload.files.length; index++) {  
         const file = fileUpload.files[index];  
-        console.log(file);
         if (file.type != 'image/png' && file.type !=='image/PNG' && file.type !== 'image/jpg' && file.type !== 'image/jpeg') {
           alert("Only PNG or JPEG files can be uploaded!");
           continue;
@@ -92,7 +82,6 @@ export class UploadCardsPopupComponent implements OnInit {
   }
 
   removeStagedCard(cardData: any){
-    console.log(cardData);
     this.files = this.files.filter((fileObject: any) => {
       return fileObject.data.name !== cardData.name;
     });
@@ -108,19 +97,13 @@ export class UploadCardsPopupComponent implements OnInit {
     formData.append('deckName', deckName);
     formData.append('username', username);
 
-    // console.log(formData); 
 
-    console.log("uploading now...")  
     this.fileService.upload(files, formData).pipe(  
       catchError((error: HttpErrorResponse) => {   
         return of(`upload failed.`);  
       })).subscribe((event: any) => {
 
         this.deckNameEmitter.emit(this.deckNameData);
-
-        if (typeof (event) === 'object') {  
-          console.log(event);  
-        }  
       });  
   }
 }

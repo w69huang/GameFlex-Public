@@ -5,14 +5,12 @@ const Card = require('./card').schema;
 
 // Takes in an object equal to the def of our schema
 const DeckSchema = new mongoose.Schema({
+    id: Number,
+    imagePath: String,
     x: Number,
     y: Number,
-    width: Number,
-    height: Number,
-    rotation: Number,
-    onInsertVisible: Boolean,
-    numberOfVisibleCards: Number,
-    cards: [Card],
+    depth: Number,
+    cardMins: [Card],
 });
 
 const Deck = mongoose.model('Deck', DeckSchema);

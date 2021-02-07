@@ -1,0 +1,127 @@
+@import '../../main.scss';
+
+.signedInDesktopContainer {
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    margin: 5% 15% 0 15%;
+    height: 80%;
+    padding-bottom: 2.5%;
+
+    .containerOne {
+        display: flex;
+        justify-content: space-between;
+        height: 40%;
+    }
+
+    .containerTwo {
+        display: flex;
+        justify-content: space-between;
+        height: 40%;
+    }
+
+    mat-card {
+        width: 40%;
+        transition: background-color 0.5s ease;
+        font-size: 2.5vw;
+        text-align: center;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+    }
+}
+
+.notSignedInDesktopContainer{
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    margin: 3.5% 15% 0 15%;
+    height: 80%;
+    padding-bottom: 2.5%;
+
+    .containerOne {
+        display: flex;
+        justify-content: space-between;
+        height: 40%;
+        
+        mat-card {
+            width: 40%;
+        }
+    }
+
+    .containerTwo {
+        display: flex;
+        justify-content: space-around;
+        height: 50%;
+        width: 100%;
+
+        mat-card {
+            width: 50%;
+        }
+    }
+
+    mat-card {
+        transition: background-color 0.5s ease;
+        font-size: 2.5vw;
+        text-align: center;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+    }
+}
+
+.signedInMobileContainer, .notSignedInMobileContainer {
+    display: none;
+}
+
+mat-card:hover {
+    background-color: $themePurple;
+    cursor: pointer;
+}
+
+@media (max-width: 420px) {
+    .signedInDesktopContainer, .notSignedInDesktopContainer {
+        display: none;
+    }
+
+    .signedInMobileContainer {
+        display: flex;
+        flex-direction: column;
+        margin: 20% 10% 15% 10%;
+        padding-bottom: 5%;
+        height: 70%;
+
+        mat-card {
+            height: 90%;
+            transition: background-color 0.5s ease;
+            font-size: 8vw;
+            text-align: center;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+        }
+    }
+
+    .notSignedInMobileContainer {
+        display: flex;
+        flex-direction: column;
+        justify-content: space-between;
+        height: 70%;
+        margin: 15% 10% 10% 10%;
+        padding-bottom: 5%;
+
+        mat-card {
+            height: 45%;
+            transition: background-color 0.5s ease;
+            font-size: 8vw;
+            text-align: center;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+        }
+    }
+}

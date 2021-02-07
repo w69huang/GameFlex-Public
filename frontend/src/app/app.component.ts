@@ -1,5 +1,7 @@
 import { Component } from '@angular/core';
 import { Router } from '@angular/router';
+import { faBars } from '@fortawesome/free-solid-svg-icons';
+import "jquery";
 
 @Component({
   selector: 'app-root',
@@ -8,14 +10,15 @@ import { Router } from '@angular/router';
 })
 export class AppComponent {
 
-  constructor(private router: Router) {
-
-  }
   title = 'frontend';
 
   isLoggedIn = JSON.parse(localStorage.getItem('loggedIn') || 'false');
+  /**
+   * A reference to the fontawesome bars icon
+   */
+  public faBars = faBars;
 
-  username: string;
+  constructor(private router: Router) {}
   
   signOut() {
     localStorage.setItem('loggedIn', 'false');
@@ -23,5 +26,13 @@ export class AppComponent {
     localStorage.setItem('password', '');
     this.isLoggedIn = false;
     this.router.navigate(['/login']);
+  }
+
+  toggleMenu() {
+    if ($('.toolbarMobile').height() === 0) {
+      $('.toolbarMobile').css('height', 294);
+    } else {
+      $('.toolbarMobile').css('height', 0);
+    }
   }
 }

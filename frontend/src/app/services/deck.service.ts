@@ -15,7 +15,6 @@ export class DeckService {
   constructor(private httpClient: HttpClient, private webService: WebService) { }
 
   public createDeck(userID: string, deckName: string) { 
-    console.log('Deck creation in progress...');
     return this.webService.post('new-deck', {userID: userID, deckName: deckName}, true);
   }
 
@@ -24,7 +23,6 @@ export class DeckService {
   }
 
   public deleteDeck(userID: string, deckName: string) {
-    console.log("delete deck service call");
     return this.webService.delete(`delete-deck?userID=${userID}&deckName=${deckName}`, true ); 
   }
 

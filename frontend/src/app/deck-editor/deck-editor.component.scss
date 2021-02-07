@@ -23,7 +23,7 @@ mat-card {
         }
     }
 
-    li{
+    li {
         display: flex;
 
         div{
@@ -56,4 +56,50 @@ mat-card {
 mat-toolbar {
     background-color: $themeDarkGray;
     color: white;
+}
+
+@media (max-width: 1014px) {
+    mat-card {
+        text-align: center;
+
+        h1 {
+            width: 70%;
+            margin: auto;
+            border-bottom: 1px solid white;
+        }
+
+        button {
+            width: 85px;
+            font-size: 18pt;
+            padding: 7px;
+        }
+
+        input {
+            margin-top: 10px;
+        }
+
+        ul {
+            width: 70%;
+            margin: auto;
+
+            li {
+                border-bottom: 1px solid white;
+                display: flex;
+                flex-direction: column;
+                font-size: 18pt;
+
+                .deckName {
+                    width: 100%;
+                    text-align: center;
+                }
+                
+                .buttonContainer {
+                    display: flex;
+                    flex-direction: row;
+                    width: 175px;
+                    margin: auto;
+                }
+            }
+        }
+    }
 }
