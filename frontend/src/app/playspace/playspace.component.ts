@@ -266,6 +266,7 @@ export class PlayspaceComponent implements OnInit {
   }
 
   buildFromCacheDialog(): void {
+    console.log("Cache Dialog")
     let dialogRef = this.dialog.open(LoadGameStatePopupComponent, {
       height: '290px',
       width: '350px',
@@ -333,10 +334,10 @@ export class PlayspaceComponent implements OnInit {
               cache.base64Decks.forEach(deck => {
               
                 this.getDecks(deck, username).subscribe(function(data) {
-                  let arrayOfBase64=[];
+                  let arrayOfBase64: Object= {};
                   for(let i = 0; i < data.ids.length; i ++) {
-                      if (!(data.ids[i] in arrayOfBase64) ) {
-                          arrayOfBase64[data.ids[i]] = data.dataFiles[i];
+                      if (arrayOfBase64 == undefined || !(data.ids[i] in arrayOfBase64) ) {
+                          arrayOfBase64[data.ids[i]] = data.dataFiles[i].base64;
                       } else {
                           console.log("Duplicate ID within this deck!  ", deck);
                       }

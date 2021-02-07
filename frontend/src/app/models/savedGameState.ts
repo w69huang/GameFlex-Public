@@ -7,6 +7,7 @@ import HandMin from './handMin';
 import GameState from './gameState';
 import PlayerData from '../models/playerData';
 import SavedPlayerData from '../models/savedPlayerData';
+import base64DeckMin from './base64DeckMin';
 
 export default class SavedGameState {
     username: string;
@@ -16,7 +17,8 @@ export default class SavedGameState {
     deckMins: DeckMin[] = [];
     handMins: any = [];
     savedPlayerData: SavedPlayerData[] = [];
-    base64Decks: String[] = [];
+    // base64Decks: String[] = [];
+    base64Decks: base64DeckMin[] = [];
 
     constructor(username: string, name: string, gameState: GameState, playerData: PlayerData[]) { 
         this.username = username;
@@ -30,6 +32,7 @@ export default class SavedGameState {
                cardMin.id = card.base64Id;
                cardMin.base64 = true;
                cardMin.deckName = card.base64Deck;
+               cardMin.imagePath = null;
                this.cardMins.push(cardMin);
             }
         });
@@ -53,6 +56,9 @@ export default class SavedGameState {
         playerData.forEach((data: PlayerData) => {
             this.savedPlayerData.push(new SavedPlayerData(data));
         });
-        this.base64Decks = gameState.base64Decks;
+        // this.base64Decks.push(new base64DeckMin(gameState.base64Decks);
+        gameState.base64Decks.forEach( (deck) => {
+            this.base64Decks.push(new base64DeckMin(deck));
+        })
     }
 }

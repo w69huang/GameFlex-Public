@@ -12,13 +12,22 @@ const SavedGameStateSchema = new mongoose.Schema({
     date: Date,
     cardMins: [
         {
-            id: Number,
+            // id: Number,
+            id: String,
             imagePath: String,
             x: Number,
             y: Number,
             flippedOver: Boolean,
-            depth: Number
+            depth: Number,
+            base64: Boolean,
+            deckName: String,
+
         }
+    ],
+    base64Decks : [
+        {
+            deck: String
+        } 
     ],
     deckMins: [
         {
@@ -47,12 +56,16 @@ const SavedGameStateSchema = new mongoose.Schema({
                     playerID: Number,
                     cardMins: [
                         {
-                            id: Number,
+                            // id: Number,
+                            id: String,
                             imagePath: String,
                             x: Number,
                             y: Number,
                             flippedOver: Boolean,
-                            depth: Number
+                            depth: Number,
+                            base64: Boolean,
+                            deckName: String,
+            
                         }
                     ]
                 }

@@ -104,6 +104,7 @@ export class GameInstanceComponent implements OnInit {
       let dialogRef = this.dialog.open(LoadCardsPopupComponent, {
         height: 'auto',
         width: 'auto',
+        minWidth: '40%'
       });
 
       dialogRef.afterClosed().subscribe(formData => {

@@ -84,18 +84,38 @@ export function onDragEnd(object: any, playspaceComponent: PlayspaceComponent, p
     } 
     else if (overlapObject.overlapType === EOverlapType.TABLE && overlapObject.wasInHand === true) {
       // If card overlapped with table and it was in my hand previously
-      playspaceComponent.gameState.sendPeerData(
-        EActionTypes.removeFromHand,
-        {
-          cardID: object.id,
-          type: object.type,
-          imagePath: object.imagePath,
-          x: object.x,
-          y: object.y,
-          flippedOver: object.flippedOver,
-          finishedMoving: true
-        }
-      );
+      console.log("Shared Actions:")
+      console.log(object)
+      if (object.base64 == false ){
+        playspaceComponent.gameState.sendPeerData(
+          EActionTypes.removeFromHand,
+          {
+            cardID: object.id,
+            type: object.type,
+            imagePath: object.imagePath,
+            x: object.x,
+            y: object.y,
+            flippedOver: object.flippedOver,
+            finishedMoving: true
+          }
+        );
+      } else if (object.base64 == true) {
+        playspaceComponent.gameState.sendPeerData(
+          EActionTypes.removeFromHand,
+          {
+            cardID: object.id,
+            type: object.type,
+            imagePath: null,
+            x: object.x,
+            y: object.y,
+            flippedOver: object.flippedOver,
+            finishedMoving: true,
+            base64: object.base64,
+            base64Deck: object.base64Deck,
+            base64Id: object.base64Id
+          }
+        );
+      }
     } else if (overlapObject.overlapType === EOverlapType.DECK) {
       playspaceComponent.gameState.sendPeerData(
         EActionTypes.insertIntoDeck,

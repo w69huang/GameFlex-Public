@@ -440,8 +440,8 @@ export default class GameState {
         card.base64 = true;
         card.base64Id = id;
         card.base64Deck = deckName;
-        console.log(cardsdata);
-        console.log(card);
+        // console.log(cardsdata);
+        // console.log(card);
         HF.createCard(card, playspaceComponent, HF.EDestination.TABLE, 0, null, true);
         console.log("Built?");   
     }
@@ -451,7 +451,9 @@ export default class GameState {
             if (this.base64Dictionary == undefined || !(deckName in this.base64Dictionary)){
                 if(api == true) {
                     const username = localStorage.getItem("username");
-                    
+                    // Requires the need for the playspace or at least the ability to call the file-list class.
+
+
                     // playspaceComponent.getDecks(deckName, username).subscribe(function(data) {
                     //     let arrayOfBase64=[];
                     //     for(let i = 0; i < data.ids.length; i ++) {
@@ -507,13 +509,13 @@ export default class GameState {
             let imagePaths = [];
             let card_ids = [];
             cards.forEach(cardData => {
-                imagePaths.push(cardData.base64);
+                // imagePaths.push(cardData.base64);
                 card_ids.push(cardData.id);
             });
-            this.texturepack["cards"] = imagePaths;
+            // this.texturepack["cards"] = imagePaths;
             this.texturepack["ids"] = card_ids;
             this.texturepack["base64DeckName"] = base64DeckName;
-            this.sendPeerData(EActionTypes.createTextures, {imagePaths: cards, deckName: base64DeckName, base64Ids: ids, base64Dictionary: this.base64Dictionary});
+            this.sendPeerData(EActionTypes.createTextures, {deckName: base64DeckName, base64Ids: ids, base64Dictionary: this.base64Dictionary});
         }
     }
 
@@ -644,71 +646,255 @@ export default class GameState {
         this.cleanUp(playspaceComponent);
         let highestDepth: number = 0;
 
-        console.log('savedGameState', gameStateMin);
-
-        gameStateMin.cardMins.forEach((cardMin: CardMin) => {
-            const card: Card = new Card(cardMin.id, cardMin.imagePath, cardMin.x, cardMin.y, cardMin.flippedOver);
-            HF.createCard(card, playspaceComponent, HF.EDestination.TABLE, cardMin.depth);
-            if (cardMin.depth > highestDepth) {
-                highestDepth = cardMin.depth;
-            }
-        });
-
-        
-        gameStateMin.deckMins.forEach((deckMin: DeckMin) => {
-            let cardList: Card[] = [];
-            deckMin.cardMins.forEach((cardMin: CardMin) => {
-                cardList.push(new Card(cardMin.id, cardMin.imagePath, cardMin.x, cardMin.y, cardMin.flippedOver));
+        try {
+            var base64decks;
+            base64decks = []
+            gameStateMin.base64Decks.forEach(deck => {
+                base64decks.push(deck.deck)
             });
-            const deck: Deck = new Deck(deckMin.id, deckMin.imagePath, cardList, deckMin.x, deckMin.y);
-            HF.createDeck(deck, playspaceComponent, deckMin.depth);
-            if (deckMin.depth > highestDepth) {
-                highestDepth = deckMin.depth;
-            }
-        });
-
-        // Convert to from {playerID: handMin[]} OR [{playerID: playerID, innerHandMins: handMin[]}] to [[ playerID, handMin[] ]]
-        let keyvalArray: any = [];
-        if(!(gameStateMin.handMins instanceof Array)) {
-            keyvalArray = Object.entries(gameStateMin.handMins)
-        } else {
-            gameStateMin.handMins.forEach( (obj) =>  {
-                keyvalArray.push([obj.playerID, obj.innerHandMins])
-            } )
+        } catch (error) {
+            console.log("Saved Game Not Cached Game.");
         }
 
-        // Convert handMins to hands and cardMins to cards and add them to the appropriate location 
-        keyvalArray.forEach( (keyval) => {
-            let playerID: integer = parseInt(keyval[0]);
-            let playersHandMins: HandMin[] = keyval[1];
-
-            playersHandMins.forEach( (playersHandMin: HandMin, handIndex: integer) => {
-                HA.createHand(playspaceComponent, playerID);
-
-                // TODO Need to clear anything that was there before
-                playersHandMin.cardMins.forEach((cardMin: CardMin) => {
-                    // If the player ID is the current player, which would only ever be the host as the host only runs this
-                    if (playerID === this.playerID && this.amHost) {
-                        const card: Card = new Card(cardMin.id, cardMin.imagePath, cardMin.x, cardMin.y, cardMin.flippedOver);
-                        HF.createCard(card, playspaceComponent, HF.EDestination.HAND, cardMin.depth, handIndex);
+        console.log("Deck ", base64decks)
+        // if (this.amHost) {
+        if (Object.keys(this.base64Dictionary).length === 0) {
+            const promise = new Promise((resolve, pending) => {
+                var username = localStorage.getItem('username');
+                // var cache = JSON.parse(localStorage.getItem('cachedGameState'));
+                base64decks.forEach(deck => {
+                
+                playspaceComponent.getDecks(deck, username).subscribe(function(data) {
+                    let arrayOfBase64: Object= {};
+                    for(let i = 0; i < data.ids.length; i ++) {
+                        if (arrayOfBase64 == undefined || !(data.ids[i] in arrayOfBase64) ) {
+                            arrayOfBase64[data.ids[i]] = data.dataFiles[i].base64;
+                        } else {
+                            console.log("Duplicate ID within this deck!  ", deck);
+                        }
+                    }
+                    this.base64Dictionary[deck] = arrayOfBase64;
+    
+                    if (Object.keys(this.base64Dictionary).length > 0){
+                    resolve(true); 
                     } else {
-                        this.addCardToPlayerHand(new Card(cardMin.id, cardMin.imagePath, cardMin.x, cardMin.y, cardMin.flippedOver), playerID, handIndex);
+                    pending("Loading");
+                    }
+                }.bind(this));;
+                // this.gameState.generateBase64Dictionary(deck, true, null, this);
+                });
+            });
+            promise.then(res => {
+                console.log("Promise Result: ",  res)
+                console.log('savedGameState', gameStateMin);
+
+                gameStateMin.cardMins.forEach((cardMin: CardMin) => {
+                    if (cardMin.base64 == false) {
+                        const card: Card = new Card(cardMin.id, cardMin.imagePath, cardMin.x, cardMin.y, cardMin.flippedOver);
+                        HF.createCard(card, playspaceComponent, HF.EDestination.TABLE, cardMin.depth);
+                        
+                    } else if (cardMin.base64 == true) {
+                        let card: Card = new Card(cardMin.id, null, cardMin.x, cardMin.y, cardMin.flippedOver);
+                        card.base64 = true;
+                        card.base64Deck = cardMin.deckName;
+                        card.base64Id = cardMin.id;
+                        HF.createCard(card, playspaceComponent, HF.EDestination.TABLE, cardMin.depth, null, true);
                     }
                     if (cardMin.depth > highestDepth) {
                         highestDepth = cardMin.depth;
-                    }            
-                });                
-            });
-        });
+                    }
+                });
     
-        this.highestDepth = highestDepth;
-        this.sendGameStateToPeers(undo > 0 ? true : false);
-        this.currentMove = new CachedGameState(this);     
+                
+                gameStateMin.deckMins.forEach((deckMin: DeckMin) => {
+                    let cardList: Card[] = [];
+                    deckMin.cardMins.forEach((cardMin: CardMin) => {
+                        if(cardMin.base64 == false ) {
+                            cardList.push(new Card(cardMin.id, cardMin.imagePath, cardMin.x, cardMin.y, cardMin.flippedOver));
+                        } else if (cardMin.base64 == true) {
+                            let card: Card = new Card(cardMin.id, null, cardMin.x, cardMin.y, cardMin.flippedOver);
+                            card.base64 = true;
+                            card.base64Deck = cardMin.deckName;
+                            card.base64Id = cardMin.id;
+                            cardList.push(card);
+                        }
+                    });
+                    const deck: Deck = new Deck(deckMin.id, deckMin.imagePath, cardList, deckMin.x, deckMin.y);
+                    HF.createDeck(deck, playspaceComponent, deckMin.depth);
+                    if (deckMin.depth > highestDepth) {
+                        highestDepth = deckMin.depth;
+                    }
+                });
+    
+                // Convert to from {playerID: handMin[]} OR [{playerID: playerID, innerHandMins: handMin[]}] to [[ playerID, handMin[] ]]
+                let keyvalArray: any = [];
+                if(!(gameStateMin.handMins instanceof Array)) {
+                    keyvalArray = Object.entries(gameStateMin.handMins)
+                } else {
+                    gameStateMin.handMins.forEach( (obj) =>  {
+                        keyvalArray.push([obj.playerID, obj.innerHandMins])
+                    } )
+                }
+    
+                // Convert handMins to hands and cardMins to cards and add them to the appropriate location 
+                keyvalArray.forEach( (keyval) => {
+                    let playerID: integer = parseInt(keyval[0]);
+                    let playersHandMins: HandMin[] = keyval[1];
+    
+                    playersHandMins.forEach( (playersHandMin: HandMin, handIndex: integer) => {
+                        HA.createHand(playspaceComponent, playerID);
+    
+                        // TODO Need to clear anything that was there before
+                        playersHandMin.cardMins.forEach((cardMin: CardMin) => {
+                            // If the player ID is the current player, which would only ever be the host as the host only runs this
+                            if (playerID === this.playerID && this.amHost) {
+                                if (cardMin.base64 == false ) {
+                                    const card: Card = new Card(cardMin.id, cardMin.imagePath, cardMin.x, cardMin.y, cardMin.flippedOver);
+                                    HF.createCard(card, playspaceComponent, HF.EDestination.HAND, cardMin.depth, handIndex);
+                                } else if (cardMin.base64 == true) {
+                                    let card: Card = new Card(cardMin.id, null, cardMin.x, cardMin.y, cardMin.flippedOver);
+                                    card.base64 = true;
+                                    card.base64Deck = cardMin.deckName;
+                                    card.base64Id = cardMin.id;
+                                    HF.createCard(card, playspaceComponent, HF.EDestination.HAND, cardMin.depth, handIndex, true);
+                                }
+                            } else {
+                                if(cardMin.base64 == false) {
+                                    this.addCardToPlayerHand(new Card(cardMin.id, cardMin.imagePath, cardMin.x, cardMin.y, cardMin.flippedOver), playerID, handIndex);
+                                } else if (cardMin.base64 == true) {
+                                    let card: Card = new Card(cardMin.id, null, cardMin.x, cardMin.y, cardMin.flippedOver);
+                                    card.base64 = true;
+                                    card.base64Deck = cardMin.deckName;
+                                    card.base64Id = cardMin.id;
+                                    this.addCardToPlayerHand(card, playerID, handIndex);
+                                }
+                            }
+                            if (cardMin.depth > highestDepth) {
+                                highestDepth = cardMin.depth;
+                            }            
+                        });                
+                    });
+                }); 
+            
+                this.highestDepth = highestDepth;
+                this.sendGameStateToPeers(undo > 0 ? true : false);
+                this.currentMove = new CachedGameState(this);     
+    
+                this.buildingGame = false;
+    
+                if (!undo) {
+                    this.delay(() => { this.saveToCache(); });
+                }
+                return 
+            }).catch( err => {
+                console.log("Promise error: ", err)
+            })
+            // gameStateMin.base64Decks.forEach( (deck) => {
+            //     this.generateBase64Dictionary(deck.deck, false);
+            // });
+            // this.generateBase64Dictionary(gameStateMin.base64Decks)
+        } else {
+        // }
 
-        this.buildingGame = false;
+            console.log('savedGameState', gameStateMin);
 
-        if (!undo) {
-            this.delay(() => { this.saveToCache(); });
+            gameStateMin.cardMins.forEach((cardMin: CardMin) => {
+                if (cardMin.base64 == false) {
+                    const card: Card = new Card(cardMin.id, cardMin.imagePath, cardMin.x, cardMin.y, cardMin.flippedOver);
+                    HF.createCard(card, playspaceComponent, HF.EDestination.TABLE, cardMin.depth);
+                    
+                } else if (cardMin.base64 == true) {
+                    let card: Card = new Card(cardMin.id, null, cardMin.x, cardMin.y, cardMin.flippedOver);
+                    card.base64 = true;
+                    card.base64Deck = cardMin.deckName;
+                    card.base64Id = cardMin.id;
+                    HF.createCard(card, playspaceComponent, HF.EDestination.TABLE, cardMin.depth, null, true);
+                }
+                if (cardMin.depth > highestDepth) {
+                    highestDepth = cardMin.depth;
+                }
+            });
+
+            
+            gameStateMin.deckMins.forEach((deckMin: DeckMin) => {
+                let cardList: Card[] = [];
+                deckMin.cardMins.forEach((cardMin: CardMin) => {
+                    if(cardMin.base64 == false ) {
+                        cardList.push(new Card(cardMin.id, cardMin.imagePath, cardMin.x, cardMin.y, cardMin.flippedOver));
+                    } else if (cardMin.base64 == true) {
+                        let card: Card = new Card(cardMin.id, null, cardMin.x, cardMin.y, cardMin.flippedOver);
+                        card.base64 = true;
+                        card.base64Deck = cardMin.deckName;
+                        card.base64Id = cardMin.id;
+                        cardList.push(card);
+                    }
+                });
+                const deck: Deck = new Deck(deckMin.id, deckMin.imagePath, cardList, deckMin.x, deckMin.y);
+                HF.createDeck(deck, playspaceComponent, deckMin.depth);
+                if (deckMin.depth > highestDepth) {
+                    highestDepth = deckMin.depth;
+                }
+            });
+
+            // Convert to from {playerID: handMin[]} OR [{playerID: playerID, innerHandMins: handMin[]}] to [[ playerID, handMin[] ]]
+            let keyvalArray: any = [];
+            if(!(gameStateMin.handMins instanceof Array)) {
+                keyvalArray = Object.entries(gameStateMin.handMins)
+            } else {
+                gameStateMin.handMins.forEach( (obj) =>  {
+                    keyvalArray.push([obj.playerID, obj.innerHandMins])
+                } )
+            }
+
+            // Convert handMins to hands and cardMins to cards and add them to the appropriate location 
+            keyvalArray.forEach( (keyval) => {
+                let playerID: integer = parseInt(keyval[0]);
+                let playersHandMins: HandMin[] = keyval[1];
+
+                playersHandMins.forEach( (playersHandMin: HandMin, handIndex: integer) => {
+                    HA.createHand(playspaceComponent, playerID);
+
+                    // TODO Need to clear anything that was there before
+                    playersHandMin.cardMins.forEach((cardMin: CardMin) => {
+                        // If the player ID is the current player, which would only ever be the host as the host only runs this
+                        if (playerID === this.playerID && this.amHost) {
+                            if (cardMin.base64 == false ) {
+                                const card: Card = new Card(cardMin.id, cardMin.imagePath, cardMin.x, cardMin.y, cardMin.flippedOver);
+                                HF.createCard(card, playspaceComponent, HF.EDestination.HAND, cardMin.depth, handIndex);
+                            } else if (cardMin.base64 == true) {
+                                let card: Card = new Card(cardMin.id, null, cardMin.x, cardMin.y, cardMin.flippedOver);
+                                card.base64 = true;
+                                card.base64Deck = cardMin.deckName;
+                                card.base64Id = cardMin.id;
+                                HF.createCard(card, playspaceComponent, HF.EDestination.HAND, cardMin.depth, handIndex, true);
+                            }
+                        } else {
+                            if(cardMin.base64 == false) {
+                                this.addCardToPlayerHand(new Card(cardMin.id, cardMin.imagePath, cardMin.x, cardMin.y, cardMin.flippedOver), playerID, handIndex);
+                            } else if (cardMin.base64 == true) {
+                                let card: Card = new Card(cardMin.id, null, cardMin.x, cardMin.y, cardMin.flippedOver);
+                                card.base64 = true;
+                                card.base64Deck = cardMin.deckName;
+                                card.base64Id = cardMin.id;
+                                this.addCardToPlayerHand(card, playerID, handIndex);
+                            }
+                        }
+                        if (cardMin.depth > highestDepth) {
+                            highestDepth = cardMin.depth;
+                        }            
+                    });                
+                });
+            }); 
+        
+            this.highestDepth = highestDepth;
+            this.sendGameStateToPeers(undo > 0 ? true : false);
+            this.currentMove = new CachedGameState(this);     
+
+            this.buildingGame = false;
+
+            if (!undo) {
+                this.delay(() => { this.saveToCache(); });
+            }
         }
     }
 
@@ -1729,26 +1915,61 @@ export default class GameState {
                         card = this.getCardByID(data.extras.cardID, data.playerID, true, true).card;
                         card.x = data.extras.x;
                         card.y = data.extras.y;
-            
-                        HF.createCard(card, playspaceComponent, HF.EDestination.TABLE)
+                        console.log("remove from hand host:");
+                        console.log(card)
+                        if (card.base64 == false) {
+                            HF.createCard(card, playspaceComponent, HF.EDestination.TABLE)
+                        } else if (card.base64 == true) {
+                            HF.createCard(card, playspaceComponent, HF.EDestination.TABLE,0, null, true)
+                        }
                         // Add case for base64. 
                         // Tell other possible peers that this card was removed from a hand
-                        this.sendPeerData(
-                            EActionTypes.removeFromHand,
-                            {
-                                cardID: card.id,
-                                type: EGameObjectType.CARD,
-                                imagePath: card.imagePath,
-                                x: card.x,
-                                y: card.y,
-                                flippedOver: card.flippedOver
-                            },
-                            [data.peerID]
-                        );        
+                        if (card.base64 == false) {
+                            this.sendPeerData(
+                                EActionTypes.removeFromHand,
+                                {   
+                                    cardID: card.id,
+                                    type: EGameObjectType.CARD,
+                                    imagePath: card.imagePath,
+                                    x: card.x,
+                                    y: card.y,
+                                    flippedOver: card.flippedOver
+                                },
+                                [data.peerID]
+                            );      
+                        } else if (card.base64 == true) {
+                            this.sendPeerData(
+                                EActionTypes.removeFromHand,
+                                {   
+                                    cardID: card.id,
+                                    type: EGameObjectType.CARD,
+                                    imagePath: null,
+                                    x: card.x,
+                                    y: card.y,
+                                    flippedOver: card.flippedOver,
+                                    base64: card.base64,
+                                    base64Deck: card.base64Deck,
+                                    base64Id: card.base64Id
+                                },
+                                [data.peerID]
+                            );      
+                        }  
                     } else {
-                        // Creates a new card because it does not exist as far as a non-host player knows
+
+                        console.log("remove from hand not host:");
+                        console.log(card)
+                        console.log(data.extras);
                         card = new Card(data.extras.cardID, data.extras.imagePath, data.extras.x, data.extras.y, data.extras.flippedOver);
-                        HF.createCard(card, playspaceComponent, HF.EDestination.TABLE);
+                        if (data.extras.base64 == false ) {
+                            // Creates a new card because it does not exist as far as a non-host player knows
+                            HF.createCard(card, playspaceComponent, HF.EDestination.TABLE);
+                        } else if (data.extras.base64 == true) {
+                            card.base64 = data.extras.base64;
+                            card.base64Id = data.extras.base64Id;
+                            card.base64Deck = data.extras.base64Deck;
+                            HF.createCard(card, playspaceComponent, HF.EDestination.TABLE, 0, null, true);
+
+                        }
                     }
                 }
         
@@ -1851,9 +2072,9 @@ export default class GameState {
                 console.log(data);
                 var i;
                 this.base64Dictionary = data.extras.base64Dictionary;
-                for(i=0; i < data.extras.imagePaths.length; i ++) {
+                for(i=0; i < data.extras.base64Ids.length; i ++) {
                     //   this.makeTextures(playspaceComponent, data.extras.imagePaths[i], data.extras.base64Ids[i]);
-                    this.addDeckToGame(data.extras.deckName, data.extras.imagePaths[i], data.extras.base64Ids[i], playspaceComponent);
+                    this.addDeckToGame(data.extras.deckName, null, data.extras.base64Ids[i], playspaceComponent);
                     console.log("peer Creation?")
                 }
     
