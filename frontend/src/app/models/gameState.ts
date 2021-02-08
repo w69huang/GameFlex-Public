@@ -169,7 +169,7 @@ export default class GameState {
      private gameStateHistory: CachedGameState[] = [];
 
     /**
-     * Controls the maximum number of game states that can be cahced
+     * Controls the maximum number of game states that can be cached
      */
     private maxNumOfCachedStates: number = 100;
 
@@ -784,21 +784,31 @@ export default class GameState {
      * @param card - The card to remove
      * @param playerID - The ID of the player whose hand is being removed from
      */
-    public removeCardFromPlayerHand(cardID: number, playerID: number): void {
+    public removeCardFromPlayerHand(cardID: number, playerID: number, stillInHand: boolean = false): void {
         if (this.amHost) {
-            const cardDetails: any = this.getCardByID(cardID, playerID).card;
+            const cardDetails: any = this.getCardByID(cardID, playerID);
             
             // If in a hand
             if (cardDetails.location == ECardLocation.MYHAND || cardDetails.location == ECardLocation.OTHERHAND) {
                 let cards = this.hands[playerID][cardDetails.handIndex].cards;
 
-                cards = this.filterOutID(cards, cardDetails.card);
+                cardDetails.card.inHand = stillInHand;
 
-                cardDetails.card.inHand = false;
+                this.hands[playerID][cardDetails.handIndex].cards = this.filterOutID(cards, cardDetails.card);
         
                 this.delay(() => { this.saveToCache(); });
             }
         }
+    }
+
+    /**
+     * Used to move a card from one player hand to another of the same players hand
+     * @param card - The card to remove
+     * @param playerID - The ID of the player whose hand is being removed from
+     */
+    public moveCardFromPlayerHandToPlayerHand(cardID: number, playerID: number, handIndex: integer) : void {
+        this.removeCardFromPlayerHand(cardID, playerID, true);
+        this.addCardToPlayerHand(this.getCardByID(cardID, playerID).card, playerID, handIndex);
     }
 
     /**
@@ -897,6 +907,7 @@ export default class GameState {
         let image: Phaser.GameObjects.Image;
 
         if (card) {
+            // overlaps hand
             if (card.gameObject.x > HF.handBeginX &&
                  card.gameObject.x < HF.handBeginX + HF.handWidth &&
                   card.gameObject.y > HF.handBeginY &&
@@ -912,6 +923,7 @@ export default class GameState {
                 this.addCardToOwnHand(card, this.myCurrHand);
                 this.delay(() => { this.saveToCache(); });
                 return { overlapType: EOverlapType.ALREADYINHAND, handIndex: this.myCurrHand};
+            // else overlaps table or deck
             } else {
                 for (let i: number = 0; i < this._decks.length; i++) {
                     image = this.decks[i].gameObject;
@@ -1187,11 +1199,15 @@ export default class GameState {
             case EActionTypes.move:
                 if (data.extras.type === EGameObjectType.CARD) {
                 
-                let card: Card = this.getCardByID(data.extras.id, data.playerID)?.card;
-        
+                let cardDetails = this.getCardByID(data.extras.id, data.playerID);
+                let card: Card = cardDetails?.card;
+
                 if (card) {
                     card.x = data.extras.x;
                     card.y = data.extras.y;
+                    if (this.amHost && cardDetails.handIndex !== null && cardDetails.handIndex !== data.extras?.handIndex) {
+                        this.moveCardFromPlayerHandToPlayerHand(card.id, data.playerID, data.extras.handIndex)
+                    }
                     if (card.gameObject) { 
                     card.gameObject.setX(data.extras.x);
                     card.gameObject.setY(data.extras.y);

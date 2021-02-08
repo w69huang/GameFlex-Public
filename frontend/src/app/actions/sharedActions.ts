@@ -120,7 +120,8 @@ export function onDragEnd(object: any, playspaceComponent: PlayspaceComponent, p
           type: object.type,
           x: object.x,
           y: object.y,
-          finishedMoving: true
+          finishedMoving: true,
+          handIndex: overlapObject.handIndex
         }
       );
     } else if (overlapObject.overlapType === EOverlapType.TABLE && overlapObject.wasInHand === false) {
