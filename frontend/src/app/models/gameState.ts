@@ -1,5 +1,3 @@
-import { EventEmitter, OnInit } from '@angular/core';
-
 import Card from './card';
 import Deck from './deck';
 import Hand from './hand';
@@ -515,26 +513,6 @@ export default class GameState {
         }
     }
 
-    // public createTextures(cards, base64DeckName, ids, playspaceComponent) {
-    //     var i;
-    //     for(i=0; i < cards.length; i ++) {
-    //         this.makeTextures(playspaceComponent, cards[i], ids[i]);
-    //         console.log("peer Creation?")
-    //     }
-    // }
-
-    // public deleteTextures(cards, playspaceComponent){
-    //     var i;
-    //     for(i=0; i < cards.length; i ++) {
-    //         this.removeTextures(playspaceComponent, cards[i], null);
-    //         console.log("peer deletion?")
-    //     }
-    // }
-
-    // public setCachingEnabled(enable: boolean) {
-    //     this.cachingEnabled = enable;
-    // }
-
     /**
      * ======================================
      * Saving & Caching
@@ -577,66 +555,9 @@ export default class GameState {
         }
     }
 
-    private removeBase64(cachedGameState) {
-        // var i;
-        // for(i=0; i < cachedGameState.cardMins.length; i ++) {
-        //     if(cachedGameState.cardMins[i].base64 == true) {
-        //         cachedGameState.cardMins.splice(i, 1);
-        //     }
-        // }
-    }
-
-    /**
-     * Used to send data to peer(s)
-     * @param action - The action to perform
-     * @param extras - An array of extra game object properties that the user wants to include
-     * @param doNotSendTo - a list of peerIDs not to send the data to
-     */
-    public sendPeerData(action: string, extras: GameObjectExtraProperties = {}, doNotSendTo: string[] = [], onlySendTo: string[] = []): void {
-        this.connections.forEach((connection: DataConnection) => {
-            if (onlySendTo.length > 0) {
-                if (onlySendTo.includes(connection.peer)) {
-                    connection.send(new GameObjectProperties(this.amHost, action, this.myPeerID, this.playerID, extras));
-                }
-            } else if (!doNotSendTo.includes(connection.peer)) {
-                connection.send(new GameObjectProperties(this.amHost, action, this.myPeerID, this.playerID, extras));
-            }
-        });
-    }
-
-    /**
-     * Used to very quickly and easily send the current game state to all peers
-     * @param onlySendTo - An optional var specifying to only send data to a specific peer
-     * @param doNotSendTo - An optional var specifying not to send data to a specific peer
-     */
-    public sendGameStateToPeers(undo: boolean = false, onlySendTo: string = "", doNotSendTo: string = ""): void {
-        if (this.amHost) {
-            // TODO: Make sentGameState from current gameState and send to all peers
-            this.playerDataObjects.forEach((playerData: PlayerData) => {
-                for (let i: number = 0; i < this.connections.length; i++) {
-                    if (playerData.peerID === this.connections[i].peer) {
-                        if (((onlySendTo !== "" && onlySendTo === playerData.peerID) || onlySendTo === "") && (doNotSendTo === "" || (doNotSendTo !== playerData.peerID))) {
-                            
-                            let sentGameState: SentGameState = new SentGameState(this, playerData.id);
-                            // this.connections[i].send(new GameObjectProperties(this.amHost, 'replicateState', this.myPeerID, this.playerID, { 'state': sentGameState , 'base64Dictionary': this.base64Dictionary, 'texturepack': this.texturepack}));
-                            this.connections[i].send(new GameObjectProperties(this.amHost, EActionTypes.replicateState, this.myPeerID, this.playerID, { 'state': sentGameState, 'base64Dictionary': this.base64Dictionary, 'texturepack': this.texturepack, 'undo': undo }));
-                            break; 
-                        }
-                    }
-                }
-            });
-        }
-    }
-
     /**
      * A method to clear the cache of the cached game state
      */
-    // public sendAlreadyMadeGameStateToPeer(sentGameState: SentGameState, peerID: string): void {
-    //     if (this.amHost) {
-    //         for (let i: number = 0; i < this.connections.length; i++) {
-    //             if (this.connections[i].peer === peerID) {
-    //                 this.connections[i].send(new GameObjectProperties(this.amHost, 'replicateState', this.myPeerID, this.playerID, { 'state': sentGameState, 'base64Dictionary': this.base64Dictionary, 'texturepack': this.texturepack }));
-    //             }
     public clearCache(): void {
         localStorage.removeItem('cachedGameState');
         this.gameStateHistory.push(new CachedGameState(this));
@@ -672,7 +593,9 @@ export default class GameState {
     public buildGame(gameStateMin: CachedGameState | SavedGameState, playspaceComponent: PlayspaceComponent, undo?: number): void {
         this.buildingGame = true;
 
-        this.cleanUp(playspaceComponent);
+        this.cleanUp(playspaceComponent);        
+        let highestDepth: number = 0;
+
 
         try {
             var base64decks;
@@ -802,8 +725,10 @@ export default class GameState {
                         });                
                     });
                 }); 
-            
+
+                CoA.replaceCounters(gameStateMin.counters, playspaceComponent.counterActionOutputEmitter, this, null, true);
                 this.highestDepth = highestDepth;
+
                 this.sendGameStateToPeers(undo > 0 ? true : false);
                 this.currentMove = new CachedGameState(this);     
     
@@ -911,8 +836,10 @@ export default class GameState {
                     });                
                 });
             }); 
-        
+
+            CoA.replaceCounters(gameStateMin.counters, playspaceComponent.counterActionOutputEmitter, this, null, true);
             this.highestDepth = highestDepth;
+
             this.sendGameStateToPeers(undo > 0 ? true : false);
             this.currentMove = new CachedGameState(this);     
 
@@ -963,92 +890,6 @@ export default class GameState {
                 }
             }
             if (cache.gamestate != null) {
-                // this.setCachingEnabled(false);
-
-                // this.cleanUp();
-                // console.log(cache.gamestate);
-                // console.log(Object.keys(this.base64Dictionary));
-                // // console.log(this.middleware.getUsername());
-                // if(Object.keys(this.base64Dictionary).length == 0) {
-                //     cache.gamestate.base64Decks.forEach(deckName => {
-                //         this.generateBase64Dictionary(deckName, true, null, playspaceComponent);
-                //         console.log(this.base64Dictionary)
-                //     });
-                // }
-
-                // cache.gamestate.cardMins.forEach((cardMin: CardMin) => {
-                //     if (cardMin.base64 == false ) {
-                //         const card: Card = new Card(cardMin.id, cardMin.imagePath, cardMin.x, cardMin.y);
-                //         HelperFunctions.createCard(card, playspaceComponent, HelperFunctions.EDestination.TABLE, cardMin.depth);
-                //     } else {
-
-                //         const card: Card = new Card(cardMin.id, null, cardMin.x, cardMin.y);
-                //         card.base64Deck = cardMin.deckName;
-                //         card.base64 = true;
-                //         card.base64Id = cardMin.id
-                //         HelperFunctions.createCard(card, playspaceComponent, HelperFunctions.EDestination.TABLE, cardMin.depth, true);
-                //     }
-                // });
-                // cache.gamestate.deckMins.forEach((deckMin: DeckMin) => {
-                //     let cardList: Card[] = [];
-                //     deckMin.cardMins.forEach((cardMin: CardMin) => {
-                //         if (cardMin.base64 == false) {
-                //             cardList.push(new Card(cardMin.id, cardMin.imagePath, cardMin.x, cardMin.y));
-                //         } else {
-                //             let card: Card = new Card(cardMin.id, null, cardMin.x, cardMin.y);
-                //             card.base64Deck = cardMin.deckName;;
-                //             card.base64 = true;
-                //             card.base64Id = cardMin.id
-                //             cardList.push(card);
-                //         }
-                //     });
-                //     const deck: Deck = new Deck(deckMin.id, deckMin.imagePath, cardList, deckMin.x, deckMin.y);
-                //     HelperFunctions.createDeck(deck, playspaceComponent, deckMin.depth);
-                // });
-                // for (let i = 0; i < cache.gamestate.handMins.length; i++) {
-                //     cache.gamestate.handMins[i].cardMins.forEach((cardMin: CardMin) => {
-                //         if (cache.gamestate.handMins[i].playerID === this.playerID) {
-                //             if (cardMin.base64 == false) {
-                //                 const card: Card = new Card(cardMin.id, cardMin.imagePath, cardMin.x, cardMin.y);
-                //                 this.addCardToOwnHand(card);
-                //                 HelperFunctions.createCard(card, playspaceComponent, HelperFunctions.EDestination.HAND, cardMin.depth);
-                //             } else {
-                //                 const card: Card = new Card(cardMin.id, null, cardMin.x, cardMin.y);
-                //                 card.base64Deck = cardMin.deckName;
-                //                 card.base64 = true;
-                //                 card.base64Id = cardMin.id;
-                //                 this.addCardToOwnHand(card);
-                //                 HelperFunctions.createCard(card, playspaceComponent, HelperFunctions.EDestination.HAND, cardMin.depth, true);
-
-                //             }
-                //         } else {
-                //             if (cardMin.base64) {
-                //                 this.addCardToPlayerHand(new Card(cardMin.id, cardMin.imagePath, cardMin.x, cardMin.y), cache.gamestate.handMins[i].playerID);
-                //             } else {
-                //                 let card: Card = new Card(cardMin.id, null, cardMin.x, cardMin.y);
-                //                 card.base64Deck = cardMin.deckName;
-                //                 card.base64 = true;
-                //                 card.base64Id = cardMin.id;
-                //                 this.addCardToPlayerHand(card, cache.gamestate.handMins[i].playerID);
-                //             }
-                //         }
-                //     });
-                // }
-
-                // // TO DO: Pull all the decks and such associated with this game with gridfs. Create a middleware function
-                // // That pulls the image ID based on the card ID and then passes it into the below functions.
-                // // NOTE: remember to set base64 = true to all the Card, Hand and Deck classes.
-                // // NOTE: the nulls all need to be changed to the image path which is the base64 string for the cards. 
-            
-                // // Just a temporary thing for now. Ask Zach where the host sends the game state on load.
-                // // if (undo > 0) {
-                // //     this.sendGameStateToPeers();
-                // //     this.currentMove = new CachedGameState(this); 
-                // // } else if (initialBuild) {
-                // //     this.sendGameStateToPeers();
-                // // }
-
-                // this.setCachingEnabled(true);
                 this.buildGame(cache.gamestate, playspaceComponent, undo);
             }            
         }        
@@ -1060,76 +901,6 @@ export default class GameState {
      * @param playspaceComponent - A reference to the playspace component, needed to create cards and decks
      */
     public buildGameStateFromSavedState(savedGameState: SavedGameState, playspaceComponent: PlayspaceComponent): void {
-        // if (this.amHost) {
-        //     this.cachingEnabled = false;
-
-        //     this.cleanUp();
-      
-        //     savedGameState.cardMins.forEach((cardMin: CardMin) => {
-        //         if(cardMin.base64 == false){ 
-        //             const card: Card = new Card(cardMin.id, cardMin.imagePath, cardMin.x, cardMin.y);
-        //             HelperFunctions.createCard(card, playspaceComponent, HelperFunctions.EDestination.TABLE, cardMin.depth);
-        //         } else {
-        //             const card: Card = new Card(cardMin.id, null, cardMin.x, cardMin.y);
-        //             card.base64Deck = cardMin.deckName;
-        //             card.base64 = true;
-        //             card.base64Id = cardMin.id;
-        //             HelperFunctions.createCard(card, playspaceComponent, HelperFunctions.EDestination.TABLE, cardMin.depth, true);
-                
-        //         }
-        //     });
-        //     savedGameState.deckMins.forEach((deckMin: DeckMin) => {
-        //         let cardList: Card[] = [];
-        //         deckMin.cardMins.forEach((cardMin: CardMin) => {
-        //             if(cardMin.base64 == false ){
-        //                 cardList.push(new Card(cardMin.id, cardMin.imagePath, cardMin.x, cardMin.y));
-        //             } else {
-        //                 let card: Card = new Card(cardMin.id, null, cardMin.x, cardMin.y);
-        //                 card.base64Deck = cardMin.deckName;;
-        //                 card.base64 = true;
-        //                 card.base64Id = cardMin.id;
-        //                 cardList.push(card);
-        //             }
-        //         });
-        //         const deck: Deck = new Deck(deckMin.id, deckMin.imagePath, cardList, deckMin.x, deckMin.y);
-        //         HelperFunctions.createDeck(deck, playspaceComponent, deckMin.depth);
-        //     });
-        //     for (let i = 0; i < savedGameState.handMins.length; i++) {
-        //         savedGameState.handMins[i].cardMins.forEach((cardMin: CardMin) => {
-        //             if (savedGameState.handMins[i].playerID === this.playerID) {
-        //                 if (cardMin.base64 == false) {
-        //                     const card: Card = new Card(cardMin.id, cardMin.imagePath, cardMin.x, cardMin.y);
-        //                     this.addCardToOwnHand(card);
-        //                     HelperFunctions.createCard(card, playspaceComponent, HelperFunctions.EDestination.HAND, cardMin.depth);
-        //                 } else {
-        //                     const card: Card = new Card(cardMin.id, null, cardMin.x, cardMin.y);
-        //                     card.base64Deck = cardMin.deckName;
-        //                     card.base64 = true;
-        //                     card.base64Id = cardMin.id;
-        //                     this.addCardToOwnHand(card);
-        //                     HelperFunctions.createCard(card, playspaceComponent, HelperFunctions.EDestination.HAND, cardMin.depth, true);
-
-
-        //                 }
-        //             } else {
-        //                 if (cardMin.base64 == false) {
-        //                     this.addCardToPlayerHand(new Card(cardMin.id, cardMin.imagePath, cardMin.x, cardMin.y), savedGameState.handMins[i].playerID);
-        //                 } else {
-        //                     let card: Card = new Card(cardMin.id, null, cardMin.x, cardMin.y);
-        //                     card.base64Deck = cardMin.deckName;
-        //                     card.base64 = true;
-        //                     card.base64Id = cardMin.id;
-        //                     this.addCardToPlayerHand(card, savedGameState.handMins[i].playerID);
-
-        //                 }
-        //             }
-        //         });
-        //     }
-            
-        //     this.cachingEnabled = true;
-        //     this.delay(this.saveToCache());
-        //     this.sendGameStateToPeers();
-        // }
         this.buildGame(savedGameState, playspaceComponent);
     }
 
@@ -1709,47 +1480,50 @@ export default class GameState {
                             HF.createCard(card, playspaceComponent, HF.EDestination.TABLE);
                         } else {
                             HF.createCard(card, playspaceComponent, HF.EDestination.TABLE, undefined, null, true);
+                        }
                     } else if (data.extras.destination === HF.EDestination.HAND) {
                         this.addCardToPlayerHand(card, data.playerID, data.extras.handIndex);
                     }
-                } 
-                if(card.base64 == false) {
-                    this.sendPeerData(
-                        EActionTypes.sendTopCard,
-                        {
-                        cardID: card.id,
-                        deckID: deck.id,
-                        type: EGameObjectType.CARD,
-                        x: card.x,
-                        y: card.y,
-                        flippedOver: card.flippedOver,
-                        imagePath: card.imagePath,
-                        destination: data.extras.destination
-                        },
-                        [],
-                        data.extras.destination === HF.EDestination.HAND ? [data.peerID] : []
-                    );
-                } else {
-                    this.sendPeerData(
-                        EActionTypes.sendTopCard,{
+                 
+                    if(card.base64 == false) {
+                        this.sendPeerData(
+                            EActionTypes.sendTopCard,
+                            {
                             cardID: card.id,
                             deckID: deck.id,
                             type: EGameObjectType.CARD,
                             x: card.x,
                             y: card.y,
                             flippedOver: card.flippedOver,
-                            imagePath: null,
-                            destination: data.extras.destination,
-                            base64: card.base64,
-                            base64Id: card.base64Id,
-                            base64Deck: card.base64Deck,
-                        },
-                        [],
-                        data.extras.destination === HF.EDestination.HAND ? [data.peerID] : []
+                            imagePath: card.imagePath,
+                            destination: data.extras.destination
+                            },
+                            [],
+                            data.extras.destination === HF.EDestination.HAND ? [data.peerID] : []
                         );
+                    } else {
+                        this.sendPeerData(
+                            EActionTypes.sendTopCard,{
+                                cardID: card.id,
+                                deckID: deck.id,
+                                type: EGameObjectType.CARD,
+                                x: card.x,
+                                y: card.y,
+                                flippedOver: card.flippedOver,
+                                imagePath: null,
+                                destination: data.extras.destination,
+                                base64: card.base64,
+                                base64Id: card.base64Id,
+                                base64Deck: card.base64Deck,
+                            },
+                            [],
+                            data.extras.destination === HF.EDestination.HAND ? [data.peerID] : []
+                            );
+                        }
                     }
+
                 }
-            }
+            
             break;
         
             // The non-host receives this action, which was sent by the host after the non-host requested the top card from a deck
@@ -1789,7 +1563,6 @@ export default class GameState {
                     if (card.base64 == true) {
                         this.sendPeerData(
                             EActionTypes.insertIntoDeck,
-    // Where istop
                         {
                             cardID: card.id,
                             deckID: deck.id,
@@ -1829,88 +1602,6 @@ export default class GameState {
             }
             break;
     
-        //   // The non-host receives this action, which was sent by the host after the non-host requested the top card from a deck
-        //   case EActionTypes.sendTopCard:
-        //     if (data.extras.type === EGameObjectType.CARD && !this.amHost) {
-        //       let deck: Deck = this.getDeckByID(data.extras.deckID);
-    
-        //       if (deck) {
-    
-        //         let card: Card = new Card(data.extras.cardID, data.extras.imagePath, data.extras.x, data.extras.y);
-        //         if(data.extras.base64 == true ) {
-        //             card.base64 = true;
-        //             card.base64Id = data.extras.base64Id;
-        //             card.base64Deck = data.extras.base64Deck;
-        //             // this.base64Dictionary = data.extras.base64Dictionary;
-        //         }
-        //         console.log("SendTop Card:")
-        //         console.log(card);
-        //         card.inDeck = false;
-        //         if (card.base64 == false) {
-        //             HelperFunctions.createCard(card, playspaceComponent, data.extras.destination);
-        //         } else {
-        //             HelperFunctions.createCard(card, playspaceComponent, data.extras.destination, 0, true);
-        //         }
-        //       }
-        //     }
-        //     break;
-    
-        //   // Received by the host when a player inserts a card into the deck or by the player when the host inserts a card into the deck
-        //   case EActionTypes.insertIntoDeck:
-        //     if (data.extras.type === EGameObjectType.CARD && this.amHost) {
-        //       let card: Card = this.getCardByID(data.extras.cardID, data.playerID, true, true).card;
-        //       let deck: Deck = this.getDeckByID(data.extras.deckID);
-    
-        //       if (card && deck) {
-        //         if (this.amHost) {
-        //           // If I am the host, tell everyone else that this card was inserted
-        //           // Assuming they can actually see the card all ready -- if it was in the person's hand, no point in telling them
-        //           console.log("Insert Into Deck:")
-        //           console.log(card);
-        //           if (card.base64 == true) {
-        //             this.sendPeerData(
-        //                 EActionTypes.insertIntoDeck,
-        //                 {
-        //                 cardID: card.id,
-        //                 deckID: deck.id,
-        //                 type: EGameObjectType.CARD,
-        //                 x: card.x,
-        //                 y: card.y,
-        //                 imagePath: null,
-        //                 base64: card.base64,
-        //                 base64Id: card.base64Id,
-        //                 base64Deck: card.base64Deck
-        //                 },
-        //                 [data.peerID]
-        //             );
-        //           } else {
-        //             this.sendPeerData(
-        //                 EActionTypes.insertIntoDeck,
-        //                 {
-        //                 cardID: card.id,
-        //                 deckID: deck.id,
-        //                 type: EGameObjectType.CARD,
-        //                 x: card.x,
-        //                 y: card.y,
-        //                 imagePath: card.imagePath
-        //                 },
-        //                 [data.peerID]
-        //             );
-        //             }
-        //                 imagePath: card.imagePath
-        //                 },
-        //                 [data.peerID]
-        //             );
-        //             }
-        
-        //             this.addCardToDeck(card, deck.id);
-        //         }
-        //         } else if (data.extras.type === EGameObjectType.CARD && !this.amHost) {
-        //         // If I am not the host and someone inserts a card into the deck, completely remove all reference to it
-        //         // Passing in true, true means that even though the card object is returned, it is destroyed
-        //         this.getCardByID(data.extras.cardID, data.playerID, true, true);
-        //         }
-        //         break;
 
             // Received by the host when a player creates a new hand
             case EActionTypes.createHand:
@@ -2142,33 +1833,6 @@ export default class GameState {
                 console.log('Error: Received action did not match any existing action.');
                 break;
             }
-
-        //   case EActionTypes.updateRenderOrder:
-        //       let object: Card | Deck = null;
-        //       if (data.extras.type === EGameObjectType.CARD) {
-        //         object = this.getCardByID(data.extras.id, data.playerID)?.card;
-        //       } else if (data.extras.type === EGameObjectType.DECK) {
-        //           object = this.getDeckByID(data.extras.id);
-        //       }
-
-        //       if (object) {
-        //         this.highestDepth = data.extras.highestDepth;
-        //         object.gameObject.setDepth(this.highestDepth);
-        //       }
-
-        //       if (this.amHost) {
-        //         playspaceComponent.gameState.sendPeerData(
-        //             EActionTypes.updateRenderOrder,
-        //             {
-        //               id: object.id,
-        //               type: object.type,
-        //               highestDepth: playspaceComponent.gameState.highestDepth
-        //             },
-        //             [data.peerID]
-        //           );
-        //       }
-        //       break;
-
         
       }
 }

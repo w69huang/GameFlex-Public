@@ -22,45 +22,47 @@ const SavedGameStateSchema = new mongoose.Schema({
         } 
     ],
     deckMins: [
-        {
-            id: Number,
-            imagePath: String,
-            x: Number,
-            y: Number,
-            depth: Number,
-            cardMins: [
-                {
-                    id: Number,
-                    imagePath: String,
-                    x: Number,
-                    y: Number,
-                    flippedOver: Boolean,
-                    depth: Number
-                }
-            ]
-        }
+        // {
+        //     id: Number,
+        //     imagePath: String,
+        //     x: Number,
+        //     y: Number,
+        //     depth: Number,
+        //     cardMins: [
+        //         {
+        //             id: Number,
+        //             imagePath: String,
+        //             x: Number,
+        //             y: Number,
+        //             flippedOver: Boolean,
+        //             depth: Number
+        //         }
+        //     ]
+        // }
+        Deck
     ],
     handMins : [ 
         {
         playerID: Number,
         innerHandMins: [
-                { //handMin
-                    playerID: Number,
-                    cardMins: [
-                        {
-                            // id: Number,
-                            id: String,
-                            imagePath: String,
-                            x: Number,
-                            y: Number,
-                            flippedOver: Boolean,
-                            depth: Number,
-                            base64: Boolean,
-                            deckName: String,
+                // { //handMin
+                //     playerID: Number,
+                //     cardMins: [
+                //         {
+                //             // id: Number,
+                //             id: String,
+                //             imagePath: String,
+                //             x: Number,
+                //             y: Number,
+                //             flippedOver: Boolean,
+                //             depth: Number,
+                //             base64: Boolean,
+                //             deckName: String,
             
-                        }
-                    ]
-                }
+                //         }
+                //     ]
+                // }
+                Hand
             ]
         },
     ],

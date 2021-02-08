@@ -8,6 +8,7 @@ import { ConfigEditorComponent } from './config-editor/config-editor.component';
 import { DeckEditorComponent } from './deck-editor/deck-editor.component';
 import { Config } from 'protractor';
 import { platform } from 'os';
+import { ConsoleReporter } from 'jasmine';
 
 
 export const sceneWidth: number = 1000;
@@ -47,8 +48,9 @@ export function createCard(card: Card, playspaceComponent: PlayspaceComponent, d
     } else {
         playspaceComponent.gameState.addCardToOwnHand(card, handIndex);
     }
-
+    console.log("base64 Dict", playspaceComponent.gameState.base64Dictionary)
     if(card.imagePath == null && base64 == true){
+        console.log("Heelloooo")
         let deck = card.base64Deck
         let id = card.base64Id
         card.imagePath = playspaceComponent.gameState.base64Dictionary[deck][id];

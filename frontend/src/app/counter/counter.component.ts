@@ -5,6 +5,7 @@ import { faTrash } from '@fortawesome/free-solid-svg-icons';
 import { CreateCounterPopupComponent } from '../popups/create-counter-popup/create-counter-popup.component';
 import Counter from '../models/counter';
 
+// import * as HF from '../helper-functions';
 import * as HF from '../helper-functions';
 
 export class CounterInitData {

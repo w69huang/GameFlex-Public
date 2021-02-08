@@ -7,9 +7,6 @@ import DeckMin from './deckMin';
 import HandMin from './handMin';
 import Counter from './counter';
 
-/**
- * The class that represents what information a user will receive when it is sent to them via the host
- */
 export default class SentGameState {
     /**
      * The playerID of the user that the game state is being sent to
@@ -26,7 +23,6 @@ export default class SentGameState {
      */
     deckMins: DeckMin[] = [];
 
-
     /**
      * A list of hand mins to send to a given player
      */
@@ -36,7 +32,6 @@ export default class SentGameState {
      * The list of counters to save (no need to minify)
      */
     counters: Counter[] = [];
-
     /**
      * A constructor that builds the sent game state from a given game state
      * @param gameState - The game that the sent game state is being built from
@@ -59,9 +54,6 @@ export default class SentGameState {
                 this.cardMins.push(new CardMin(card));
             } 
             else {
-                // card.imagePath = null;
-                // this.base64Cards.push(new base64CardMin(card));
-
                var cardMin = new CardMin(card);
                cardMin.id = card.base64Id;
                cardMin.base64 = true;
@@ -70,13 +62,8 @@ export default class SentGameState {
             }
         });
         gameState?.decks.forEach((deck: Deck) => {
-            // if(deck.base64 == false) {
             this.deckMins.push(new DeckMin(deck));
-            // } else {
-            //     this.base64Decks.push(new base64DeckMin(deck)); 
-            // }
         });
 
-        this.counters = gameState?.counters;
     }
 }

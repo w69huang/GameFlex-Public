@@ -37,7 +37,7 @@ export class GameInstanceComponent implements OnInit {
   public getAllSavedGameStatesEmitter: EventEmitter<SavedGameState> = new EventEmitter<SavedGameState>();
   public uploadCardToGameStateEmitter: EventEmitter<Object> = new EventEmitter<Object>();
   
-  public undoGameStateEmitter: EventEmitter<integer> = new EventEmitter<integer>();
+  // public undoGameStateEmitter: EventEmitter<integer> = new EventEmitter<integer>();
 
   /**
    * An emitter used to tell the playspace to undo a # of moves

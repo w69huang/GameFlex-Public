@@ -79,7 +79,7 @@ import { WelcomeComponent } from './welcome/welcome.component';
     ConfigEditorComponent,
     SaveConfigurationPopupComponent,
     UploadCardsPopupComponent,
-    LoadCardsPopupComponent
+    LoadCardsPopupComponent,
     CounterComponent,
     RetrieveConfigPopupComponent,
     WelcomeComponent,

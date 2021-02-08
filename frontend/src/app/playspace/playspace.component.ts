@@ -17,7 +17,6 @@ import PlayerData from '../models/playerData';
 import SavedGameState from '../models/savedGameState';
 import OnlineGame from '../models/onlineGame';
 import PlayspaceScene from '../models/phaser-scenes/playspaceScene';
-import { MatDialog } from '@angular/material/dialog';
 import SentGameState from '../models/sentGameState';
 import { FileService } from '../services/file.service';
 
@@ -153,11 +152,11 @@ export class PlayspaceComponent implements OnInit {
     // TODO: Band-aid solution, find a better one at some point
     setTimeout(_ => this.initialize(), 100);
     this.checkIfCanOpenConnectionInterval = setInterval(this.checkIfCanOpenConnection.bind(this), 5000);
-    this.getAllSavedGameStates();
-    this.saveGameState();
-    this.uploadCards();
-    this.undoGameState();
-    //this.setUpEmitters();
+    // this.getAllSavedGameStates();
+    // this.saveGameState();
+    // this.uploadCards();
+    // this.undoGameState();
+    this.setUpEmitters();
   }
 
   ngOnDestroy(): void {
@@ -187,10 +186,7 @@ export class PlayspaceComponent implements OnInit {
   }
 
   
-  
-  
-  
-  getAllSavedGameStates() {
+  setUpEmitters(): void {
     this.getAllSavedGameStatesEmitter.subscribe((savedGameState: SavedGameState) => {
       if (savedGameState) { // If they actually chose a saved game state
         // let processedSavedGameState = processSavedGameState(savedGameState, true, false);
@@ -199,37 +195,6 @@ export class PlayspaceComponent implements OnInit {
       }
     });
 
-  uploadCards() {
-    this.uploadCardToGameStateEmitter.subscribe(data => {
-      var i; 
-      console.log("Playspace")
-      console.log(data);
-      this.gameState.generateBase64Dictionary(data.deckName, false, data);
-      this.gameState.sendTexturesToPeers(data.cards, data.deckName, data.ids);
-      for (i=0; i < data.cards.length; i ++) {
-        this.gameState.addDeckToGame(data.deckName, data.cards[i].base64, data.ids[i], this)
-      }
-    })
-  }
-
-  getDecks(deckName: string, username: string) {
-    return this.fileService.list(deckName, username);
-  }
-  // getDecks(deckName: string, username: string, gameState: GameState) {
-  //   this.fileService.list(deckName, username).subscribe(function(data) {
-  //     let arrayOfBase64=[];
-  //     for(let i = 0; i < data.ids.length; i ++) {
-  //         if (!(data.ids[i] in arrayOfBase64) ) {
-  //             arrayOfBase64[data.ids[i]] = data.dataFiles[i];
-  //         } else {
-  //             console.log("Duplicate ID within this deck!  ", deckName);
-  //         }
-  //     }
-  //     gameState.base64Dictionary[deckName] = arrayOfBase64;
-  //   }.bind(this));
-  // }
-
-  undoGameState(): void {
     this.undoGameStateEmitter.subscribe((count: number) => {
       if (!this.gameState.undoInProgress) {
         this.gameState.buildGameFromCache(this, false, count);
@@ -258,7 +223,90 @@ export class PlayspaceComponent implements OnInit {
           break;
       }
     });
+
+    this.uploadCardToGameStateEmitter.subscribe(data => {
+      var i; 
+      // console.log("Playspace")
+      // console.log(data);
+      this.gameState.generateBase64Dictionary(data.deckName, false, data);
+      this.gameState.sendTexturesToPeers(data.cards, data.deckName, data.ids);
+      for (i=0; i < data.cards.length; i ++) {
+        this.gameState.addDeckToGame(data.deckName, data.cards[i].base64, data.ids[i], this)
+      }
+    })
   }
+  
+  
+  // getAllSavedGameStates() {
+  //   this.getAllSavedGameStatesEmitter.subscribe((savedGameState: SavedGameState) => {
+  //     if (savedGameState) { // If they actually chose a saved game state
+  //       // let processedSavedGameState = processSavedGameState(savedGameState, true, false);
+
+  //       this.gameState.buildGameStateFromSavedState(savedGameState, this);      
+  //     }
+  //   });
+  // }
+
+  // uploadCards() {
+  //   this.uploadCardToGameStateEmitter.subscribe(data => {
+  //     var i; 
+  //     console.log("Playspace")
+  //     console.log(data);
+  //     this.gameState.generateBase64Dictionary(data.deckName, false, data);
+  //     this.gameState.sendTexturesToPeers(data.cards, data.deckName, data.ids);
+  //     for (i=0; i < data.cards.length; i ++) {
+  //       this.gameState.addDeckToGame(data.deckName, data.cards[i].base64, data.ids[i], this)
+  //     }
+  //   })
+  // }
+
+  getDecks(deckName: string, username: string) {
+    return this.fileService.list(deckName, username);
+  }
+  // getDecks(deckName: string, username: string, gameState: GameState) {
+  //   this.fileService.list(deckName, username).subscribe(function(data) {
+  //     let arrayOfBase64=[];
+  //     for(let i = 0; i < data.ids.length; i ++) {
+  //         if (!(data.ids[i] in arrayOfBase64) ) {
+  //             arrayOfBase64[data.ids[i]] = data.dataFiles[i];
+  //         } else {
+  //             console.log("Duplicate ID within this deck!  ", deckName);
+  //         }
+  //     }
+  //     gameState.base64Dictionary[deckName] = arrayOfBase64;
+  //   }.bind(this));
+  // }
+
+  // undoGameState(): void {
+  //   this.undoGameStateEmitter.subscribe((count: number) => {
+  //     if (!this.gameState.undoInProgress) {
+  //       this.gameState.buildGameFromCache(this, false, count);
+  //     }
+  //   });
+
+  //   this.saveGameStateEmitter.subscribe((name: string) => {
+  //     this.savedGameStateService.create(new SavedGameState(this.middleware.getUsername(), name, this.gameState));
+  //   });
+
+  //   this.counterActionInputEmitter.subscribe((counterActionObject: CounterActionObject) => {
+  //     switch (counterActionObject.counterAction) {
+  //       case ECounterActions.addCounter:
+  //         CoA.addCounter(counterActionObject.counter, null, this.gameState, null, true);
+  //         break;
+        
+  //       case ECounterActions.removeCounter:
+  //         CoA.removeCounter(counterActionObject.counter, null, this.gameState, null, true);
+  //         break;
+
+  //       case ECounterActions.changeCounterValue:
+  //         CoA.changeCounterValue(counterActionObject.counter, null, this.gameState, null, true);
+  //         break;
+          
+  //       default:
+  //         break;
+  //     }
+  //   });
+  // }
 
   updateOnlineGame(): void {
     if (this.gameState.getAmHost() && this.onlineGame) {
@@ -292,59 +340,6 @@ export class PlayspaceComponent implements OnInit {
   }
 
   buildFromCacheDialog(): void {
-    console.log("Cache Dialog")
-    let dialogRef = this.dialog.open(LoadGameStatePopupComponent, {
-      height: '290px',
-      width: '350px',
-    });
-
-    // dialogRef.afterClosed().subscribe(object => {
-    //   if (object.loadFromCache === true) {
-    //     if(Object.keys(this.gameState.base64Dictionary).length == 0) {
-    //       const promise = new Promise((resolve, pending) => {
-    //         var username = this.middleware.getUsername();
-    //         var cache = JSON.parse(localStorage.getItem('cachedGameState'));
-    //         cache.base64Decks.forEach(deck => {
-            
-    //           this.getDecks(deck, username).subscribe(function(data) {
-    //             let arrayOfBase64=[];
-    //             for(let i = 0; i < data.ids.length; i ++) {
-    //                 if (!(data.ids[i] in arrayOfBase64) ) {
-    //                     arrayOfBase64[data.ids[i]] = data.dataFiles[i];
-    //                 } else {
-    //                     console.log("Duplicate ID within this deck!  ", deck);
-    //                 }
-    //             }
-    //             this.gameState.base64Dictionary[deck] = arrayOfBase64;
-
-    //             if (Object.keys(this.gameState.base64Dictionary).length > 0){
-    //               resolve(true); 
-    //             } else {
-    //               pending("Loading");
-    //             }
-    //           }.bind(this));;
-    //           // this.gameState.generateBase64Dictionary(deck, true, null, this);
-    //         });
-    //       });
-
-    //       promise.then(res => {
-    //         console.log("Promise Result: ",  res)
-    //         this.gameState.buildGameFromCache(this, true);
-    //       }).catch( err => {
-    //         console.log("Promise error: ", err)
-    //       })
-    //     } else {
-    //       this.gameState.buildGameFromCache(this, true);
-    //     }
-    //   } else if (object.loadFromCache === false) {
-    //     this.gameState.clearCache();
-    //   } else {
-    //     console.log('Error loading game from cache.');
-    //   }
-    //   // this.gameState.setCachingEnabled(true);
-    // });
-
-
     if (JSON.parse(localStorage.getItem('cachedGameState'))?.numMoves > 0) {
       let dialogRef = this.dialog.open(LoadGameStatePopupComponent, {
         height: '290px',
