@@ -595,8 +595,9 @@ export default class GameState {
 
         this.cleanUp(playspaceComponent);        
         let highestDepth: number = 0;
+        let dictionaryCounter = 0;
 
-
+        console.log("base64 Decks", this.base64Decks);
         try {
             var base64decks;
             base64decks = []
@@ -605,15 +606,23 @@ export default class GameState {
             });
         } catch (error) {
             console.log("Saved Game Not Cached Game.");
-        }
+        }  
+
+        base64decks.forEach(deck => {
+            if(this.base64Decks.includes(deck)) {
+                dictionaryCounter ++;
+            }
+        });
 
         // if (this.amHost) {
-        if (Object.keys(this.base64Dictionary).length === 0) {
+        if (Object.keys(this.base64Dictionary).length === 0 || base64decks.length != dictionaryCounter) {
             const promise = new Promise((resolve, pending) => {
                 var username = localStorage.getItem('username');
                 // var cache = JSON.parse(localStorage.getItem('cachedGameState'));
                 base64decks.forEach(deck => {
-                
+                if (!this.base64Decks.includes(deck)){
+                    this.base64Decks.push(deck);
+                }
                 playspaceComponent.getDecks(deck, username).subscribe(function(data) {
                     let arrayOfBase64: Object= {};
                     for(let i = 0; i < data.ids.length; i ++) {
@@ -1310,7 +1319,7 @@ export default class GameState {
                     if (playerData.peerID === this.connections[i].peer) {
                         if (((onlySendTo !== "" && onlySendTo === playerData.peerID) || onlySendTo === "") && (doNotSendTo === "" || (doNotSendTo !== playerData.peerID))) {
                             let sentGameState: SentGameState = new SentGameState(this, playerData.id);
-                            this.connections[i].send(new GameObjectProperties(this.amHost, EActionTypes.replicateState, this.myPeerID, this.playerID, { 'state': sentGameState, 'undo': undo }));
+                            this.connections[i].send(new GameObjectProperties(this.amHost, EActionTypes.replicateState, this.myPeerID, this.playerID, { 'state': sentGameState, 'undo': undo, 'base64Dictionary': this.base64Dictionary, 'texturepack': this.texturepack }));
                             break; 
                         }
                     }

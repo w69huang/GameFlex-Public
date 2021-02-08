@@ -21,18 +21,18 @@
                     <button class="btn" (click)="deleteAllSaves()">Delete All Saves</button>
                 </div>
             </mat-card>
-            <mat-card class="renderContainer" *ngIf="amHost">
-                <h3>Render Cards</h3>
-                <div class="buttonsContainer">
-                    <button class="btn" (click)="uploadCard()">Render Cards</button>
-                </div>
-            </mat-card>
             <mat-card class="undoContainer">
                 <h3>Undo Options</h3>
                 <div class="buttonsContainer">
                     <label for="undoCountInput">Number of moves to undo:</label>
                     <input matInput #undoCountInput name="undoCountInput" value="1"/>
                     <button class="btn" (click)="undo(undoCountInput.value)">Undo Move</button>
+                </div>
+            </mat-card>
+            <mat-card class="renderContainer" *ngIf="amHost">
+                <h3>Render Cards</h3>
+                <div class="buttonsContainer">
+                    <button class="btn" (click)="uploadCard()">Render Cards</button>
                 </div>
             </mat-card>
             

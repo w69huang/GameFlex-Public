@@ -1,9 +1,8 @@
-
 .loadHeader {
 
     // background-color:  #883988;
     border-bottom: 5px #883988;
-    color: black;
+    color: white;
 }
 
 .loadCardsMain {
@@ -18,7 +17,14 @@
 
 .viewButton {
     // border: 5px black;
-    background-color: white;
+    color: white;
+    background-color: #883988;
     border-radius: 10px;
     height: 70%;
+}
+
+mat-card {
+    padding: 0;
+    margin-left: 5%;
+    background-color: #1f1f1f;
 }

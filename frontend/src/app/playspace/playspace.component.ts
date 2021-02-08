@@ -353,6 +353,11 @@ export class PlayspaceComponent implements OnInit {
               var username = this.middleware.getUsername();
               var cache = JSON.parse(localStorage.getItem('cachedGameState'));
               cache.base64Decks.forEach(deck => {
+                
+                if (!this.gameState.base64Decks.includes(deck)){
+                  this.gameState.base64Decks = []
+                  this.gameState.base64Decks.push(deck);
+                }
               
                 this.getDecks(deck, username).subscribe(function(data) {
                   let arrayOfBase64: Object= {};
