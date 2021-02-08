@@ -23,6 +23,7 @@ export function deckRightClick(deck: Deck, component: any, pointer: Phaser.Input
         optionObjects.push(new OptionObject("addTopCardToHand", retrieveTopCard, 'assets/images/buttons/addTopCardToHand.png', optionWidth, optionHeight, { destination: HelperFunctions.EDestination.HAND }));
         optionObjects.push(new OptionObject("shuffleDeck", shuffleDeck, 'assets/images/buttons/shuffleDeck.png', optionWidth, optionHeight));
         optionObjects.push(new OptionObject("importDeck", importDeck, 'assets/images/buttons/importDeck.png', optionWidth, optionHeight));
+        optionObjects.push(new OptionObject("ReturnAllCards", returnAllCardsToDeck, 'assets/images/buttons/bigRedX.png', optionWidth, optionHeight));
         let width = 250;
         let height = optionHeight*optionObjects.length + (optionObjects.length - 1)*optionSeparation;
 
@@ -136,7 +137,49 @@ export function returnAllCardsToDeck(popupScene: PopupScene, deck: Deck, playspa
     //find all cards
         //get all cards on the table
         let allCards = [];
-        playspaceComponent.gameState.getCardByID()
+        let card: Card = null;
+
+        //Find cards on the table
+        for (let i = 0; i < playspaceComponent.gameState.cards.length; i++) {
+            card = playspaceComponent.gameState.cards[i];
+            allCards.push(card);
+        }
+
+        //Find cards in all hands
+        if (playspaceComponent.gameState.getAmHost) {
+            // for each of the users hands
+            for (const [PlayerID, listOfHands] of Object.entries(playspaceComponent.gameState.hands)) {
+                //listOfHands = hand object array 
+                for (let i = 0; i < listOfHands.length; i++) {
+                    let hand = listOfHands[i];
+                    for (let j = 0; j < hand.cards.length; j++) {
+                        // for each card in the hand
+                        let thisCard = hand.cards[j];
+                        allCards.push(thisCard);
+
+                        const cardDetails: any = this.getCardByID(thisCard.id, hand.playerID).card;
+                        cardDetails.card.inHand = false;
+
+                    }
+
+                }  
+            }
+        }
+
+    
+
+        for (let card of allCards) {
+            playspaceComponent.gameState.addCardToDeck(card, deck.id);
+            if (card.gameObject != null) {
+
+                card.gameObject.destroy();
+                card.gameObject = null; 
+            }
+            
+        }
+
+        
+        console.log(allCards);
 
         //get all cards in 'my' hand
         //get all cards in all hands
