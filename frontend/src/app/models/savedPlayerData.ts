@@ -15,6 +15,11 @@ export default class SavedPlayerData {
     username: string;
 
     /**
+     * A token for each player that allows them to rejoin locked rooms if they disconnect
+     */
+    token: string;
+
+    /**
      * A constructor that builds saved player data from a normal player data object
      * @param playerData - The player data object to build from
      */

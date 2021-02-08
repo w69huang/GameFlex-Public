@@ -5,7 +5,8 @@ import * as DA from './actions/deckActions';
 import * as CA from './actions/cardActions';
 import { PlayspaceComponent } from './playspace/playspace.component';
 import { ConfigEditorComponent } from './config-editor/config-editor.component';
-
+import SentGameState from './models/sentGameState';
+import { CounterActionObject } from './counter/counter.component';
 
 export const sceneWidth: number = 1000;
 export const sceneHeight: number = 1000;
@@ -13,6 +14,124 @@ export const handBeginY: number = 600;
 export const handBeginX: number = 0;
 export const handWidth: number = sceneWidth;
 export const handHeight: number = sceneHeight - handBeginY;
+
+/**
+ * An enum representing all types of actions
+ */
+export enum EActionTypes {
+    verifyRequest = "verifyRequest",
+    verifyResponse = "verifyResponse",
+    replicateState = "replicateState",
+    sendState = "sendState",
+    move = "move",
+    insertIntoDeck = "insertIntoDeck",
+    insertIntoHand = "insertIntoHand",
+    retrieveTopCard = "retrieveTopCard",
+    sendTopCard = "sendTopCard",
+    removeFromHand = "removeFromHand",
+    importDeck = "importDeck",
+    updateRenderOrder = "updateRenderOrder",
+    flipCard = "flipCard",
+    shuffleDeck = "shuffleDeck",
+    confirmUndo = "confirmUndo",
+    sendCounterAction = "sendCounterAction",
+    createHand = "createHand",
+    deleteHand = "deleteHand"
+}
+
+/**
+ * An enum representing the types of all game objects
+ */
+export enum EGameObjectType {
+    CARD = "card",
+    DECK = "deck",
+    HAND = "hand"
+}
+
+/**
+ * A class representing all the required and extra data be used to form a request to another peer, such as the action being taken
+ */
+export class GameObjectProperties {
+    amHost: boolean;
+    action: string;
+    peerID: string;
+    playerID: number;
+    extras: GameObjectExtraProperties;
+
+    constructor(amHost: boolean, action: string, peerID: string, playerID: number, extras: GameObjectExtraProperties) {
+        this.amHost = amHost;
+        this.action = action;
+        this.peerID = peerID;
+        this.playerID = playerID;
+        this.extras = extras;
+    }
+}
+
+
+/**
+ * A class representing all extra data that COULD (NOT "will") be used to form a request to another peer, such as the location of a card
+ * The reason this class is being used is strictly to make it easier to visualize what is usually passed as data
+ */
+export class GameObjectExtraProperties {
+    state?: SentGameState;
+    type?: string;
+    id?: number;
+    cardID?: number;
+    deckID?: number;
+    x?: number;
+    y?: number;
+    imagePath?: string;
+    imagePaths? : string[];
+    finishedMoving?: boolean;
+    destination?: EDestination;
+    highestDepth?: number;
+    flippedOver?: boolean;
+    undo?: boolean;
+    counterActionObject?: CounterActionObject;
+    handIndex?: integer;
+    username?: string;
+    hash?: string;
+}
+
+/**
+ * Used when getting a card by ID to grab both the card and the location it was grabbed from
+ */
+export class CardLocationObject {
+    card: Card;
+    location: ECardLocation;
+    handIndex: integer
+}
+
+/**
+ * Used when handling overlap to return both the type of overlap (what the card overlapped with) and any additional needed information (such as the ID of the deck overlapped with)
+ */
+export class OverlapObject {
+    overlapType: EOverlapType;
+    deckID?: number;
+    wasInHand?: boolean;
+    handIndex?: integer;
+}
+
+/**
+ * An enum representing all the possible locations a card could be in
+ */
+export enum ECardLocation {
+    NONE,
+    TABLE,
+    DECK,
+    MYHAND,
+    OTHERHAND
+}
+
+/**
+ * An enum representing all the possible objects a card could overlap with 
+ */
+export enum EOverlapType {
+    TABLE,
+    HAND,
+    ALREADYINHAND,
+    DECK
+}
 
 /**
  * Used to filter objects out of an object list that match an ID

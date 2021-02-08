@@ -12,7 +12,7 @@ import { MiddleWare } from '../services/middleware';
 import { LoadGameStatePopupComponent } from '../popups/load-game-state-popup/load-game-state-popup.component';
 import { ECounterActions, CounterActionObject } from '../counter/counter.component';
 
-import GameState, { EActionTypes } from '../models/gameState';
+import GameState from '../models/gameState';
 import PlayerData from '../models/playerData';
 import SavedGameState from '../models/savedGameState';
 import OnlineGame from '../models/onlineGame';
@@ -20,6 +20,7 @@ import PlayspaceScene from '../models/phaser-scenes/playspaceScene';
 
 import * as CoA from '../actions/counterActions';
 import * as HF from '../helper-functions';
+import * as HD from '../handleData';
 
 @Component({
   selector: 'app-playspace',
@@ -97,7 +98,7 @@ export class PlayspaceComponent implements OnInit {
         this.onlineGamesService.update(this.onlineGame).subscribe();
       });
       conn.on('data', (data) => {
-        this.gameState.handleData(data, this);
+        HD.handleData(data, this);
       });
 
       // Catches the case of a browser being closed
@@ -349,7 +350,7 @@ export class PlayspaceComponent implements OnInit {
       this.finishConnectionProcess();
       // Receive messages
       conn.on('data', (data) => {
-        this.gameState.handleData(data, this);
+        HD.handleData(data, this);
       });
 
       // Catches the case where the browser is closed
@@ -372,7 +373,7 @@ export class PlayspaceComponent implements OnInit {
         console.log(err);
         this.clientHandleConnectionClose(conn);
       });
-      this.gameState.sendPeerData(EActionTypes.sendState, null);
+      this.gameState.sendPeerData(HF.EActionTypes.sendState, null);
     });
   }
 

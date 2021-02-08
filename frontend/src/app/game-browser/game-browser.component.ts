@@ -50,11 +50,11 @@ export class GameBrowserComponent implements OnInit {
 
       dialogRef.afterClosed().subscribe(password => {
         if (password) {
-          this.onlineGamesService.verify(onlineGame, password);
+          this.onlineGamesService.getHashAndJoin(onlineGame, password);
         }
       });
     } else {
-      this.onlineGamesService.verify(onlineGame, "");
+      this.onlineGamesService.getHashAndJoin(onlineGame, "");
     }
   }
 

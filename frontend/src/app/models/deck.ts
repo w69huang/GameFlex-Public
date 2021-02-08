@@ -1,5 +1,5 @@
 import Card from './card';
-import { EGameObjectType } from '../models/gameState';
+import * as HF from '../helper-functions';
 
 export default class Deck {
     /**
@@ -25,7 +25,7 @@ export default class Deck {
     /**
      * The deck's type in string form
      */
-    type: string = EGameObjectType.DECK;
+    type: string = HF.EGameObjectType.DECK;
 
     /**
      * The x position of the deck - SHOULD BE UPDATED MANUALLY WHENEVER THE GAMEOBJECT'S POSITION CHANGES

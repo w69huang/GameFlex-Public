@@ -17,14 +17,31 @@ export class OnlineGamesService {
     private middleware: MiddleWare
   ) { }
 
-  verify(onlineGame: OnlineGame, password: string): void {
-    this.webService.post('online-games/verify', { onlineGame: onlineGame, accountUsername: this.middleware.getUsername(), accountPassword: this.middleware.getPassword(), password: password }).subscribe((object: any) => {
-      if (object.hostID) {
-        this.router.navigate(['/gameInstance'], { queryParams: { host: object.hostID, onlineGameID: onlineGame.id } });
+  get(id: string): any {
+    return this.webService.get(`online-games/get?id=${id}`);
+  }
+
+  getAll(): any {
+    return this.webService.get('online-games/getAll');
+  }
+
+  getIDAndCode(): any {
+    return this.webService.get('online-games/getIDAndCode');
+  }
+
+  getHashAndJoin(onlineGame: OnlineGame, gamePassword: string): any {
+    this.webService.get(`online-games/getHash?onlineGameID=${onlineGame.id}&gamePassword=${gamePassword}`).subscribe((result: { hash: string, message: string}) => {
+      if (result.hash) {
+        localStorage.setItem('hashPair', `${onlineGame.hostID}-${result.hash}`);
+        this.router.navigate(['/gameInstance'], { queryParams: { onlineGameID: onlineGame.id } });
       } else {
-        alert(object.message);
+        alert(result.message);
       }
     });
+  }
+
+  checkHash(onlineGameID: string, hash: string): any {
+    return this.webService.get(`online-games/checkHash?onlineGameID=${onlineGameID}&hash=${hash}`);
   }
 
   joinByCode(code: string, name: string) {
@@ -38,14 +55,6 @@ export class OnlineGamesService {
           }
         }
       );
-  }
-
-  get(id: string): any {
-    return this.webService.get(`online-games/get?id=${id}`);
-  }
-
-  getAll(): any {
-    return this.webService.get('online-games/getAll');
   }
 
   create(onlineGame: OnlineGame): void {
@@ -63,9 +72,5 @@ export class OnlineGamesService {
 
   update(onlineGame: OnlineGame): any {
     return this.webService.patch('online-games/update', { onlineGame: onlineGame, accountUsername: this.middleware.getUsername(), accountPassword: this.middleware.getPassword() });
-  }
-
-  getIDAndCode(): any {
-    return this.webService.get('online-games/getIDAndCode');
   }
 }

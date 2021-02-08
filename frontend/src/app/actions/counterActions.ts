@@ -1,7 +1,7 @@
 import { EventEmitter } from '@angular/core';
 import { CounterActionObject, ECounterActions } from "../counter/counter.component";
 import Counter from "../models/counter";
-import GameState, { EActionTypes } from "../models/gameState";
+import GameState from "../models/gameState";
 
 import * as HF from '../helper-functions';
 import { ConfigEditorComponent } from '../config-editor/config-editor.component';
@@ -35,7 +35,7 @@ export function addCounter(counterToAdd: Counter, eventEmitter: EventEmitter<Cou
         gameState.delay(() => { gameState.saveToCache(); });
         if (sendToPeers) {
             gameState.sendPeerData(
-                EActionTypes.sendCounterAction,
+                HF.EActionTypes.sendCounterAction,
                 {
                     counterActionObject: { counterAction: ECounterActions.addCounter, counter: counterToAdd }
                 },
@@ -63,7 +63,7 @@ export function removeCounter(counterToRemove: Counter, eventEmitter: EventEmitt
         gameState.delay(() => { gameState.saveToCache(); });
         if (sendToPeers) {
             gameState.sendPeerData(
-                EActionTypes.sendCounterAction,
+                HF.EActionTypes.sendCounterAction,
                 {
                     counterActionObject: { counterAction: ECounterActions.removeCounter, counter: counterToRemove }
                 },
@@ -95,7 +95,7 @@ export function changeCounterValue(counterToChange: Counter, eventEmitter: Event
         gameState.delay(() => { gameState.saveToCache(); });
         if (sendToPeers) {
             gameState.sendPeerData(
-                EActionTypes.sendCounterAction,
+                HF.EActionTypes.sendCounterAction,
                 {
                     counterActionObject: { counterAction: ECounterActions.changeCounterValue, counter: retrievedCounter }
                 },
@@ -121,7 +121,7 @@ export function replaceCounters(countersToReplaceWith: Counter[], eventEmitter: 
         gameState.delay(() => { gameState.saveToCache(); });
         if (sendToPeers) {
             gameState.sendPeerData(
-                EActionTypes.sendCounterAction,
+                HF.EActionTypes.sendCounterAction,
                 {
                     counterActionObject: { counterAction: ECounterActions.replaceCounters, counters: [...gameState.counters] }
                 },

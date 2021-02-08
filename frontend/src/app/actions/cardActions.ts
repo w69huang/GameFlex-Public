@@ -2,9 +2,6 @@ import { PlayspaceComponent } from '../playspace/playspace.component';
 import Card from '../models/card';
 import OptionObject, { OptionObjectConfig } from '../models/optionObject';
 import PopupScene from '../models/phaser-scenes/popupScene';
-import { EGameObjectType, EActionTypes } from '../models/gameState';
-
-import * as HelperFunctions from '../helper-functions';
 
 function popupClose(popupScene: PopupScene, card: Card, component: any): void {
     component.phaserScene.scene.remove(popupScene.key);

@@ -1,4 +1,4 @@
-import { EGameObjectType } from '../models/gameState';
+import * as HF from '../helper-functions';
 
 /**
  * The class that defines everything to do with a single card
@@ -22,7 +22,7 @@ export default class Card {
     /**
      * The card's type in string form
      */
-    type: string = EGameObjectType.CARD;
+    type: string = HF.EGameObjectType.CARD;
 
     /**
      * The x position of the card - SHOULD BE UPDATED MANUALLY WHENEVER THE GAMEOBJECT'S POSITION CHANGES

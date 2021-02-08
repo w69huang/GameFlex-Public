@@ -17,123 +17,7 @@ import { PlayspaceComponent } from '../playspace/playspace.component';
 import { DataConnection } from 'peerjs';
 import SentGameState from './sentGameState';
 import PlayerData from './playerData';
-import { ECounterActions, CounterActionObject } from '../counter/counter.component';
 import HandMin from './handMin';
-
-/**
- * An enum representing all types of actions
- * TODO: Move all references to these strings over to enums "@Zach is this done?" -Kris 2021-02-17
- */
-export enum EActionTypes {
-    replicateState = "replicateState",
-    sendState = "sendState",
-    move = "move",
-    insertIntoDeck = "insertIntoDeck",
-    insertIntoHand = "insertIntoHand",
-    retrieveTopCard = "retrieveTopCard",
-    sendTopCard = "sendTopCard",
-    removeFromHand = "removeFromHand",
-    importDeck = "importDeck",
-    updateRenderOrder = "updateRenderOrder",
-    flipCard = "flipCard",
-    shuffleDeck = "shuffleDeck",
-    confirmUndo = "confirmUndo",
-    sendCounterAction = "sendCounterAction",
-    createHand = "createHand",
-    deleteHand = "deleteHand"
-}
-
-/**
- * An enum representing the types of all game objects
- */
-export enum EGameObjectType {
-    CARD = "card",
-    DECK = "deck",
-    HAND = "hand"
-}
-
-/**
- * A class representing all the required and extra data be used to form a request to another peer, such as the action being taken
- */
-class GameObjectProperties {
-    amHost: boolean;
-    action: string;
-    peerID: string;
-    playerID: number;
-    extras: GameObjectExtraProperties;
-
-    constructor(amHost: boolean, action: string, peerID: string, playerID: number, extras: GameObjectExtraProperties) {
-        this.amHost = amHost;
-        this.action = action;
-        this.peerID = peerID;
-        this.playerID = playerID;
-        this.extras = extras;
-    }
-}
-
-
-/**
- * A class representing all extra data that COULD (NOT "will") be used to form a request to another peer, such as the location of a card
- * The reason this class is being used is strictly to make it easier to visualize what is usually passed as data
- */
-export class GameObjectExtraProperties {
-    state?: SentGameState;
-    type?: string;
-    id?: number;
-    cardID?: number;
-    deckID?: number;
-    x?: number;
-    y?: number;
-    imagePath?: string;
-    imagePaths? : string[];
-    finishedMoving?: boolean;
-    destination?: HF.EDestination;
-    highestDepth?: number;
-    flippedOver?: boolean;
-    undo?: boolean;
-    counterActionObject?: CounterActionObject;
-    handIndex?: integer;
-}
-
-/**
- * Used when getting a card by ID to grab both the card and the location it was grabbed from
- */
-export class CardLocationObject {
-    card: Card;
-    location: ECardLocation;
-    handIndex: integer
-}
-
-/**
- * Used when handling overlap to return both the type of overlap (what the card overlapped with) and any additional needed information (such as the ID of the deck overlapped with)
- */
-export class OverlapObject {
-    overlapType: EOverlapType;
-    deckID?: number;
-    wasInHand?: boolean;
-    handIndex?: integer;
-}
-
-/**
- * An enum representing all the possible locations a card could be in
- */
-export enum ECardLocation {
-    NONE,
-    TABLE,
-    DECK,
-    MYHAND,
-    OTHERHAND
-}
-
-/**
- * An enum representing all the possible objects a card could overlap with 
- */
-export enum EOverlapType {
-    TABLE,
-    HAND,
-    ALREADYINHAND,
-    DECK
-}
 
 /**
  * The game state class, which is responsible for holding the current state of the game
@@ -233,17 +117,17 @@ export default class GameState {
      * If they do not receive confirmation from someone on the list after X amount of time, they will check if that person still exists in the connection list
      * If they still exist in the host's connection list, the host will resend the confirmation request up to a max of 3 times; after that, the host will forcefully close the other player's connection
      */
-    private undoRequests: DataConnection[] = [];
+    public undoRequests: DataConnection[] = [];
 
     /**
      * The number of times an undo request has been sent without receiving full confirmations
      */
-    private undoRequestCount: number = 0;
+    public undoRequestCount: number = 0;
     
     /**
      * A timer function used to check in on the status of undo confirmations
      */
-    private undoCheckInInterval: any;
+    public undoCheckInInterval: any;
 
     /**
      * If an undo is in progress (i.e. the host is waiting for confirmation from all parties that it succeeded)
@@ -780,7 +664,7 @@ export default class GameState {
             const cardDetails: any = this.getCardByID(cardID, playerID).card;
             
             // If in a hand
-            if (cardDetails.location == ECardLocation.MYHAND || cardDetails.location == ECardLocation.OTHERHAND) {
+            if (cardDetails.location == HF.ECardLocation.MYHAND || cardDetails.location == HF.ECardLocation.OTHERHAND) {
                 let cards = this.hands[playerID][cardDetails.handIndex].cards;
 
                 cards = this.filterOutID(cards, cardDetails.card);
@@ -841,50 +725,50 @@ export default class GameState {
      * @param id - The id of the object overlap is being checked for (card/deck)
      * @param playerID - The id of the player responsible for firing this check
      */
-    public checkForOverlap(id: number): OverlapObject {
-        const cardLocationObject: CardLocationObject = this.getCardByID(id, this.playerID);
+    public checkForOverlap(id: number): HF.OverlapObject {
+        const cardLocationObject: HF.CardLocationObject = this.getCardByID(id, this.playerID);
         const card: Card = cardLocationObject?.card;
-        const cardLocation: ECardLocation = cardLocationObject?.location;
+        const cardLocation: HF.ECardLocation = cardLocationObject?.location;
         let image: Phaser.GameObjects.Image;
 
         if (card) {
             if (card.gameObject.x > HF.handBeginX && card.gameObject.x < HF.handWidth && card.gameObject.y > HF.handBeginY && card.gameObject.y < HF.handBeginY + HF.handHeight) {
-                if (cardLocation !== ECardLocation.MYHAND) {
+                if (cardLocation !== HF.ECardLocation.MYHAND) {
                     this._cards = this.filterOutID(this._cards, card);
                     this.addCardToOwnHand(card, this.myCurrHand);
-                    return { overlapType: EOverlapType.HAND, handIndex: this.myCurrHand};
+                    return { overlapType: HF.EOverlapType.HAND, handIndex: this.myCurrHand};
                 }
                 this.delay(() => { this.saveToCache(); });
-                return { overlapType: EOverlapType.ALREADYINHAND, handIndex: this.myCurrHand};
+                return { overlapType: HF.EOverlapType.ALREADYINHAND, handIndex: this.myCurrHand};
             } else {
                 for (let i: number = 0; i < this._decks.length; i++) {
                     image = this.decks[i].gameObject;
 
                     if (card.gameObject.x > image.x - image.displayWidth && card.gameObject.x < image.x + image.displayWidth && card.gameObject.y > image.y - image.displayHeight && card.gameObject.y < image.y + image.displayHeight) {
-                        if (cardLocation === ECardLocation.MYHAND) {
+                        if (cardLocation === HF.ECardLocation.MYHAND) {
                             this.removeCardFromOwnHand(card.id, true);
-                        } else if (cardLocation === ECardLocation.TABLE) {
+                        } else if (cardLocation === HF.ECardLocation.TABLE) {
                             this.removeCardFromTable(card.id, true);
                         }
                         this.addCardToDeck(card, this.decks[i].id);
-                        return { overlapType: EOverlapType.DECK, deckID: this.decks[i].id };
+                        return { overlapType: HF.EOverlapType.DECK, deckID: this.decks[i].id };
                     }
                 }
             }
 
-            if (cardLocation === ECardLocation.MYHAND) {
+            if (cardLocation === HF.ECardLocation.MYHAND) {
                 this.addCardToTable(card);
                 this.removeCardFromOwnHand(card.id);
-                return { overlapType: EOverlapType.TABLE, wasInHand: true };
+                return { overlapType: HF.EOverlapType.TABLE, wasInHand: true };
             } else {
                 this.delay(() => { this.saveToCache(); });
-                return { overlapType: EOverlapType.TABLE, wasInHand: false };
+                return { overlapType: HF.EOverlapType.TABLE, wasInHand: false };
             }
         } else {
             const deck: Deck = this.getDeckByID(id);
             this.delay(() => { this.saveToCache(); });
 
-            return { overlapType: EOverlapType.TABLE };
+            return { overlapType: HF.EOverlapType.TABLE };
         }
     }
 
@@ -915,7 +799,7 @@ export default class GameState {
      * @param removeAndDestroyFromTable - Whether or not the card should be removed and have its image destroyed when found on the table
      * @param removeAndDestroyFromHand - Whether or not the card should be removed and have its image destroyed when found in a hand
      */
-    public getCardByID(id: number, playerIDOfWhoActedOnCard: number, removeAndDestroyFromTable: boolean = false, removeAndDestroyFromHand: boolean = false): CardLocationObject {
+    public getCardByID(id: number, playerIDOfWhoActedOnCard: number, removeAndDestroyFromTable: boolean = false, removeAndDestroyFromHand: boolean = false): HF.CardLocationObject {
         let card: Card = null;
 
         // Check the table
@@ -926,7 +810,7 @@ export default class GameState {
                 if (removeAndDestroyFromTable) {
                     this.removeCardFromTable(card.id, true);
                 }
-                return { card: card, location: ECardLocation.TABLE, handIndex: null };
+                return { card: card, location: HF.ECardLocation.TABLE, handIndex: null };
             }
         }
         // Check myHands
@@ -940,7 +824,7 @@ export default class GameState {
                         card.inHand = false;
                         this.removeCardFromOwnHand(card.id, true);
                     }
-                    return { card: card, location: ECardLocation.MYHAND, handIndex: h };
+                    return { card: card, location: HF.ECardLocation.MYHAND, handIndex: h };
                 }
             }
         };
@@ -961,7 +845,7 @@ export default class GameState {
                             card.inHand = false;
                             this.removeCardFromPlayerHand(card.id, playerIDOfWhoActedOnCard);
                         }
-                        return { card: card, location: ECardLocation.OTHERHAND, handIndex: h };
+                        return { card: card, location: HF.ECardLocation.OTHERHAND, handIndex: h };
                     }
                 }
             }
@@ -990,7 +874,7 @@ export default class GameState {
 
             if (!(this.amHost && card.inHand)) {
                 this.sendPeerData(
-                    EActionTypes.flipCard,
+                    HF.EActionTypes.flipCard,
                     {
                         cardID: cardID,
                         flippedOver: card.flippedOver
@@ -1013,14 +897,14 @@ export default class GameState {
      * @param extras - An array of extra game object properties that the user wants to include
      * @param doNotSendTo - a list of peerIDs not to send the data to
      */
-    public sendPeerData(action: string, extras: GameObjectExtraProperties = {}, doNotSendTo: string[] = [], onlySendTo: string[] = []): void {
+    public sendPeerData(action: string, extras: HF.GameObjectExtraProperties = {}, doNotSendTo: string[] = [], onlySendTo: string[] = []): void {
         this.connections.forEach((connection: DataConnection) => {
             if (onlySendTo.length > 0) {
                 if (onlySendTo.includes(connection.peer)) {
-                    connection.send(new GameObjectProperties(this.amHost, action, this.myPeerID, this.playerID, extras));
+                    connection.send(new HF.GameObjectProperties(this.amHost, action, this.myPeerID, this.playerID, extras));
                 }
             } else if (!doNotSendTo.includes(connection.peer)) {
-                connection.send(new GameObjectProperties(this.amHost, action, this.myPeerID, this.playerID, extras));
+                connection.send(new HF.GameObjectProperties(this.amHost, action, this.myPeerID, this.playerID, extras));
             }
         });
     }
@@ -1038,7 +922,7 @@ export default class GameState {
                     if (playerData.peerID === this.connections[i].peer) {
                         if (((onlySendTo !== "" && onlySendTo === playerData.peerID) || onlySendTo === "") && (doNotSendTo === "" || (doNotSendTo !== playerData.peerID))) {
                             let sentGameState: SentGameState = new SentGameState(this, playerData.id);
-                            this.connections[i].send(new GameObjectProperties(this.amHost, EActionTypes.replicateState, this.myPeerID, this.playerID, { 'state': sentGameState, 'undo': undo }));
+                            this.connections[i].send(new HF.GameObjectProperties(this.amHost, HF.EActionTypes.replicateState, this.myPeerID, this.playerID, { 'state': sentGameState, 'undo': undo }));
                             break; 
                         }
                     }
@@ -1046,413 +930,4 @@ export default class GameState {
             });
         }
     }
-
-    /**
-     * Used to handle data received from P2P connections (primarily carrying out requested actions)
-     * @param data - An object that holds all the data needed to handle the requested action
-     * @param playspaceComponent - A reference to the playspace component
-     */
-    handleData(data: GameObjectProperties, playspaceComponent: PlayspaceComponent): void {
-        if (this.amHost && data.amHost) {
-          // Error! Both parties claim to the be the host! Abort!
-          console.log("Fatal error: both parties claim to be the host.");
-          return;
-        }
-    
-        switch (data.action) {
-    
-            // Received by the host after being sent by the player upon connection to the host, in which the player asks for the game state
-            case EActionTypes.sendState:
-                let playerID = data.playerID;
-                if (!playerID) {
-                // They are new, generate a new ID for them
-                let playerIDArray: number[] = [];
-        
-                this.playerDataObjects.forEach((playerData) => {
-                    playerIDArray.push(playerData.id);
-                });
-        
-                let i: number = 1;
-                while (playerIDArray.includes(i)) {
-                    i++; 
-                }
-                playerID = i; // Assign the player the first playerID that is not taken already
-                }
-        
-                this.playerDataObjects.push(new PlayerData(playerID, data.peerID));
-                playspaceComponent.playerDataEmitter.emit(this.playerDataObjects);
-        
-                console.log("Sending state.");
-                this.sendGameStateToPeers(false, data.peerID);
-
-                break;
-        
-            // Receives the state from the host and setups up the local gameState correctly
-            case EActionTypes.replicateState:
-                console.log("Received state.");
-                this.buildingGame = true;
-
-                if (data.extras.undo) {
-                    this.sendPeerData(EActionTypes.confirmUndo);
-                }
-
-                const receivedGameState: SentGameState = data.extras.state;
-                this.playerID = receivedGameState.playerID;
-        
-                this.cleanUp(playspaceComponent);
-        
-                receivedGameState.cardMins.forEach((cardMin: CardMin) => {
-                    let card: Card = new Card(cardMin.id, cardMin.imagePath, cardMin.x, cardMin.y, cardMin.flippedOver);
-                    HF.createCard(card, playspaceComponent, HF.EDestination.TABLE, cardMin.depth);
-                });
-
-                receivedGameState.deckMins.forEach((deckMin: DeckMin) => {
-                    let deck: Deck = new Deck(deckMin.id, deckMin.imagePath, [], deckMin.x, deckMin.y);
-                    HF.createDeck(deck, playspaceComponent, deckMin.depth);
-                });
-
-                //handMin is now handMins need to go through each of the hands in the array and populate
-                receivedGameState.handMins.forEach( (handMin: HandMin, handIndex: integer) => {
-                    HA.createHand(playspaceComponent, this.playerID);
-                    handMin.cardMins.forEach((cardMin: CardMin) => {
-                        let card: Card = new Card(cardMin.id, cardMin.imagePath, cardMin.x, cardMin.y, cardMin.flippedOver, true);
-                        HF.createCard(card, playspaceComponent, HF.EDestination.HAND, cardMin.depth, handIndex);
-                    });
-                });
-
-                CoA.replaceCounters(receivedGameState.counters, playspaceComponent.counterActionOutputEmitter, this, null);
-
-                this.buildingGame = false;
-        
-                document.getElementById('loading').style.display = "none";
-                document.getElementById('loadingText').style.display = "none";
-                break;
-        
-            case EActionTypes.move:
-                if (data.extras.type === EGameObjectType.CARD) {
-                
-                let card: Card = this.getCardByID(data.extras.id, data.playerID)?.card;
-        
-                if (card) {
-                    card.x = data.extras.x;
-                    card.y = data.extras.y;
-                    if (card.gameObject) { 
-                    card.gameObject.setX(data.extras.x);
-                    card.gameObject.setY(data.extras.y);
-                    this.sendPeerData(
-                        EActionTypes.move,
-                        {
-                            id: card.id,
-                            type: card.type,
-                            x: data.extras.x,
-                            y: data.extras.y
-                        },
-                        [data.peerID]
-                        );
-                    }
-                }
-                } else if (data.extras.type === EGameObjectType.DECK) {
-                let deck: Deck = this.getDeckByID(data.extras.id);
-        
-                if (deck) {
-                    deck.x = data.extras.x;
-                    deck.y = data.extras.y;
-                    deck.gameObject.setX(data.extras.x);
-                    deck.gameObject.setY(data.extras.y);
-        
-                    this.sendPeerData(
-                    EActionTypes.move,
-                    {
-                        id: deck.id,
-                        type: deck.type,
-                        x: data.extras.x,
-                        y: data.extras.y
-                    },
-                    [data.peerID]
-                    );
-                }
-                }
-        
-                if (data.extras.finishedMoving) { // If they have finished moving a card/deck, save to cache
-                    this.delay(() => { this.saveToCache(); });
-                }
-                break;
-        
-            // The host receives this action, which was sent by a non-host requesting the top card of the deck
-            case EActionTypes.retrieveTopCard:
-                if (data.extras.type === EGameObjectType.CARD && this.amHost) {
-                let deck: Deck = this.getDeckByID(data.extras.deckID);
-        
-                if (deck && deck.cards.length > 0) {
-                    let card: Card = this.getCardFromDeck(deck.cards.length - 1, deck.id, true);
-                    card.x = data.extras.destination === HF.EDestination.TABLE ? deck.x : HF.handBeginX + 150;
-                    card.y = data.extras.destination === HF.EDestination.TABLE ? deck.y : HF.handBeginY + 200;
-        
-                    if (data.extras.destination === HF.EDestination.TABLE) {
-                        HF.createCard(card, playspaceComponent, HF.EDestination.TABLE);
-                    } else if (data.extras.destination === HF.EDestination.HAND) {
-                        this.addCardToPlayerHand(card, data.playerID, data.extras.handIndex);
-                    }
-        
-                    this.sendPeerData(
-                        EActionTypes.sendTopCard,
-                        {
-                        cardID: card.id,
-                        deckID: deck.id,
-                        type: EGameObjectType.CARD,
-                        x: card.x,
-                        y: card.y,
-                        flippedOver: card.flippedOver,
-                        imagePath: card.imagePath,
-                        destination: data.extras.destination
-                        },
-                        [],
-                        data.extras.destination === HF.EDestination.HAND ? [data.peerID] : []
-                    );
-                }
-                }
-                break;
-        
-            // The non-host receives this action, which was sent by the host after the non-host requested the top card from a deck
-            case EActionTypes.sendTopCard:
-                if (data.extras.type === EGameObjectType.CARD && !this.amHost) {
-                let deck: Deck = this.getDeckByID(data.extras.deckID);
-        
-                if (deck) {
-        
-                    let card: Card = new Card(data.extras.cardID, data.extras.imagePath, data.extras.x, data.extras.y, data.extras.flippedOver);
-                    card.inDeck = false;
-        
-                    HF.createCard(card, playspaceComponent, data.extras.destination, null, playspaceComponent.gameState.myCurrHand);
-                }
-                }
-                break;
-        
-            // Received by the host when a player inserts a card into the deck or by the player when the host inserts a card into the deck
-            case EActionTypes.insertIntoDeck:
-                if (data.extras.type === EGameObjectType.CARD && this.amHost) {
-                let card: Card = this.getCardByID(data.extras.cardID, data.playerID, true, true).card;
-                let deck: Deck = this.getDeckByID(data.extras.deckID);
-        
-                if (card && deck) {
-                    if (this.amHost) {
-                    // If I am the host, tell everyone else that this card was inserted
-                    // Assuming they can actually see the card all ready -- if it was in the person's hand, no point in telling them
-        
-                    this.sendPeerData(
-                        EActionTypes.insertIntoDeck,
-                        {
-                        cardID: card.id,
-                        deckID: deck.id,
-                        type: EGameObjectType.CARD,
-                        x: card.x,
-                        y: card.y,
-                        imagePath: card.imagePath
-                        },
-                        [data.peerID]
-                    );
-                    }
-        
-                    this.addCardToDeck(card, deck.id);
-                }
-                } else if (data.extras.type === EGameObjectType.CARD && !this.amHost) {
-                // If I am not the host and someone inserts a card into the deck, completely remove all reference to it
-                // Passing in true, true means that even though the card object is returned, it is destroyed
-                this.getCardByID(data.extras.cardID, data.playerID, true, true);
-                }
-                break;
-
-            // Received by the host when a player creates a new hand
-            case EActionTypes.createHand:
-                if (data.extras.type === EGameObjectType.HAND && this.amHost) {
-                    HA.createHand(playspaceComponent, data.playerID);
-                }
-                break;
-    
-            // Received by the host when a player deletes a hand
-            case EActionTypes.deleteHand:
-                if (data.extras.type === EGameObjectType.HAND && this.amHost) {
-                    HA.deleteHand(playspaceComponent, data.playerID, data.extras.handIndex);
-                }
-                break;
-
-            // Anyone can receive this action, which is sent by someone who inserts a card into their hand
-            case EActionTypes.insertIntoHand:
-                // If someone else inserts a card into their hand, we need to delete that card from everyone else's screen
-                if (data.extras.type === EGameObjectType.CARD) {
-                let card: Card = this.getCardByID(data.extras.cardID, data.playerID, true, true).card;
-        
-                    if (card) {
-                        if (this.amHost) {
-                            // If I am the host, first we will tell any other players that the action occurred
-                
-                            this.sendPeerData(
-                                EActionTypes.insertIntoHand,
-                                {
-                                cardID: card.id,
-                                type: EGameObjectType.CARD,
-                                handIndex: data.extras.handIndex
-                                },
-                                [data.peerID]
-                            );
-                
-                            // Then, add it to the appropriate player's hand in the game state (will only actually take effect if host)
-                            this.addCardToPlayerHand(card, data.playerID, data.extras.handIndex);
-                        }
-                    }
-                }
-        
-                break;        
-        
-            // Anyone can receive this action, and it is sent by someone who places a card from their hand on the table (NOT inserting it into a deck)
-            case EActionTypes.removeFromHand:
-                if (data.extras.type === EGameObjectType.CARD) {
-                    let card: Card = null;
-                    if (this.amHost) {
-                        // Card already exists if I'm the host, since I know everyone's hands
-                        card = this.getCardByID(data.extras.cardID, data.playerID, true, true).card;
-                        card.x = data.extras.x;
-                        card.y = data.extras.y;
-            
-                        HF.createCard(card, playspaceComponent, HF.EDestination.TABLE)
-            
-                        // Tell other possible peers that this card was removed from a hand
-                        this.sendPeerData(
-                            EActionTypes.removeFromHand,
-                            {
-                                cardID: card.id,
-                                type: EGameObjectType.CARD,
-                                imagePath: card.imagePath,
-                                x: card.x,
-                                y: card.y,
-                                flippedOver: card.flippedOver
-                            },
-                            [data.peerID]
-                        );        
-                    } else {
-                        // Creates a new card because it does not exist as far as a non-host player knows
-                        card = new Card(data.extras.cardID, data.extras.imagePath, data.extras.x, data.extras.y, data.extras.flippedOver);
-                        HF.createCard(card, playspaceComponent, HF.EDestination.TABLE);
-                    }
-                }
-        
-                break;
-        
-            case EActionTypes.importDeck:
-                if (data.extras.type === EGameObjectType.DECK && this.amHost) {
-                let deck: Deck = this.getDeckByID(data.extras.deckID);
-        
-                if (deck) {
-                    let imagePaths: string[] = data.extras.imagePaths;
-        
-                    imagePaths.forEach((imagePath: string) => {
-                    this.addCardToDeck(new Card(playspaceComponent.highestID++, imagePath, deck.gameObject.x, deck.gameObject.y), deck.id);
-                    });
-                }
-                }
-                break;
-
-            case EActionTypes.updateRenderOrder:
-                let object: Card | Deck = null;
-                if (data.extras.type === EGameObjectType.CARD) {
-                    object = this.getCardByID(data.extras.id, data.playerID)?.card;
-                } else if (data.extras.type === EGameObjectType.DECK) {
-                    object = this.getDeckByID(data.extras.id);
-                }
-
-                if (object) {
-                    this.highestDepth++;
-                    object.gameObject.setDepth(this.highestDepth);
-                }
-
-                if (this.amHost) {
-                    playspaceComponent.gameState.sendPeerData(
-                        EActionTypes.updateRenderOrder,
-                        {
-                            id: object.id,
-                            type: object.type
-                        },
-                        [data.peerID]
-                    );
-                }
-                break;
-
-            case EActionTypes.flipCard:
-                let card: Card = this.getCardByID(data.extras.cardID, data.playerID)?.card;
-
-                if (card) {
-                    if (!(this.amHost && card.inHand)) {
-                        if (data.extras.flippedOver) {
-                            card.gameObject.setTexture('flipped-card');
-                        } else {
-                            card.gameObject.setTexture(card.imagePath);
-                        }
-                        card.gameObject.setDisplaySize(100, 150);
-                        // Hit area MUST be set to the texture size (NOT display size), which will equate to the width and height of the game object after the texture is loaded
-                        card.gameObject.input.hitArea.setTo(0, 0, card.gameObject.width, card.gameObject.height);
-                    }
-                    card.flippedOver = data.extras.flippedOver;
-        
-                    this.delay(() => { this.saveToCache(); });
-        
-                    if (this.amHost) {
-                        this.sendPeerData(
-                            EActionTypes.flipCard,
-                            {
-                                cardID: card.id,
-                                flippedOver: card.flippedOver
-                            },
-                            [data.peerID]
-                        );
-                    }
-                }
-                break;
-
-            case EActionTypes.shuffleDeck:
-                if (this.amHost) {
-                    const deck: Deck = this.getDeckByID(data.extras.deckID);
-                    if (deck) {
-                        DA.shuffleDeck(null, deck, playspaceComponent, null);
-                    }
-                }
-                break;
-
-            case EActionTypes.confirmUndo:
-                if (this.amHost) {
-                    this.undoRequests = this.undoRequests.filter( (connection: DataConnection) => {
-                        return connection.peer !== data.peerID;
-                    });
-
-                    if (this.undoRequests.length <= 0) {
-                        this.undoInProgress = false;
-                        clearInterval(this.undoCheckInInterval);
-                    }
-                }
-                break;
-
-            case EActionTypes.sendCounterAction:
-                switch (data.extras.counterActionObject.counterAction) {
-                    case ECounterActions.addCounter:
-                        CoA.addCounter(data.extras.counterActionObject.counter, playspaceComponent.counterActionOutputEmitter, this, null, this.amHost, data.peerID);
-                        break;
-                    case ECounterActions.removeCounter:
-                        CoA.removeCounter(data.extras.counterActionObject.counter, playspaceComponent.counterActionOutputEmitter, this, null, this.amHost, data.peerID);
-                        break;
-                    case ECounterActions.changeCounterValue:
-                        CoA.changeCounterValue(data.extras.counterActionObject.counter, playspaceComponent.counterActionOutputEmitter, this, null, this.amHost, data.peerID);
-                        break;
-                    case ECounterActions.replaceCounters:
-                        CoA.replaceCounters(data.extras.counterActionObject.counters, playspaceComponent.counterActionOutputEmitter, this, null, this.amHost, data.peerID);
-                        break;
-                    default:
-                        console.log('Error: Receivedd counter action did not match any existing action.');
-                        break;
-                }
-        
-            default:
-                console.log('Error: Received action did not match any existing action.');
-                break;
-            }
-        }
-
 }

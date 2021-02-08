@@ -1,7 +1,7 @@
 import { PlayspaceComponent } from '../playspace/playspace.component';
-import { EActionTypes, EGameObjectType } from '../models/gameState';
 import Hand from '../models/hand';
 import Card from '../models/card';
+import * as HF from '../helper-functions';
 
 /**
 * Sets the next hand 
@@ -45,9 +45,9 @@ export function createHand(component: PlayspaceComponent, playerID: number) {
         if(!component.gameState.buildingGame){
             if(!component.gameState.getAmHost()) {
                 component.gameState.sendPeerData(
-                    EActionTypes.createHand,
+                    HF.EActionTypes.createHand,
                     {
-                        type: EGameObjectType.HAND,
+                        type: HF.EGameObjectType.HAND,
                     }
                 );
             } 
@@ -108,9 +108,9 @@ export function deleteHand(component: PlayspaceComponent, playerID: number, hand
 
         if(!component.gameState.getAmHost()) {
             component.gameState.sendPeerData(
-                EActionTypes.deleteHand,
+                HF.EActionTypes.deleteHand,
                 {
-                type: EGameObjectType.HAND,
+                type: HF.EGameObjectType.HAND,
                 handIndex: myHandToDel
                 }
             );

@@ -3,9 +3,8 @@ import Card from '../models/card';
 import Deck from '../models/deck';
 import OptionObject, { OptionObjectConfig } from '../models/optionObject';
 import PopupScene from '../models/phaser-scenes/popupScene';
-import { EGameObjectType, EActionTypes } from '../models/gameState';
 
-import * as HelperFunctions from '../helper-functions';
+import * as HF from '../helper-functions';
 
 function popupClose(popupScene: PopupScene, deck: Deck, component: any): void {
     component.phaserScene.scene.remove(popupScene.key);
@@ -19,8 +18,8 @@ export function deckRightClick(deck: Deck, component: any, pointer: Phaser.Input
         let optionHeight = 75;
         let optionObjects = [];
         let optionSeparation = 10;
-        optionObjects.push(new OptionObject("retrieveCard", retrieveTopCard, 'assets/images/buttons/retrieveTopCard.png', optionWidth, optionHeight, { destination: HelperFunctions.EDestination.TABLE }));
-        optionObjects.push(new OptionObject("addTopCardToHand", retrieveTopCard, 'assets/images/buttons/addTopCardToHand.png', optionWidth, optionHeight, { destination: HelperFunctions.EDestination.HAND }));
+        optionObjects.push(new OptionObject("retrieveCard", retrieveTopCard, 'assets/images/buttons/retrieveTopCard.png', optionWidth, optionHeight, { destination: HF.EDestination.TABLE }));
+        optionObjects.push(new OptionObject("addTopCardToHand", retrieveTopCard, 'assets/images/buttons/addTopCardToHand.png', optionWidth, optionHeight, { destination: HF.EDestination.HAND }));
         optionObjects.push(new OptionObject("shuffleDeck", shuffleDeck, 'assets/images/buttons/shuffleDeck.png', optionWidth, optionHeight));
         optionObjects.push(new OptionObject("importDeck", importDeck, 'assets/images/buttons/importDeck.png', optionWidth, optionHeight));
         let width = 250;
@@ -42,19 +41,19 @@ export function retrieveTopCard(popupScene: PopupScene, deck: Deck, playspaceCom
         if (card) {
             if (card.gameObject == null) {
                 card.inDeck = false;
-                card.x = optionObjectConfig.destination === HelperFunctions.EDestination.TABLE ? deck.x : HelperFunctions.handBeginX + 150;
-                card.y = optionObjectConfig.destination === HelperFunctions.EDestination.TABLE ? deck.y : HelperFunctions.handBeginY + 200;
+                card.x = optionObjectConfig.destination === HF.EDestination.TABLE ? deck.x : HF.handBeginX + 150;
+                card.y = optionObjectConfig.destination === HF.EDestination.TABLE ? deck.y : HF.handBeginY + 200;
 
-                HelperFunctions.createCard(card, playspaceComponent, optionObjectConfig.destination, null, playspaceComponent.gameState.myCurrHand);
+                HF.createCard(card, playspaceComponent, optionObjectConfig.destination, null, playspaceComponent.gameState.myCurrHand);
 
-                if (optionObjectConfig.destination === HelperFunctions.EDestination.TABLE) {
+                if (optionObjectConfig.destination === HF.EDestination.TABLE) {
                     playspaceComponent.gameState.sendPeerData(
-                        EActionTypes.sendTopCard,
+                        HF.EActionTypes.sendTopCard,
                         {
                             cardID: card.id,
                             deckID: deck.id,
                             imagePath: card.imagePath,
-                            type: EGameObjectType.CARD,
+                            type: HF.EGameObjectType.CARD,
                             x: deck.x,
                             y: deck.y,
                             flippedOver: card.flippedOver,
@@ -66,10 +65,10 @@ export function retrieveTopCard(popupScene: PopupScene, deck: Deck, playspaceCom
         }
     } else {
         playspaceComponent.gameState.sendPeerData(
-            EActionTypes.retrieveTopCard,
+            HF.EActionTypes.retrieveTopCard,
             {
                 deckID: deck.id,
-                type: EGameObjectType.CARD,
+                type: HF.EGameObjectType.CARD,
                 destination: optionObjectConfig.destination,
                 handIndex: playspaceComponent.gameState.myCurrHand
             }
@@ -88,7 +87,7 @@ export function shuffleDeck(popupScene: PopupScene, deck: Deck, playspaceCompone
         playspaceComponent.gameState.replaceCardsInDeck(shuffled, deck.id);
     } else {
         playspaceComponent.gameState.sendPeerData(
-            EActionTypes.shuffleDeck,
+            HF.EActionTypes.shuffleDeck,
             {
                 deckID: deck.id
             }
@@ -120,10 +119,10 @@ export function importDeck(popupScene: PopupScene, deck: Deck, playspaceComponen
 
     if (!playspaceComponent.gameState.getAmHost()) {
         playspaceComponent.gameState.sendPeerData(
-            EActionTypes.importDeck,
+            HF.EActionTypes.importDeck,
             {
                 deckID: deck.id,
-                type: EGameObjectType.DECK,
+                type: HF.EGameObjectType.DECK,
                 imagePaths: imagePaths,
             }
         );
