@@ -134,8 +134,8 @@ connection.end((err) => {
 To start the mySQL server, log onto the GCP console and select the **_SQL_** option in the side bar. Click on gcp-gameflex-sql and then select **_Start_** from the triple dot beside **_Overview_**. Wait a couple seconds and it should be up. The public IP Address should be used to replace **_localhost_** inside the connection code.
 
 Currently only one user exists:
-- **User**: root
-- **Password**: gameflex123
+- **User**: #####
+- **Password**: #####
 
 ### MongoDB: 
 
